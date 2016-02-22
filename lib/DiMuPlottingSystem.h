@@ -36,8 +36,10 @@ class DiMuPlottingSystem
         // ====================================================
         // Variables ------------------------------------------
         // ====================================================
-        TEntryList* list;
-        Sample* sample;
+        TEntryList* list;      // the list of events to associate with the sample, presumably the events that passed some set of cuts
+        Sample* sample;        // the sample to plot from
+        float reductionFactor; // reduce the number of events in each plot by this factor N->N/reductionFactor
+                               // useful when developing code or debugging so that you don't have to take as much time to see results
 
         // ====================================================
         // Functions-------------------------------------------
@@ -46,14 +48,11 @@ class DiMuPlottingSystem
 
         TH1F* hist1D(TString name, TString xtitle, TString title, float& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
         TH1F* hist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
-  
-        TH1F* genWeightedHist1D(TString name, TString xtitle, TString title, float& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
-        TH1F* genWeightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
 
-        TH1F* gPUWeightedHist1D(TString name, TString xtitle, TString title, float& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
-        TH1F* gPUWeightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
+        TH1F* weightedHist1D(TString name, TString xtitle, TString title, float& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
+        TH1F* weightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
 
-        Double_t scaleByXsec(Float_t luminosity);
+        Double_t getScaleFactor(Float_t luminosity);
         void scaleHistByXsec(TH1F* hist, Float_t luminosity);
 
         void arrangeStatBox(TCanvas* c, int i);

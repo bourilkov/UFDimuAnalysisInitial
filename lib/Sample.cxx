@@ -66,6 +66,9 @@ Sample::~Sample() {
   if (file !=0) {
     delete file;
   }
+  if (lumiWeights !=0) {
+    delete lumiWeights;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////
