@@ -23,10 +23,10 @@ Sample::Sample() {
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Sample::Sample(TString filename, TString name)
+Sample::Sample(TString ifilename, TString iname)
 {
-    this->filename = filename;
-    this->name = name;
+    filename = ifilename;
+    name = iname;
     treename = TString("dimuons/tree");
     file = new TFile(filename);
     tree = (TTree*)file->Get(treename);
@@ -40,11 +40,11 @@ Sample::Sample(TString filename, TString name)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Sample::Sample(TString filename, TString name, TString sampleType)
+Sample::Sample(TString ifilename, TString iname, TString isampleType)
 {
-    this->filename = filename;
-    this->name = name;
-    this->sampleType = sampleType;
+    filename = ifilename;
+    name = iname;
+    sampleType = isampleType;
     treename = TString("dimuons/tree");
     file = new TFile(filename);
     tree = (TTree*)file->Get(treename);

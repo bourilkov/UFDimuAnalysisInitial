@@ -10,6 +10,7 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
+#include "Sample.cxx"
 #include "DataFormats.h"
 #include "DiMuPlottingSystem.h"
 #include "TGraphAsymmErrors.h"
@@ -80,7 +81,17 @@ DiMuPlottingSystem::~DiMuPlottingSystem() {
 // _______________________Other Functions________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-TEntryList DiMuPlottingSystem::getEntryList()
+void DiMuPlottingSystem::initialize(Sample* isample, TEntryList* ilist)
+{
+    sample = isample;
+    list = ilist;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+TEntryList* DiMuPlottingSystem::getEntryList()
 {
 // Return the entry list currently associated with the sample.
     return list;
@@ -146,7 +157,7 @@ TH1F* DiMuPlottingSystem::hist1D(TString name, TString xtitle, TString title, fl
     TH1F* hist = new TH1F(name, title, nbins, xmin, xmax);
     //hist->Sumw2();
     hist->GetXaxis()->SetTitle(title);
-    Int_t sum_events = 0;
+    int sum_events = 0;
 
     for(int i=0; i<getNumEvents()/reductionFactor; i++)
     {
@@ -176,7 +187,7 @@ TH1F* DiMuPlottingSystem::hist1D(TString name, TString xtitle, TString title, in
     TH1F* hist = new TH1F(name, title, nbins, xmin, xmax);
     //hist->Sumw2();
     hist->GetXaxis()->SetTitle(title);
-    Int_t sum_events = 0;
+    int sum_events = 0;
 
     for(int i=0; i<getNumEvents()/reductionFactor; i++)
     {
@@ -203,33 +214,33 @@ TH1F* DiMuPlottingSystem::weightedHist1D(TString name, TString xtitle, TString t
 // Return a 1D histogram of varToPlot where each entry is weighted by the nnlo generated weights (+1/-1) and the PU weights via lumiWeights.
 
     // Data samples don't have to account for pu weighting or gen weighting
-    if(sample.sampleType.Contains("data")) return hist1D(name, xtitle, title, varToPlot, nbins, xmin, xmax); 
+    if(sample->sampleType.Contains("data")) return hist1D(name, xtitle, title, varToPlot, nbins, xmin, xmax); 
 
     TH1F* hist = new TH1F(name, title, nbins, xmin, xmax);
     //hist->Sumw2();
     hist->GetXaxis()->SetTitle(title);
-    Int_t sum_weights = 0;
-    Int_t sum_events = 0;
+    int sum_weights = 0;
+    int sum_events = 0;
 
 
     for(int i=0; i<getNumEvents()/reductionFactor; i++)
     {
         getEntry(i);
 
-        sum_weights+=s->lumiWeights->weight(s->vars.nPU)*s->vars.genWeight;
+        sum_weights+=sample->lumiWeights->weight(sample->vars.nPU)*sample->vars.genWeight;
         sum_events+=1;
 
-        if(i < 20) std::cout << i << ": genWeight = " << s->vars.genWeight << std::endl;
+        if(i < 20) std::cout << i << ": genWeight = " << sample->vars.genWeight << std::endl;
         if(i < 20) std::cout << i << ": varToPlot = " << varToPlot << std::endl;
-        if(i < 20) std::cout << i << ": reco1.pt = " << s->vars.reco1.pt << std::endl;
-        if(i < 20) std::cout << i << ": reco1.eta = " << s->vars.reco1.eta << std::endl;
-        if(i < 20) std::cout << i << ": reco2.pt = " << s->vars.reco2.pt << std::endl;
-        if(i < 20) std::cout << i << ": reco2.eta = " << s->vars.reco2.eta << std::endl;
-        if(i < 20) std::cout << i << ": vertexInfo.nVertices = " << s->vertices.nVertices << std::endl;
-        if(i < 20) std::cout << i << ": nPU = " << s->vars.nPU << std::endl;
-        if(i < 20) std::cout << i << ": lumiWeight = " << s->lumiWeights->weight(s->vars.nPU) << std::endl;
+        if(i < 20) std::cout << i << ": reco1.pt = " << sample->vars.reco1.pt << std::endl;
+        if(i < 20) std::cout << i << ": reco1.eta = " << sample->vars.reco1.eta << std::endl;
+        if(i < 20) std::cout << i << ": reco2.pt = " << sample->vars.reco2.pt << std::endl;
+        if(i < 20) std::cout << i << ": reco2.eta = " << sample->vars.reco2.eta << std::endl;
+        if(i < 20) std::cout << i << ": vertexInfo.nVertices = " << sample->vars.vertices.nVertices << std::endl;
+        if(i < 20) std::cout << i << ": nPU = " << sample->vars.nPU << std::endl;
+        if(i < 20) std::cout << i << ": lumiWeight = " << sample->lumiWeights->weight(sample->vars.nPU) << std::endl;
 
-        hist->Fill(varToPlot, 1.0*s->vars.genWeight*s->lumiWeights->weight(nPU));
+        hist->Fill(varToPlot, 1.0*sample->vars.genWeight*sample->lumiWeights->weight(sample->vars.nPU));
     }
 
     std::cout << std::endl;
@@ -248,37 +259,37 @@ TH1F* DiMuPlottingSystem::weightedHist1D(TString name, TString xtitle, TString t
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-TH1F* DiMuPlottingSystem::weightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax)
+TH1F* DiMuPlottingSystem::weightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, int nbins, int xmin, int xmax)
 {
 // Return a 1D histogram of varToPlot where each entry is weighted by the nnlo generated weights (+1/-1) and the PU weights via lumiWeights.
 
     // Data samples don't have to account for pu weighting or gen weighting
-    if(sample.sampleType.Contains("data")) return hist1D(name, xtitle, title, varToPlot, nbins, xmin, xmax); 
+    if(sample->sampleType.Contains("data")) return hist1D(name, xtitle, title, varToPlot, nbins, xmin, xmax); 
 
     TH1F* hist = new TH1F(name, title, nbins, xmin, xmax);
     //hist->Sumw2();
     hist->GetXaxis()->SetTitle(title);
-    Int_t sum_weights = 0;
-    Int_t sum_events = 0;
+    int sum_weights = 0;
+    int sum_events = 0;
 
     for(int i=0; i<getNumEvents()/reductionFactor; i++)
     {
         getEntry(i);
 
-        sum_weights+=s->lumiWeights->weight(s->vars.nPU)*s->vars.genWeight;
+        sum_weights+=sample->lumiWeights->weight(sample->vars.nPU)*sample->vars.genWeight;
         sum_events+=1;
 
-        if(i < 20) std::cout << i << ": genWeight = " << s->vars.genWeight << std::endl;
+        if(i < 20) std::cout << i << ": genWeight = " << sample->vars.genWeight << std::endl;
         if(i < 20) std::cout << i << ": varToPlot = " << varToPlot << std::endl;
-        if(i < 20) std::cout << i << ": reco1.pt = " << s->vars.reco1.pt << std::endl;
-        if(i < 20) std::cout << i << ": reco1.eta = " << s->vars.reco1.eta << std::endl;
-        if(i < 20) std::cout << i << ": reco2.pt = " << s->vars.reco2.pt << std::endl;
-        if(i < 20) std::cout << i << ": reco2.eta = " << s->vars.reco2.eta << std::endl;
-        if(i < 20) std::cout << i << ": vertexInfo.nVertices = " << s->vertices.nVertices << std::endl;
-        if(i < 20) std::cout << i << ": nPU = " << s->vars.nPU << std::endl;
-        if(i < 20) std::cout << i << ": lumiWeight = " << s->lumiWeights->weight(s->vars.nPU) << std::endl;
+        if(i < 20) std::cout << i << ": reco1.pt = " << sample->vars.reco1.pt << std::endl;
+        if(i < 20) std::cout << i << ": reco1.eta = " << sample->vars.reco1.eta << std::endl;
+        if(i < 20) std::cout << i << ": reco2.pt = " << sample->vars.reco2.pt << std::endl;
+        if(i < 20) std::cout << i << ": reco2.eta = " << sample->vars.reco2.eta << std::endl;
+        if(i < 20) std::cout << i << ": vertexInfo.nVertices = " << sample->vars.vertices.nVertices << std::endl;
+        if(i < 20) std::cout << i << ": nPU = " << sample->vars.nPU << std::endl;
+        if(i < 20) std::cout << i << ": lumiWeight = " << sample->lumiWeights->weight(sample->vars.nPU) << std::endl;
 
-        hist->Fill(varToPlot, 1.0*s->vars.genWeight*s->lumiWeights->weight(nPU));
+        hist->Fill(varToPlot, 1.0*sample->vars.genWeight*sample->lumiWeights->weight(sample->vars.nPU));
     }
 
     std::cout << std::endl;
@@ -298,11 +309,11 @@ TH1F* DiMuPlottingSystem::weightedHist1D(TString name, TString xtitle, TString t
 ///////////////////////////////////////////////////////////////////////////////
 
 
-Double_t DiMuPlottingSystem::getScaleFactor(Float_t luminosity)
+double DiMuPlottingSystem::getScaleFactor(float luminosity)
 {
 // Calculate the scale factor according to the integrated luminosity of the data and the cross section of the sample.
     if(sample->sampleType.Contains("data")) return 1;
-    Double_t scalefactor = luminosity*xsec/(sample->nOriginalWeighted/reductionFactor);
+    Double_t scalefactor = luminosity*sample->xsec/(sample->nOriginalWeighted/reductionFactor);
     return scalefactor;
 }
 
@@ -310,7 +321,7 @@ Double_t DiMuPlottingSystem::getScaleFactor(Float_t luminosity)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void DiMuPlottingSystem::scaleHistByXsec(TH1F* hist, Float_t luminosity)
+void DiMuPlottingSystem::scaleHistByXsec(TH1F* hist, float luminosity)
 {
 // Scale the histogram according to the cross section and luminosity
     hist->Scale(getScaleFactor(luminosity));
@@ -360,9 +371,9 @@ void DiMuPlottingSystem::arrangeLegend(TCanvas* c, int i)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-THStack* DiMuPlottingSystem::overlay(TList* list, TString title, TString xaxistitle, TString yaxistitle)
+THStack* DiMuPlottingSystem::overlay(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
 {
-// Assumes data is in the last list location so that it appears on top of the other histograms.
+// Assumes data is in the last ilist location so that it appears on top of the other histograms.
 
 
 // Wide bottom left
@@ -379,11 +390,11 @@ THStack* DiMuPlottingSystem::overlay(TList* list, TString title, TString xaxisti
   // Square-ish top left
   //TLegend* l = new TLegend(0.13, 0.56, 0.33, 0.88, "", "brNDC");
 
-  TIter next(list);
+  TIter next(ilist);
   TObject* object = 0;
   int i=0;
 
-  std::vector<Int_t> colors;
+  std::vector<int> colors;
   colors.push_back(2);
   colors.push_back(4);
   colors.push_back(6);
@@ -412,7 +423,7 @@ THStack* DiMuPlottingSystem::overlay(TList* list, TString title, TString xaxisti
  
 
       // Assuming data is in the last location
-      if(object == list->Last())
+      if(object == ilist->Last())
       {
           hist->SetMarkerStyle(20);
           hist->SetLineColor(1);
@@ -451,19 +462,19 @@ THStack* DiMuPlottingSystem::overlay(TList* list, TString title, TString xaxisti
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TH1F* DiMuPlottingSystem::addHists(TList* list, TString name)
+TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name)
 {
 // Add all of the histograms in the list into a single histogram
 
-    TH1F* htotal = (TH1F*)list->First()->Clone(name);
+    TH1F* htotal = (TH1F*)ilist->First()->Clone(name);
 
-    TIter next(list);
+    TIter next(ilist);
     TObject* object = 0;
 
     while ((object = next()))
     {
         TH1F* h = (TH1F*) object;
-        if(object != list->First()) htotal->Add(h);
+        if(object != ilist->First()) htotal->Add(h);
     }
     return htotal;
 }
@@ -472,7 +483,7 @@ TH1F* DiMuPlottingSystem::addHists(TList* list, TString name)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* list, TString title, TString xaxistitle, TString yaxistitle)
+TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
 {
     // Define two gaussian histograms. Note the X and Y title are defined
     // at booking time using the convention "Hist_title ; X_title ; Y_title"
@@ -481,8 +492,8 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* list, TString titl
     TCanvas *c = new TCanvas();
     c->SetCanvasSize(800,800);
 
-    TH1F* first = (TH1F*) list->At(0);
-    TH1F* last = (TH1F*) list->Last();
+    TH1F* first = (TH1F*) ilist->At(0);
+    TH1F* last = (TH1F*) ilist->Last();
 
     // force the histograms to match
     // Right now this only scales the data to match the major player DYJetsToLL assumed to be in the first location
@@ -501,7 +512,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* list, TString titl
 
     // Draw stacked histograms here
     first->SetStats(0);          // No statistics on upper plot
-    THStack* stack = overlay(list, title, xaxistitle, yaxistitle);
+    THStack* stack = overlay(ilist, title, xaxistitle, yaxistitle);
 
     // Not sure how to work with this
     // Do not draw the Y axis label on the upper plot and redraw a small

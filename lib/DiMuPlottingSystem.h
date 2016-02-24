@@ -30,6 +30,7 @@ class DiMuPlottingSystem
         // ====================================================
 
         DiMuPlottingSystem();
+        DiMuPlottingSystem(Sample* sample);
         DiMuPlottingSystem(Sample* sample, TEntryList* list);
         ~DiMuPlottingSystem();
 
@@ -45,22 +46,27 @@ class DiMuPlottingSystem
         // Functions-------------------------------------------
         // ====================================================
         void initialize(Sample* sample, TEntryList* list);
+        TEntryList* getEntryList();
+        void setEntryList(TEntryList* ilist);
+        int getEntry(int i);
+        int getNumEvents();
 
-        TH1F* hist1D(TString name, TString xtitle, TString title, float& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
-        TH1F* hist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
+        double getScaleFactor(float luminosity);
+        void scaleHistByXsec(TH1F* hist, float luminosity);
 
-        TH1F* weightedHist1D(TString name, TString xtitle, TString title, float& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
-        TH1F* weightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, Int_t nbins, Int_t xmin, Int_t xmax);
+        TH1F* hist1D(TString name, TString xtitle, TString title, float& varToPlot, int nbins, int xmin, int xmax);
+        TH1F* hist1D(TString name, TString xtitle, TString title, int& varToPlot, int nbins, int xmin, int xmax);
 
-        Double_t getScaleFactor(Float_t luminosity);
-        void scaleHistByXsec(TH1F* hist, Float_t luminosity);
-
-        void arrangeStatBox(TCanvas* c, int i);
-        void arrangeLegend(TCanvas* c, int i);
+        TH1F* weightedHist1D(TString name, TString xtitle, TString title, float& varToPlot, int nbins, int xmin, int xmax);
+        TH1F* weightedHist1D(TString name, TString xtitle, TString title, int& varToPlot, int nbins, int xmin, int xmax);
 
         THStack* overlay(TList* list, TString title, TString xaxistitle, TString yaxistitle);
         TCanvas* stackedHistogramsAndRatio(TList* list, TString title, TString xaxistitle, TString yaxistitle);
         TH1F* addHists(TList* list, TString name);
+
+        void arrangeStatBox(TCanvas* c, int i);
+        void arrangeLegend(TCanvas* c, int i);
+
 };
 
 #endif
