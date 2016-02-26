@@ -10,9 +10,9 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-#include "Sample.cxx"
-#include "DataFormats.h"
+#include "Sample.h"
 #include "DiMuPlottingSystem.h"
+
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "TString.h"

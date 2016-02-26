@@ -1,5 +1,6 @@
 // VarSet.h
 // Load the variables from the ttree into the structs in this class
+// The structs are defined in DataFormats.h
 
 #ifndef ADD_VARSET
 #define ADD_VARSET
