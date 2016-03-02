@@ -11,23 +11,18 @@ class CategorySelection
 {
     public:
         CategorySelection(); 
-        CategorySelection(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, float cDijetDeltaEtaMin, float cDijetMassMinGGFT,
+        CategorySelection(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, float cDijetDeltaEtaMinVBFT, float cDijetMassMinGGFT,
                           float cDimuPtMinGGFT, float cDimuPtMin01T); 
 
         // Preselection
         float cLeadPtMin;
         float cSubleadPtMin;
         float cMETMax;
-
-        // Jet selection
-        float cJetSelectionPtMin;  
-        float cJetSelectionEtaMax;      
-
         bool isPreselected;
 
         // VBF Tight
         float cDijetMassMinVBFT;
-        float cDijetDeltaEtaMin;
+        float cDijetDeltaEtaMinVBFT;
         bool isVBFTight;
 
         // VBF Loose
@@ -46,14 +41,7 @@ class CategorySelection
         bool isLoose01;
 
         // Determine which category the event belongs to
+        // result stored in isVBFTight, isGGFTight, etc 
         void evaluate(VarSet& vars);
-        
-        // boolean tests for the different categories
-        bool preselection(VarSet& vars);
-        bool VBFTight(VarSet& vars);
-        bool GGFTight(VarSet& vars);
-        bool VBFLoose(VarSet& vars);
-        bool Tight01(VarSet& vars);
-        bool Loose01(VarSet& vars);
 };
 #endif

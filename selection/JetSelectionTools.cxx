@@ -12,6 +12,7 @@
 
 #include "JetSelectionTools.h"
 #include "TMath.h"
+#include "TLorentzVector.h"
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -50,4 +51,23 @@ int JetSelectionTools::getNValidJets(_PFJetInfo& jets)
             nValidJets++;
     }   
     return nValidJets;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void JetSelectionTools::getValidJets(_PFJetInfo& jets, std::vector<TLorentzVector>& jetvec) 
+{
+// Determine the number of valid jets using the given cuts
+
+    for(unsigned int j=0; j < jets.nJets && j < 10; ++j)
+    {   
+        if(!(jets.pt[j] < cJetSelectionPtMin && TMath::Abs(jets.eta[j]) > cJetSelectionEtaMax))
+        {
+            TLorentzVector jet4vec; 
+            jet4vec.SetPtEtaPhiM(jets.pt[0],jets.eta[0],jets.phi[0],jets.mass[0]);
+            jetvec.push_back(jet4vec);
+        }
+    }   
 }

@@ -6,6 +6,7 @@
 #define ADD_VARSET
 
 #include "DataFormats.h"
+#include "TLorentzVector.h"
 
 class VarSet
 {
@@ -19,6 +20,7 @@ class VarSet
         _MuonInfo reco2;
         _MetInfo met;
         _PFJetInfo jets;
+        std::vector<TLorentzVector> validJets;
  
         float recoCandMass, recoCandMassPF;
         float recoCandPt, recoCandPtPF;

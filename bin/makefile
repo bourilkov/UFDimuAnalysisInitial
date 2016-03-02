@@ -3,18 +3,29 @@
 # Set the Compiler
 CC = g++
 
+# Include the root libraries
 LIBFLAGS = `root-config --libs` -O3 -lXMLIO -lMLP -lMinuit
+
+# the directory for the base library that enables the analysis
 LIBDIR = ../lib/
+
+# the directory for the cut selection objects specific to the analysis
 SDIR = ../selection/
+
+# include the libdir and sdir and the root libraries
 CFLAGS = -I${LIBDIR} -I${SDIR} -c -g `root-config --cflags`
+
+# The name of the .cxx file you want to compile into an executable
 MAIN = synch
 
-synch: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h
+# link all of the objects to the main program
+${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h
 	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
 
 ${MAIN}.o: ${MAIN}.cxx 
 	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
 
+# compile the dependencies
 ${SDIR}SelectionCuts.o: ${SDIR}SelectionCuts.cxx ${SDIR}SelectionCuts.h ${LIBDIR}Cut.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h
 	$(CC) $(CFLAGS) ${SDIR}SelectionCuts.cxx -o ${SDIR}SelectionCuts.o
 

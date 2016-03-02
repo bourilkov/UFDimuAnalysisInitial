@@ -4,7 +4,6 @@
 #define ADD_SELECTIONCUTS
 
 #include "Cut.h"
-#include "JetSelectionTools.h"
 
 // Define the different cuts
 class TightMuonIdCuts : public Cut
@@ -32,15 +31,13 @@ class SynchEventSelectionCuts : public Cut
     public:
         SynchEventSelectionCuts();
         SynchEventSelectionCuts(float cDimuMassMin, float cDimuMassMax, float cTrigMuPtMin, float cTrigMuEtaMax, 
-                                float cPVzMax, int cNDFpv, int cNPV, int nJets, float jetSelectionPtMin, float jetSelectionEtaMax);
+                                float cPVzMax, int cNDFpv, int cNPV, int nJets);
 
         float cDimuMassMin;        // >
         float cDimuMassMax;        // <
         float cTrigMuPtMin;        // >
         float cTrigMuEtaMax;       // <
         float cPVzMax;             // < 
-        float cJetSelectionPtMin;  // > 
-        float cJetSelectionEtaMax; // <      
         int cNDFpv;                // >
         int cNPV;                  // > 
         int cNJets;                // <=

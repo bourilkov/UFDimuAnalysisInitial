@@ -111,20 +111,13 @@ SynchEventSelectionCuts::SynchEventSelectionCuts()
     cNDFpv = 4;                 // >
     cNPV = 0;                   // > 
     cNJets = 2;                 // <= 
-
-    // The jets to consider when calculating njets
-    // use the default values from the jet selection object
-    JetSelectionTools jetselection;
-    cJetSelectionPtMin = jetselection.cJetSelectionPtMin;    // >
-    cJetSelectionEtaMax = jetselection.cJetSelectionEtaMax;  // <
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-SynchEventSelectionCuts::SynchEventSelectionCuts(float dimuMassMin, float dimuMassMax, float trigMuPtMin, float trigMuEtaMax, float PVzMax, int NDFpv, int NPV, int nJets,
-                                                 float jetSelectionPtMin, float jetSelectionEtaMax)
+SynchEventSelectionCuts::SynchEventSelectionCuts(float dimuMassMin, float dimuMassMax, float trigMuPtMin, float trigMuEtaMax, float PVzMax, int NDFpv, int NPV, int nJets)
 {
 // Default values for the event selection for the synchronization exercise
 
@@ -136,9 +129,6 @@ SynchEventSelectionCuts::SynchEventSelectionCuts(float dimuMassMin, float dimuMa
     cNDFpv = NDFpv;                   // >
     cNPV = NPV;                       // > 
     cNJets = nJets;                   // <=
- 
-    cJetSelectionPtMin = jetSelectionPtMin;    // >
-    cJetSelectionEtaMax = jetSelectionEtaMax;  // <
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -147,8 +137,6 @@ SynchEventSelectionCuts::SynchEventSelectionCuts(float dimuMassMin, float dimuMa
 
 bool SynchEventSelectionCuts::evaluate(VarSet& vars)
 {
-    JetSelectionTools jetselection(cJetSelectionPtMin, cJetSelectionEtaMax); 
-
     // if the event fails a single cut return false
     // Require oppositely charged muons in the event
     if(!(vars.reco1.charge != vars.reco2.charge)) return false;
@@ -168,7 +156,7 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     if(!passesVertexSelection(vars.vertices)) return false;
 
     // nJets selection
-    if(!(jetselection.getNValidJets(vars.jets) <= cNJets)) return false;
+    if(!(vars.validJets.size() <= cNJets)) return false;
 
     // Passed all the cuts
     return true;
