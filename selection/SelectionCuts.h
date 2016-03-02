@@ -1,9 +1,10 @@
 //SelectionCuts.h
 
-#ifndef ADD_CUTS
-#define ADD_CUTS
+#ifndef ADD_SELECTIONCUTS
+#define ADD_SELECTIONCUTS
 
 #include "Cut.h"
+#include "JetSelectionTools.h"
 
 // Define the different cuts
 class TightMuonIdCuts : public Cut
@@ -31,17 +32,21 @@ class SynchEventSelectionCuts : public Cut
     public:
         SynchEventSelectionCuts();
         SynchEventSelectionCuts(float cDimuMassMin, float cDimuMassMax, float cTrigMuPtMin, float cTrigMuEtaMax, 
-                                float cPVzMax, int cNDFpv, int cNPV);
+                                float cPVzMax, int cNDFpv, int cNPV, int nJets, float jetSelectionPtMin, float jetSelectionEtaMax);
 
         float cDimuMassMin;        // >
         float cDimuMassMax;        // <
         float cTrigMuPtMin;        // >
         float cTrigMuEtaMax;       // <
         float cPVzMax;             // < 
+        float cJetSelectionPtMin;  // > 
+        float cJetSelectionEtaMax; // <      
         int cNDFpv;                // >
         int cNPV;                  // > 
+        int cNJets;                // <=
 
         bool evaluate(VarSet& vars);
+        bool passesVertexSelection(_VertexInfo& vertices);
         TString string();
 };
 
@@ -56,16 +61,34 @@ class SynchMuonSelectionCuts : public Cut
         float cMaxRelIso;           // <
 
         bool evaluate(VarSet& vars);
+        bool evaluate(_MuonInfo& recoMu, float rho);
         TString string();
 };
 
 class Run1EventSelectionCuts : public Cut
 {
+    public:
+        Run1EventSelectionCuts();
+        Run1EventSelectionCuts(float trigMuPtMin);
 
+        float cTrigMuPtMin;        // >
+
+        bool evaluate(VarSet& vars);
+        TString string();
 };
 
 class Run1MuonSelectionCuts : public Cut
 {
+    public:
+        Run1MuonSelectionCuts();
+        Run1MuonSelectionCuts(float minPt, float maxEta, float maxRelIso);
 
+        float cMinPt;               // >
+        float cMaxEta;              // <
+        float cMaxRelIso;           // <
+
+        bool evaluate(VarSet& vars);
+        bool evaluate(_MuonInfo& recoMu);
+        TString string();
 };
 #endif

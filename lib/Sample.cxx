@@ -88,6 +88,7 @@ void Sample::setBranchAddresses()
     tree->SetBranchAddress("met", &vars.met);
     tree->SetBranchAddress("recoCandMassPF", &vars.recoCandMassPF);
     tree->SetBranchAddress("recoCandPtPF", &vars.recoCandPtPF);
+    tree->SetBranchAddress("rho", &vars.rho);
 }
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------

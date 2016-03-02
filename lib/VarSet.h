@@ -22,6 +22,7 @@ class VarSet
  
         float recoCandMass, recoCandMassPF;
         float recoCandPt, recoCandPtPF;
+        float rho;
         int genWeight;
         int nPU;
 };
