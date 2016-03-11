@@ -15,7 +15,6 @@ typedef struct {
 typedef struct{
   int nVertices;
   int isValid[20];
-  int ndf[20];
   float x[20];	
   float y[20];	
   float z[20];	
@@ -23,6 +22,7 @@ typedef struct{
   float yErr[20];	
   float zErr[20];	
   float chi2[20];
+  int ndf[20];
   float normChi2[20];
 } _VertexInfo;
 
@@ -103,6 +103,10 @@ typedef struct {
   float hltPt[3];
   float hltEta[3];
   float hltPhi[3];
+
+  float segmentCompatibility;
+  float combinedQualityChi2LocalPosition;
+  float combinedQualityTrkKink;
   
 } _MuonInfo;
 
@@ -185,6 +189,8 @@ typedef struct {
   float genInvF[10];
   // Auxiliary Fraction (Undecayed Sigmas, etc.)
   float genAuxF[10];
+  // PUID
+  float puid[10];
 } _PFJetInfo;
 
 // generator level jets
@@ -210,4 +216,3 @@ typedef struct {
 } _genPartInfo;
 
 #endif
-

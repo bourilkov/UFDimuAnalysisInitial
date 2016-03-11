@@ -47,7 +47,7 @@ int JetSelectionTools::getNValidJets(_PFJetInfo& jets)
     int nValidJets = 0;
     for(unsigned int j=0; j < jets.nJets && j < 10; ++j)
     {   
-        if(!(jets.pt[j] < cJetSelectionPtMin && TMath::Abs(jets.eta[j]) > cJetSelectionEtaMax))
+        if(jets.pt[j] > cJetSelectionPtMin && TMath::Abs(jets.eta[j]) < cJetSelectionEtaMax)
             nValidJets++;
     }   
     return nValidJets;
@@ -63,10 +63,10 @@ void JetSelectionTools::getValidJets(_PFJetInfo& jets, std::vector<TLorentzVecto
 
     for(unsigned int j=0; j < jets.nJets && j < 10; ++j)
     {   
-        if(!(jets.pt[j] < cJetSelectionPtMin && TMath::Abs(jets.eta[j]) > cJetSelectionEtaMax))
+        if(jets.pt[j] > cJetSelectionPtMin && TMath::Abs(jets.eta[j]) < cJetSelectionEtaMax)
         {
             TLorentzVector jet4vec; 
-            jet4vec.SetPtEtaPhiM(jets.pt[0],jets.eta[0],jets.phi[0],jets.mass[0]);
+            jet4vec.SetPtEtaPhiM(jets.pt[j],jets.eta[j],jets.phi[j],jets.mass[j]);
             jetvec.push_back(jet4vec);
         }
     }   

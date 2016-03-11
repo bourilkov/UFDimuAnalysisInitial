@@ -117,3 +117,19 @@ void CategorySelection::evaluate(VarSet& vars)
         else{ isLoose01 = true; return; }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void CategorySelection::reset()
+{
+// Reset the boolean values for the next iteration
+
+    isPreselected = false;
+    isVBFTight = false;
+    isVBFLoose = false;
+    isGGFTight = false;
+    isTight01 = false;
+    isLoose01 = false;
+}

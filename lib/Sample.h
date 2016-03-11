@@ -31,8 +31,9 @@ class Sample
         TString sampleType;    // "data", "signal", "background"
 
         int plotColor;         // the color used when plotting the sample
-        int nOriginal;         // the number of original events in the sample
-        int nOriginalWeighted; // the number of events in the sample accounting for genWeights
+        int nOriginal;         // the number of events run over to get this sample
+        int nOriginalWeighted; // the number of original events run over to get this sample accounting for genWeights
+        int N;                 // the number of events in the sample
 
         float xsec;            // xsec in pb
         float lumi;            // the luminosity of the data or effective luminosity of MC

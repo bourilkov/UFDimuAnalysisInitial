@@ -16,7 +16,11 @@
 // _______________________Constructor/Destructor_________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-Sample::Sample() {
+Sample::Sample() 
+{
+    lumiWeights = 0;
+    xsec = -999; 
+    lumi = -999;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,8 +36,11 @@ Sample::Sample(TString ifilename, TString iname)
     tree = (TTree*)file->Get(treename);
 
     lumiWeights = 0;
+    xsec = -999; 
+    lumi = -999;
     
     setBranchAddresses();
+    calculateN();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,8 +57,11 @@ Sample::Sample(TString ifilename, TString iname, TString isampleType)
     tree = (TTree*)file->Get(treename);
 
     lumiWeights = 0;
+    xsec = -999; 
+    lumi = -999;
     
     setBranchAddresses();
+    calculateN();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,6 +91,7 @@ void Sample::setBranchAddresses()
     tree->SetBranchAddress("nPU", &vars.nPU);
     tree->SetBranchAddress("recoCandPt", &vars.recoCandPt);
     tree->SetBranchAddress("vertexInfo", &vars.vertices);
+    tree->SetBranchAddress("eventInfo", &vars.eventInfo);
     tree->SetBranchAddress("reco1", &vars.reco1);
     tree->SetBranchAddress("reco2", &vars.reco2);
     tree->SetBranchAddress("genWeight", &vars.genWeight);
@@ -110,6 +121,8 @@ void Sample::calculateN()
     TH1F* nEventsHist = (TH1F*) gDirectory->Get("nevents_"+name); 
     nOriginal = nEventsHist->GetEntries()*nEventsHist->GetMean();
     if(metadata !=0) delete metadata;
+
+    N = tree->GetEntries();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

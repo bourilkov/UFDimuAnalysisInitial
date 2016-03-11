@@ -43,5 +43,6 @@ class CategorySelection
         // Determine which category the event belongs to
         // result stored in isVBFTight, isGGFTight, etc 
         void evaluate(VarSet& vars);
+        void reset();
 };
 #endif
