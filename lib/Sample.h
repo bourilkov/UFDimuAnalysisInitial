@@ -42,9 +42,9 @@ class Sample
 
         int getEntry(int i);                    // load the ith event from the ttree into vars
         int getEntry(int i, TEntryList* list);  // load ith event from the list into vars
-                                                // the ith event in the list maps to the xth tree entry
+                                                // the ith event in the list maps to the jth tree entry
 
-        void calculateN();         // calculate nOriginal and nOriginalWeighted
+        void calculateNoriginal(); // calculate nOriginal and nOriginalWeighted
         void setBranchAddresses(); // link the values in the tree to vars
 
     protected:

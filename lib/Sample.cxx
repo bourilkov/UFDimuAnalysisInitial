@@ -34,13 +34,14 @@ Sample::Sample(TString ifilename, TString iname)
     treename = TString("dimuons/tree");
     file = new TFile(filename);
     tree = (TTree*)file->Get(treename);
+    N = tree->GetEntries();
 
     lumiWeights = 0;
     xsec = -999; 
     lumi = -999;
     
     setBranchAddresses();
-    calculateN();
+    calculateNoriginal();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,13 +56,14 @@ Sample::Sample(TString ifilename, TString iname, TString isampleType)
     treename = TString("dimuons/tree");
     file = new TFile(filename);
     tree = (TTree*)file->Get(treename);
+    N = tree->GetEntries();
 
     lumiWeights = 0;
     xsec = -999; 
     lumi = -999;
     
     setBranchAddresses();
-    calculateN();
+    calculateNoriginal();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,7 +107,7 @@ void Sample::setBranchAddresses()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void Sample::calculateN()
+void Sample::calculateNoriginal()
 {
 // Calculate the number of original events using the meta data tree
 // Calculate the weighted number of original events as well
@@ -121,8 +123,6 @@ void Sample::calculateN()
     TH1F* nEventsHist = (TH1F*) gDirectory->Get("nevents_"+name); 
     nOriginal = nEventsHist->GetEntries()*nEventsHist->GetMean();
     if(metadata !=0) delete metadata;
-
-    N = tree->GetEntries();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -65,8 +65,8 @@ bool TightMuonIdCuts::evaluate(VarSet& vars)
     if(!(vars.reco1.numValidPixelHits > cNumValidPixelHits)) return false;
     if(!(vars.reco1.numOfMatchedStations > cNumOfMatchedStations)) return false;
     if(!(vars.reco1.normChiSquare < cNormChiSquare)) return false;
-    if(!(vars.reco1.d0_PV < cd0_PV)) return false;
-    if(!(vars.reco1.dz_PV < cdz_PV)) return false;
+    if(!(TMath::Abs(vars.reco1.d0_PV) < cd0_PV)) return false;
+    if(!(TMath::Abs(vars.reco1.dz_PV) < cdz_PV)) return false;
 
     // Cuts on reco2
     if(!vars.reco2.isGlobal) return false;
@@ -76,8 +76,8 @@ bool TightMuonIdCuts::evaluate(VarSet& vars)
     if(!(vars.reco2.numValidPixelHits > cNumValidPixelHits)) return false;
     if(!(vars.reco2.numOfMatchedStations > cNumOfMatchedStations)) return false;
     if(!(vars.reco2.normChiSquare < cNormChiSquare)) return false;
-    if(!(vars.reco2.d0_PV < cd0_PV)) return false;
-    if(!(vars.reco2.dz_PV < cdz_PV)) return false;
+    if(!(TMath::Abs(vars.reco2.d0_PV) < cd0_PV)) return false;
+    if(!(TMath::Abs(vars.reco2.dz_PV) < cdz_PV)) return false;
 
     // The event passed all the cuts return true
     return true;
@@ -176,7 +176,7 @@ bool SynchEventSelectionCuts::passesVertexSelection(_VertexInfo& vertices)
     bool passesNDFreq = false;
     for(int v=0; v < vertices.nVertices && v < 20; ++v)
     {   
-        if(vertices.z[v] < cPVzMax) passesZreq = true;
+        if(TMath::Abs(vertices.z[v]) < cPVzMax) passesZreq = true;
         if(vertices.ndf[v] > cNDFpv) passesNDFreq = true;
  
         // There is at least one vertex that passes the Z req and at least one that passes the NDF req 
@@ -251,7 +251,7 @@ bool SynchMuonSelectionCuts::evaluate(_MuonInfo& recoMu, float rho)
     if(!(recoMu.pt > cMinPt)) return false;
 
     // eta cuts
-    if(!(recoMu.eta < cMaxEta)) return false;
+    if(!(TMath::Abs(recoMu.eta) < cMaxEta)) return false;
 
     // isolation cuts
     if(!((recoMu.trackIsoSumPt + TMath::Max(0.0,recoMu.ecalIso + recoMu.hcalIso - rho*TMath::Pi()*0.09))/recoMu.pt < cMaxRelIso)) return false;
@@ -379,7 +379,7 @@ bool Run1MuonSelectionCuts::evaluate(_MuonInfo& recoMu)
     if(!(recoMu.pt > cMinPt)) return false;
 
     // eta cuts
-    if(!(recoMu.eta < cMaxEta)) return false;
+    if(!(TMath::Abs(recoMu.eta) < cMaxEta)) return false;
 
     // isolation cuts
     if(!((recoMu.sumChargedHadronPtR03 + 
