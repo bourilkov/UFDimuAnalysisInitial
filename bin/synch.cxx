@@ -127,82 +127,13 @@ int main(int argc, char* argv[])
     std::vector<std::pair<int,int>> eventsToCheck;
 
     // v1 extra
-    //v1 extra
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 159317578));
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 159510027));
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 11422285 ));
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 18707162 ));
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 19684441 ));
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 21454581 ));
+    eventsToCheck.push_back( std::pair<int,int>(257751, 159317578));
+    eventsToCheck.push_back( std::pair<int,int>(257751, 159510027));
+    eventsToCheck.push_back( std::pair<int,int>(257751, 11422285 ));
+    eventsToCheck.push_back( std::pair<int,int>(257751, 18707162 ));
+    eventsToCheck.push_back( std::pair<int,int>(257751, 19684441 ));
+    eventsToCheck.push_back( std::pair<int,int>(257751, 21454581 ));
 
-    //v2 extra
-    eventsToCheck.push_back( std::pair<int,int>(256843, 20389644  ));
-    eventsToCheck.push_back( std::pair<int,int>(256843, 1676441450));
-    eventsToCheck.push_back( std::pair<int,int>(256843, 1648525946));
-    eventsToCheck.push_back( std::pair<int,int>(256941, 377084117 ));
-    eventsToCheck.push_back( std::pair<int,int>(257599, 151118215 ));
-    eventsToCheck.push_back( std::pair<int,int>(257613, 86404019  ));
-    eventsToCheck.push_back( std::pair<int,int>(257613, 826208909 ));
-    eventsToCheck.push_back( std::pair<int,int>(257645, 402685067 ));
-    eventsToCheck.push_back( std::pair<int,int>(256677, 109134437 ));
-    eventsToCheck.push_back( std::pair<int,int>(257751, 348649261 ));
-    eventsToCheck.push_back( std::pair<int,int>(257968, 272766913 ));
-    eventsToCheck.push_back( std::pair<int,int>(257969, 853749649 ));
-    eventsToCheck.push_back( std::pair<int,int>(258158, -203340927));
-    eventsToCheck.push_back( std::pair<int,int>(258749, 372492533 ));
-    eventsToCheck.push_back( std::pair<int,int>(258750, 106410737 ));
-    eventsToCheck.push_back( std::pair<int,int>(259637, 265438270 ));
-    eventsToCheck.push_back( std::pair<int,int>(259685, 66197434  ));
-    eventsToCheck.push_back( std::pair<int,int>(259685, 526881204 ));
-    eventsToCheck.push_back( std::pair<int,int>(259685, 649554922 ));
-    eventsToCheck.push_back( std::pair<int,int>(259721, 92750360  ));
-    eventsToCheck.push_back( std::pair<int,int>(259721, 168635516 ));
-    eventsToCheck.push_back( std::pair<int,int>(259810, 2802959   ));
-    eventsToCheck.push_back( std::pair<int,int>(259820, 115004277 ));
-    eventsToCheck.push_back( std::pair<int,int>(259822, 117664625 ));
-    eventsToCheck.push_back( std::pair<int,int>(259822, 590749834 ));
-    eventsToCheck.push_back( std::pair<int,int>(259862, 335916331 ));
-    eventsToCheck.push_back( std::pair<int,int>(260424, 298879645 ));
-    eventsToCheck.push_back( std::pair<int,int>(260424, 652095185 ));
-    eventsToCheck.push_back( std::pair<int,int>(258177, 1589871330));
-    eventsToCheck.push_back( std::pair<int,int>(260431, 275150843 ));
-    eventsToCheck.push_back( std::pair<int,int>(260532, 87834731  ));
-    eventsToCheck.push_back( std::pair<int,int>(260532, 474265542 ));
-    eventsToCheck.push_back( std::pair<int,int>(260532, 773481092 ));
-    eventsToCheck.push_back( std::pair<int,int>(260538, 41725919  ));
-    eventsToCheck.push_back( std::pair<int,int>(260593, 270495532 ));
-    eventsToCheck.push_back( std::pair<int,int>(260593, 439696401 ));
-    eventsToCheck.push_back( std::pair<int,int>(260627, 142339212 ));
-    eventsToCheck.push_back( std::pair<int,int>(260627, 179273240 ));
-    eventsToCheck.push_back( std::pair<int,int>(260627, -1698840585));
-    eventsToCheck.push_back( std::pair<int,int>(260627, -1329072533));
-    eventsToCheck.push_back( std::pair<int,int>(260627, -1181500475));
-    eventsToCheck.push_back( std::pair<int,int>(258159, 405114713 ));
-    eventsToCheck.push_back( std::pair<int,int>(258403, 216683563 ));
-    eventsToCheck.push_back( std::pair<int,int>(258403, 267477890 ));
-    eventsToCheck.push_back( std::pair<int,int>(258434, 151604016 ));
-    eventsToCheck.push_back( std::pair<int,int>(258434, 581243634 ));
-    eventsToCheck.push_back( std::pair<int,int>(258440, 471196437 ));
-    eventsToCheck.push_back( std::pair<int,int>(258440, 896092686 ));
-    eventsToCheck.push_back( std::pair<int,int>(258440, 986296842 ));
-    eventsToCheck.push_back( std::pair<int,int>(258444, 29804299  ));
-    eventsToCheck.push_back( std::pair<int,int>(258448, 21325918  ));
-    eventsToCheck.push_back( std::pair<int,int>(258448, 702445250 ));
-    eventsToCheck.push_back( std::pair<int,int>(258177, 199124364 ));
-    eventsToCheck.push_back( std::pair<int,int>(258694, 176674123 ));
-    eventsToCheck.push_back( std::pair<int,int>(258703, 203125412 ));
-    eventsToCheck.push_back( std::pair<int,int>(258706, 513651232 ));
-    eventsToCheck.push_back( std::pair<int,int>(258712, 272308998 ));
-    eventsToCheck.push_back( std::pair<int,int>(258745, 155432977 ));
-
-
-
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 618680179) );
-    //eventsToCheck.push_back( std::pair<int,int>(257645, 309094265) );
-    //eventsToCheck.push_back( std::pair<int,int>(256843, 570071294) );
-    //eventsToCheck.push_back( std::pair<int,int>(258158, 979723330) );
-    //eventsToCheck.push_back( std::pair<int,int>(257751, 618680179) );
-    //eventsToCheck.push_back( std::pair<int,int>(256843, 322474699) );
 
     // Loop through the events in the data sample
     Sample* s = samples["Data"];

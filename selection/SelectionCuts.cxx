@@ -207,7 +207,7 @@ SynchMuonSelectionCuts::SynchMuonSelectionCuts()
 
     cMinPt = 10;       // >
     cMaxEta = 2.4;     // <
-    cMaxRelIso = 0.25; // <
+    cMaxRelIso = 0.10; // <
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,8 @@ bool SynchMuonSelectionCuts::evaluate(_MuonInfo& recoMu, float rho)
     if(!(TMath::Abs(recoMu.eta) < cMaxEta)) return false;
 
     // isolation cuts
-    if(!((recoMu.trackIsoSumPt + TMath::Max(0.0,recoMu.ecalIso + recoMu.hcalIso - rho*TMath::Pi()*0.09))/recoMu.pt < cMaxRelIso)) return false;
+    if(!(recoMu.trackIsoSumPt/recoMu.pt < cMaxRelIso)) return false;
+    //if(!( (recoMu.sumChargedHadronPtR03 + max(0.0,recoMu.sumNeutralHadronEtR03+recoMu.sumPhotonEtR03 - 0.5*recoMu.sumPUPtR03))/recoMu.pt <= cMaxRelIso) );
 
     return true;
 
