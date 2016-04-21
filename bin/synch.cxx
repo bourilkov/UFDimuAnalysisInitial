@@ -90,6 +90,8 @@ int main(int argc, char* argv[])
     SynchEventSelectionCuts synchEventSelection;
     SynchMuonSelectionCuts synchMuonSelection;
 
+    //synchEventSelection.cutset.cuts[2].on = false;
+
     // Keep track of the events are in each category
     std::vector<std::pair<int,long long int>> VBFTightVec;
     std::vector<std::pair<int,long long int>> GGFTightVec;
@@ -211,12 +213,12 @@ int main(int argc, char* argv[])
     std::cout << "to check total: " << eventsToCheck.size() << std::endl;
 
     std::cout << std::endl;
-    outputEventsToFile(xVBFTightVec, "txt/andrew/xVBFTight.txt");
-    outputEventsToFile(xGGFTightVec, "txt/andrew/xGGFTight.txt");
-    outputEventsToFile(xVBFLooseVec, "txt/andrew/xVBFLoose.txt");
-    outputEventsToFile(xtight01Vec, "txt/andrew/x10Tight.txt");
-    outputEventsToFile(xloose01Vec, "txt/andrew/x10Loose.txt");
-    outputEventsToFile(xmissingVec, "txt/andrew/xMissing.txt");
+    //outputEventsToFile(xVBFTightVec, "txt/andrew/xVBFTight.txt");
+    //outputEventsToFile(xGGFTightVec, "txt/andrew/xGGFTight.txt");
+    //outputEventsToFile(xVBFLooseVec, "txt/andrew/xVBFLoose.txt");
+    //outputEventsToFile(xtight01Vec, "txt/andrew/x10Tight.txt");
+    //outputEventsToFile(xloose01Vec, "txt/andrew/x10Loose.txt");
+    //outputEventsToFile(xmissingVec, "txt/andrew/xMissing.txt");
 
 
     // Plot some things if we wish

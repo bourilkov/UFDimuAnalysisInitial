@@ -16,17 +16,17 @@ SDIR = ../selection/
 CFLAGS = -I${LIBDIR} -I${SDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-MAIN = synch
+MAIN = nm1
 
 # link all of the objects to the main program
-${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h
+${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h
 	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
 
 ${MAIN}.o: ${MAIN}.cxx EventTools.h 
 	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
 
 # compile the dependencies
-${SDIR}SelectionCuts.o: ${SDIR}SelectionCuts.cxx ${SDIR}SelectionCuts.h ${LIBDIR}Cut.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h
+${SDIR}SelectionCuts.o: ${SDIR}SelectionCuts.cxx ${SDIR}SelectionCuts.h ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h
 	$(CC) $(CFLAGS) ${SDIR}SelectionCuts.cxx -o ${SDIR}SelectionCuts.o
 
 ${SDIR}CategorySelection.o: ${SDIR}CategorySelection.cxx ${SDIR}CategorySelection.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h

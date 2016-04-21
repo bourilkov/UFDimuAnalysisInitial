@@ -23,6 +23,7 @@ class TightMuonIdCuts : public Cut
         float cdz_PV;              // <
         
         bool evaluate(VarSet& vars);
+        void makeCutSet();
         TString string();
 };
 
@@ -42,6 +43,7 @@ class SynchEventSelectionCuts : public Cut
         int cNPV;                  // > 
         int cNJets;                // <=
 
+        void makeCutSet();
         bool evaluate(VarSet& vars);
         bool passesVertexSelection(_VertexInfo& vertices);
         TString string();
@@ -57,8 +59,9 @@ class SynchMuonSelectionCuts : public Cut
         float cMaxEta;              // <
         float cMaxRelIso;           // <
 
+        void makeCutSet();
         bool evaluate(VarSet& vars);
-        bool evaluate(_MuonInfo& recoMu, float rho);
+        bool evaluate(_MuonInfo& recoMu, int m);
         TString string();
 };
 
@@ -70,6 +73,7 @@ class Run1EventSelectionCuts : public Cut
 
         float cTrigMuPtMin;        // >
 
+        void makeCutSet();
         bool evaluate(VarSet& vars);
         TString string();
 };
@@ -84,8 +88,9 @@ class Run1MuonSelectionCuts : public Cut
         float cMaxEta;              // <
         float cMaxRelIso;           // <
 
+        void makeCutSet();
         bool evaluate(VarSet& vars);
-        bool evaluate(_MuonInfo& recoMu);
+        bool evaluate(_MuonInfo& recoMu, int m);
         TString string();
 };
 #endif
