@@ -156,6 +156,7 @@ float Sample::getWeight()
 // Gets the weight for the histogram depending on the sample type 
     if(sampleType.Contains("data")) return 1.0;
     else return 1.0*vars.genWeight*lumiWeights->weight(vars.nPU);
+    //else return 1.0*vars.genWeight;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -174,11 +175,10 @@ float Sample::getScaleFactor(float luminosity)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-float Sample::getScaleFactor(float luminosity, int total)
+float Sample::getScaleFactor(float luminosity, float reductionFactor)
 {
 // Scale the MC histograms based upon the data luminosity, the number of events
-// that the CMSSW analyzer looked at, the xsec for the process, and the number used
-// to create the histogram
+// that the CMSSW analyzer looked at, and the xsec for the process
     if(sampleType.Contains("data")) return 1.0;
-    else return 1.0*total/N*luminosity*xsec/nOriginalWeighted;
+    else return luminosity*xsec/nOriginalWeighted;
 }

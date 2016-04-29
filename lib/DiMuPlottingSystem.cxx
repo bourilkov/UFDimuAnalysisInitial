@@ -95,6 +95,7 @@ void DiMuPlottingSystem::arrangeLegend(TCanvas* c, int i)
 
 THStack* DiMuPlottingSystem::overlay(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
 {
+// Creates a THStack of the histograms in the list. Overlays the data ontop of this without adding it to the stack.
 // Assumes data is in the last ilist location so that it appears on top of the other histograms.
 
 

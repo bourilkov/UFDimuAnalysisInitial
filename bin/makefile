@@ -22,7 +22,7 @@ MAIN = nm1
 ${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h
 	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
 
-${MAIN}.o: ${MAIN}.cxx EventTools.h 
+${MAIN}.o: ${MAIN}.cxx EventTools.cxx PUTools.cxx 
 	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
 
 # compile the dependencies

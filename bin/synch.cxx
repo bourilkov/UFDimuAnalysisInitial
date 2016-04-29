@@ -39,8 +39,9 @@ int main(int argc, char* argv[])
     //TString datafilename = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/stage_1_singleMuon_RunCD_GOLDEN_ALL.root");
     TString datafilename = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/stage_1_singleMuon_RunDBoth_MINIAOD_GOLDEN_ALL.root");
     Sample* datasample = new Sample(datafilename, "Data", "data");
-    datasample->lumi = 2260;
-    datasample->pileupfile = "/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/pileup/PUCalib_Golden_71mb.root";
+    datasample->lumi = 2169;
+    //datasample->pileupfile = "/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/pileup/PUCalib_Golden_71mb.root";
+    datasample->pileupfile = "/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/pileup/old/pileup_data_71mb.root";
     samples["Data"] = datasample;
 
     ///////////////////////////////////////////////////////////////////

@@ -20,6 +20,7 @@ class CutInfo
 
         TString tstring = ""; // represent the set of cuts as a tstring
         TString name = "";    // the name of the cut, useful when plotting
+        TString cutname = ""; // The name of the variable in the Selection Object
         bool passed = true;   // flag whether the event passed the cut or not
         int id = -1;          // the number of the cut in the cutset vector
         bool on = 1;          // whether to use the cut in the N-1 plots
@@ -27,6 +28,11 @@ class CutInfo
         int bins = 50;        // the number of bins needed for the histogram
         float min = 0;        // the minimum value for the histogram
         float max = 200;      // the maximum value for the histogram
+        float* cutvalue = 0;  // the address of the selection variable defining the cut
+                              // i.e. float* cutvalue = &SelectionCuts.cDimuMassMax
+                              // useful when optimizing the cuts cut[i].cutvalue = somevalue
+
+        std::vector<float> cutvalues;
       
         CutInfo operator&&(const CutInfo& c)
         {

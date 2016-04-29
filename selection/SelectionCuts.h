@@ -69,9 +69,10 @@ class Run1EventSelectionCuts : public Cut
 {
     public:
         Run1EventSelectionCuts();
-        Run1EventSelectionCuts(float trigMuPtMin);
+        Run1EventSelectionCuts(float trigMuPtMin, float dimuMassMin);
 
         float cTrigMuPtMin;        // >
+        float cDimuMassMin;        // >
 
         void makeCutSet();
         bool evaluate(VarSet& vars);
