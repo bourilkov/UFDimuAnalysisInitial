@@ -23,6 +23,7 @@ class CutInfo
         TString cutname = ""; // The name of the variable in the Selection Object
         bool passed = true;   // flag whether the event passed the cut or not
         int id = -1;          // the number of the cut in the cutset vector
+        bool ismin = false;   // the cut is a minimum bound or maximum bound
         bool on = 1;          // whether to use the cut in the N-1 plots
         float value = -9999;  // the value of the variable that was cut on
         int bins = 50;        // the number of bins needed for the histogram

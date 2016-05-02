@@ -702,6 +702,7 @@ void Run1EventSelectionCuts::makeCutSet()
     cutset.cuts[0].bins = 2;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
+    cutset.cuts[0].ismin = true;
 
     cutset.cuts[1].name = "trigMatchedRecoMu.pt";
     cutset.cuts[1].tstring.Form("reco1.isHltMatched[0||1] && reco1.pt > %5.2f", cTrigMuPtMin);
@@ -709,6 +710,7 @@ void Run1EventSelectionCuts::makeCutSet()
     cutset.cuts[1].min = -1;
     cutset.cuts[1].max = 200;
     cutset.cuts[1].cutvalue = &cTrigMuPtMin;
+    cutset.cuts[1].ismin = true;
 
     cutset.cuts[2].name = "recoCandMass";
     cutset.cuts[2].tstring.Form("recoCandMass > %5.2f", cDimuMassMin);
@@ -716,6 +718,7 @@ void Run1EventSelectionCuts::makeCutSet()
     cutset.cuts[2].min = 50;
     cutset.cuts[2].max = 200;
     cutset.cuts[2].cutvalue = &cDimuMassMin;
+    cutset.cuts[2].ismin = true;
 
     //cutset.cuts[2].name = "passes Vertex Selection";
     //cutset.cuts[2].tstring.Form("v in V s.t. abs(vertices.z[v]) < %4.2f && v in V s.t. vertices.ndf[v] > %d", cPVzMax, cNDFpv);
@@ -834,6 +837,7 @@ void Run1MuonSelectionCuts::makeCutSet()
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 200;
     cutset.cuts[0].cutvalue = &cMinPt;
+    cutset.cuts[0].ismin = true;
 
     cutset.cuts[1].name = "reco1.eta";
     cutset.cuts[1].tstring.Form("TMath::Abs(reco1.eta) < %4.2f", cMaxEta);
@@ -841,6 +845,7 @@ void Run1MuonSelectionCuts::makeCutSet()
     cutset.cuts[1].min = -3;
     cutset.cuts[1].max = 3;
     cutset.cuts[1].cutvalue = &cMaxEta;
+    cutset.cuts[1].ismin = false;
 
     cutset.cuts[2].name = "reco1.iso";
     cutset.cuts[2].tstring.Form("reco1.trackIsoSumPt/reco1.pt < %4.2f", cMaxRelIso);
@@ -848,6 +853,7 @@ void Run1MuonSelectionCuts::makeCutSet()
     cutset.cuts[2].min = 0;
     cutset.cuts[2].max = 1;
     cutset.cuts[2].cutvalue = &cMaxRelIso;
+    cutset.cuts[2].ismin = false;
 
      // reco2 cuts
     cutset.cuts[3].name = "reco2.pt";
@@ -856,6 +862,7 @@ void Run1MuonSelectionCuts::makeCutSet()
     cutset.cuts[3].min = 0;
     cutset.cuts[3].max = 200;
     cutset.cuts[3].cutvalue = &cMinPt;
+    cutset.cuts[3].ismin = false;
 
     cutset.cuts[4].name = "reco2.eta";
     cutset.cuts[4].tstring.Form("TMath::Abs(reco2.eta) < %4.2f", cMaxEta);
@@ -863,6 +870,7 @@ void Run1MuonSelectionCuts::makeCutSet()
     cutset.cuts[4].min = -3;
     cutset.cuts[4].max = 3;
     cutset.cuts[4].cutvalue = &cMaxEta;
+    cutset.cuts[4].ismin = false;
 
     cutset.cuts[5].name = "reco2.iso";
     cutset.cuts[5].tstring.Form("reco2.trackIsoSumPt/reco2.pt < %4.2f", cMaxRelIso);
@@ -870,5 +878,6 @@ void Run1MuonSelectionCuts::makeCutSet()
     cutset.cuts[5].min = 0;
     cutset.cuts[5].max = 1;
     cutset.cuts[5].cutvalue = &cMaxRelIso;
+    cutset.cuts[5].ismin = false;
 }
 

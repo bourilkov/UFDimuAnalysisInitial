@@ -156,6 +156,7 @@ int main(int argc, char* argv[])
     // vars that tell us the settings for the histograms
     bool muonselection = false;
     bool eventselection = false;
+    bool ismin = true;
     int bins, min, max;
     TString varname;
 
@@ -170,6 +171,7 @@ int main(int argc, char* argv[])
         bins = run1EventSelection.cutset.cuts[input].bins;
         min = run1EventSelection.cutset.cuts[input].min;
         max = run1EventSelection.cutset.cuts[input].max;
+        ismin = run1MuonSelection.cutset.cuts[input].ismin;
         varname = run1EventSelection.cutset.cuts[input].name;
         std::cout << std::endl;
         std::cout << "======== N-1 Settings ========" << std::endl;
@@ -195,6 +197,7 @@ int main(int argc, char* argv[])
         bins = run1MuonSelection.cutset.cuts[input].bins;
         min = run1MuonSelection.cutset.cuts[input].min;
         max = run1MuonSelection.cutset.cuts[input].max;
+        ismin = run1MuonSelection.cutset.cuts[input].ismin;
         varname = run1MuonSelection.cutset.cuts[input].name;
         std::cout << std::endl;
         std::cout << "======== N-1 Settings ========" << std::endl;
@@ -221,6 +224,7 @@ int main(int argc, char* argv[])
 
     TList* varlist = new TList();   // the list of histograms used to make the stack for var
     TList* nlist = new TList();     // the list of histograms used to make the stack for the counts
+    TList* siglist = new TList();   // the list of significance TGraphs
     double nsignal = 0;             // the number of signal events
     double nbackground = 0;         // the number of background events
     double ndata = 0;               // the number of background events
@@ -322,7 +326,7 @@ int main(int argc, char* argv[])
       if(s->sampleType.Contains("signal"))
       {
           // scale the signal so that it's easier to see on the plots
-          varhisto->Scale(signalSF);
+          //varhisto->Scale(signalSF);
           varhistosignal->Add(varhisto); 
           nhistosignal->Add(nhisto); 
       }
@@ -340,45 +344,6 @@ int main(int argc, char* argv[])
       nlist->Add(nhisto);
     }
 
-    // Create the stack and ratio plot    
-    TCanvas* varstackcanvas;
-    varstackcanvas = dps->stackedHistogramsAndRatio(varlist, varname+"_stack", varname, "Num Entries");
-    varstackcanvas->SetName("c_"+varname);
-    std::cout << std::endl;
-
-    TCanvas* nstackcanvas;
-    nstackcanvas = dps->stackedHistogramsAndRatio(nlist, "nstack", "counted", "Num Entries");
-    nstackcanvas->SetName("c_counts");
-    std::cout << std::endl;
-
-    std::cout << "  /// Saving plots..." << std::endl;
-    std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/nm1_"+varname+".root", "RECREATE");
-
-    // save the different histos in the appropriate directories in the tfile
-    TDirectory* stacks = savefile->mkdir("stacks");
-    stacks->cd();
-    varstackcanvas->Write();
-    nstackcanvas->Write();
-
-    TDirectory* datahistos = savefile->mkdir("data");
-    datahistos->cd();
-    varhistodata->Write();
-    nhistodata->Write();
-
-    TDirectory* signalhistos = savefile->mkdir("signal");
-    signalhistos->cd();
-    varhistosignal->Write();
-    nhistosignal->Write();
-
-    TDirectory* bghistos = savefile->mkdir("bg");
-    bghistos->cd();
-    varhistobg->Write();
-    nhistobg->Write();
-
-    savefile->Close();
-
-
     // ////////////////////////////////////////////////////////////////////////////
     // ========= Total Counts =====================================================
     // ////////////////////////////////////////////////////////////////////////////
@@ -387,9 +352,9 @@ int main(int argc, char* argv[])
     nbackground = nhistobg->Integral();
     ndata = nhistodata->Integral();
 
-    double nsignalv = varhistosignal->Integral()/signalSF;
-    double nbackgroundv = varhistobg->Integral();
-    double ndatav = varhistodata->Integral();
+    double nsignalv = varhistosignal->Integral(0,varhistosignal->GetSize()-1);
+    double nbackgroundv = varhistobg->Integral(0, varhistobg->GetSize()-1);
+    double ndatav = varhistodata->Integral(0, varhistodata->GetSize()-1);
 
     std::cout << std::endl;
     std::cout << "=========== Total Counts ============" << std::endl;
@@ -406,14 +371,16 @@ int main(int argc, char* argv[])
     // ========= Significance =====================================================
     // ////////////////////////////////////////////////////////////////////////////
     
-    AsimovSignificance asimov;
-    PoissonSignificance poisson;
+    AsimovSignificance asimov0(12596, 0);
+    AsimovSignificance asimov1(12596, 0.06);
+    PoissonSignificance poisson0(12596, 0);
+    PoissonSignificance poisson1(12596, 0.06);
 
     // unc = 0.06 for 12596 background events, scales like 1/sqrt(N)
-    double asimovZ0 = asimov.significance(nsignal, nbackground, 0);
-    double asimovZ1 = asimov.significance(nsignal, nbackground, 0.051);
-    double rootbZ0 = poisson.significance(nsignal, nbackground, 0);
-    double rootbZ1 = poisson.significance(nsignal, nbackground, 0.051);
+    double asimovZ0 = asimov0.significance(nsignal, nbackground);
+    double asimovZ1 = asimov1.significance(nsignal, nbackground);
+    double rootbZ0 = poisson0.significance(nsignal, nbackground);
+    double rootbZ1 = poisson1.significance(nsignal, nbackground);
 
     std::cout << std::endl;
     std::cout << "=========== Significance ============" << std::endl;
@@ -422,6 +389,81 @@ int main(int argc, char* argv[])
     std::cout << "s/sqrt(b):           " << rootbZ0 << std::endl;
     std::cout << "s/sqrt(b + varb):    " << rootbZ1 << std::endl;
     std::cout << std::endl;
+
+    std::vector<std::pair<double,double>> svecAsimov;
+    std::vector<std::pair<double,double>> svecRootB;
+    asimov1.significanceVsCut(svecAsimov, varhistosignal, varhistobg, ismin);
+    poisson0.significanceVsCut(svecRootB, varhistosignal, varhistobg, ismin);
+
+    std::cout << "Asimov Significance vs Cut Value" << std::endl;
+    SignificanceMetric::outputSignificanceVsCut(svecAsimov);
+    TGraph* asimovGraph = SignificanceMetric::makeTGraph(svecAsimov, "asimov_significance_w_err", "Asimov significance vs cut on reco1_pt", "cut on reco1.pt", "Asimov Significance");
+    siglist->Add(asimovGraph);
+    std::cout << std::endl;
+
+    std::cout << "S/sqrt(B) Significance vs Cut Value" << std::endl;
+    SignificanceMetric::outputSignificanceVsCut(svecRootB);
+    TGraph* rootBGraph = SignificanceMetric::makeTGraph(svecRootB, "s_over_sqrt_b_no_err", "S/sqrt(B) significance vs cut on reco1_pt", "cut on reco1.pt", "s/sqrt(B) Significance");
+    siglist->Add(rootBGraph);
+    std::cout << std::endl;
+
+    // ////////////////////////////////////////////////////////////////////////////
+    // ========= Scale, Stack, Save ===============================================
+    // ////////////////////////////////////////////////////////////////////////////
+
+    TIter next(varlist);
+    TObject* object = 0;
+    while( (object = next()) )
+    {
+      TH1F* varhisto = (TH1F*) object;
+      if(TString(varhisto->GetName()).Contains("signal"))
+      {
+          // scale the signal so that it's easier to see on the plots
+          varhisto->Scale(signalSF);
+      }
+    }
+
+    // Create the stack and ratio plot    
+    TCanvas* varstackcanvas = dps->stackedHistogramsAndRatio(varlist, "c_"+varname, varname+"_stack", varname, "Num Entries");
+    std::cout << std::endl;
+
+    TCanvas* nstackcanvas = dps->stackedHistogramsAndRatio(nlist, "c_counts", "nstack", "counted", "Num Entries");
+    std::cout << std::endl;
+
+    TCanvas* sigcanvas = dps->overlay(siglist, "c_sig_overlay", "Significance vs cut on reco1.pt", "reco1.pt cut value", "Significance");
+    std::cout << std::endl;
+
+    std::cout << "  /// Saving plots..." << std::endl;
+    std::cout << std::endl;
+    TFile* savefile = new TFile("rootfiles/nm1_"+varname+".root", "RECREATE");
+    TDirectory* stacks = savefile->mkdir("stacks");
+    TDirectory* datahistos = savefile->mkdir("data");
+    TDirectory* signalhistos = savefile->mkdir("signal");
+    TDirectory* bghistos = savefile->mkdir("bg");
+    TDirectory* significance = savefile->mkdir("significance");
+
+    // save the different histos in the appropriate directories in the tfile
+    stacks->cd();
+    varstackcanvas->Write();
+    nstackcanvas->Write();
+    varlist->Write();
+
+    datahistos->cd();
+    varhistodata->Write();
+    nhistodata->Write();
+
+    signalhistos->cd();
+    varhistosignal->Write();
+    nhistosignal->Write();
+
+    bghistos->cd();
+    varhistobg->Write();
+    nhistobg->Write();
+
+    significance->cd();
+    sigcanvas->Write();
+    siglist->Write();
+    savefile->Close();
 
 
     // ////////////////////////////////////////////////////////////////////////////

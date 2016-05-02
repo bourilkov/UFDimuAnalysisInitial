@@ -40,8 +40,9 @@ class DiMuPlottingSystem
         // Functions-------------------------------------------
         // ====================================================
 
-        THStack* overlay(TList* list, TString title, TString xaxistitle, TString yaxistitle);
-        TCanvas* stackedHistogramsAndRatio(TList* list, TString title, TString xaxistitle, TString yaxistitle);
+        THStack* stackMCHistosAndData(TList* list, TString title, TString xaxistitle, TString yaxistitle);
+        TCanvas* overlay(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle);
+        TCanvas* stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle);
         TH1F* addHists(TList* list, TString name);
 
         void arrangeStatBox(TCanvas* c, int i);

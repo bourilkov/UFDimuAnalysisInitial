@@ -28,6 +28,8 @@
 #include "TProfile.h"
 #include "TGaxis.h"
 #include "TPaveText.h"
+#include "TGraph.h"
+#include "TMultiGraph.h"
 
 #include <vector>
 #include <sstream>
@@ -87,13 +89,112 @@ void DiMuPlottingSystem::arrangeLegend(TCanvas* c, int i)
   st->Draw("same");
 }
 
-
-
 //////////////////////////////////////////////////////////////////////////
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-THStack* DiMuPlottingSystem::overlay(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
+TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle)
+{
+// Overlay itmes in the list. 
+
+
+// Wide bottom left
+//  TLegend* l = new TLegend(1, 0.15, 0.7, 1.25, "", "brNDC");
+ 
+  // Square-ish top right
+  //TLegend* l = new TLegend(0.68, 0.56, 0.88, 0.87, "", "brNDC");
+
+  // Square-ish top left
+  //TLegend* l = new TLegend(0.13, 0.56, 0.33, 0.88, "", "brNDC");
+  
+  // Wide rectangle top right
+  TLegend* l = new TLegend(0.47, 0.56, 0.88, 0.88, "", "brNDC");
+  TCanvas* c = new TCanvas();
+  c->SetName(name);
+  c->SetTitle(title);
+  c->SetGridx(1);
+  c->SetGridy(1);
+
+  TIter next(ilist);
+  TObject* object = 0;
+  int i=0;
+
+  std::vector<int> colors;
+  colors.push_back(2);
+  colors.push_back(4);
+  colors.push_back(6);
+  colors.push_back(7);
+  colors.push_back(36);
+  colors.push_back(50);
+  colors.push_back(30);
+  colors.push_back(9);
+  colors.push_back(29);
+  colors.push_back(3);
+
+  float max = -9999;
+  float min = 9999;
+
+  TMultiGraph* multigraph = 0;
+  THStack* stack = 0;
+
+  while ((object = next()))
+  {
+      //TH1F* hist = (TH1F*) object;
+      TGraph* graph = 0;
+      TH1F* hist = 0;
+
+      if(object->InheritsFrom("TH1F"))
+      {
+          hist = (TH1F*) object;
+          hist->SetLineColor(colors[i]);
+          hist->SetFillColor(colors[i]);
+
+          if(object == ilist->First())
+          {
+              stack = new THStack();
+              stack->SetTitle(title+";"+xaxistitle+";"+yaxistitle);
+          }
+
+          stack->Add(hist);
+          
+          TString legend_entry = TString(hist->GetName());
+          l->AddEntry(hist, legend_entry, "f");
+
+          if(object == ilist->Last())
+              stack->Draw();
+              //stack->Draw("nostack");
+      }
+      if(object->InheritsFrom("TGraph"))
+      {
+          if(object == ilist->First())
+          {
+              multigraph = new TMultiGraph();
+              multigraph->SetTitle(title+";"+xaxistitle+";"+yaxistitle);
+          }
+
+          graph = (TGraph*) object;
+          graph->SetLineColor(colors[i]);
+
+          multigraph->Add(graph);
+
+          TString legend_entry = TString(graph->GetName());
+          l->AddEntry(graph, legend_entry, "l");
+
+          if(object == ilist->Last())
+              multigraph->Draw("a");
+      }
+
+      i++;
+  }
+    
+  l->Draw();
+  return c;
+}
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
 {
 // Creates a THStack of the histograms in the list. Overlays the data ontop of this without adding it to the stack.
 // Assumes data is in the last ilist location so that it appears on top of the other histograms.
@@ -206,13 +307,14 @@ TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
+TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle)
 {
     // Define two gaussian histograms. Note the X and Y title are defined
     // at booking time using the convention "Hist_title ; X_title ; Y_title"
 
     // Define the Canvas
-    TCanvas *c = new TCanvas();
+    TCanvas *c = new TCanvas(name);
+    c->SetTitle(title);
     c->SetCanvasSize(800,800);
 
     TH1F* first = (TH1F*) ilist->At(0);
@@ -235,7 +337,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString tit
 
     // Draw stacked histograms here
     first->SetStats(0);          // No statistics on upper plot
-    THStack* stack = overlay(ilist, title, xaxistitle, yaxistitle);
+    THStack* stack = stackMCHistosAndData(ilist, title, xaxistitle, yaxistitle);
 
     // Not sure how to work with this
     // Do not draw the Y axis label on the upper plot and redraw a small
