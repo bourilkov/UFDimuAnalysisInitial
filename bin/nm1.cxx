@@ -150,8 +150,8 @@ int main(int argc, char* argv[])
     TightMuonIdCuts tightMuonId;
     JetSelectionTools jetSelectionTools;
     CategorySelection categorySelection;
-    Run1EventSelectionCuts run1EventSelection;
     Run1MuonSelectionCuts run1MuonSelection;
+    Run1EventSelectionCuts run1EventSelection;
 
     // vars that tell us the settings for the histograms
     bool muonselection = false;
@@ -171,13 +171,14 @@ int main(int argc, char* argv[])
         bins = run1EventSelection.cutset.cuts[input].bins;
         min = run1EventSelection.cutset.cuts[input].min;
         max = run1EventSelection.cutset.cuts[input].max;
-        ismin = run1MuonSelection.cutset.cuts[input].ismin;
+        ismin = run1EventSelection.cutset.cuts[input].ismin;
         varname = run1EventSelection.cutset.cuts[input].name;
         std::cout << std::endl;
         std::cout << "======== N-1 Settings ========" << std::endl;
         std::cout << "Selection Type: Event Selection" << std::endl;
         std::cout << "cut #         : " << input << std::endl;
         std::cout << "cut name      : " << varname << std::endl;
+        std::cout << "ismin         : " << ismin << std::endl;
         std::cout << std::endl;
     }
     // muon selection
@@ -199,11 +200,13 @@ int main(int argc, char* argv[])
         max = run1MuonSelection.cutset.cuts[input].max;
         ismin = run1MuonSelection.cutset.cuts[input].ismin;
         varname = run1MuonSelection.cutset.cuts[input].name;
+        std::cout << "cut.ismin     : " << run1MuonSelection.cutset.cuts[input].ismin << std::endl;
+        std::cout << "cut.on     : " << run1MuonSelection.cutset.cuts[input].on << std::endl;
         std::cout << std::endl;
         std::cout << "======== N-1 Settings ========" << std::endl;
         std::cout << "Selection Type: Muon Selection" << std::endl;
         std::cout << "cut #         : " << input << std::endl;
-        std::cout << "cut name      : " << varname << std::endl;
+        std::cout << "ismin         : " << ismin << std::endl;
         std::cout << std::endl;
     }
     else
@@ -217,6 +220,7 @@ int main(int argc, char* argv[])
         std::cout << "Selection Type: N-0" << std::endl;
         std::cout << "cut #         : " << input << std::endl;
         std::cout << "cut name      : " << varname << std::endl;
+        std::cout << "ismin         : " << ismin << std::endl;
         std::cout << std::endl;
     }
     // remove dots and replace with underscores 
@@ -230,7 +234,7 @@ int main(int argc, char* argv[])
     double ndata = 0;               // the number of background events
 
     // Not sure how to deal with the scaling correctly when using a subset of events
-    float reductionFactor = 100;
+    float reductionFactor = 10;
 
     // make histograms to count everything
     TH1F* nhistosignal = new TH1F("counts_"+TString("signal"), "counts_"+TString("signal"), 1, 0, 1);
@@ -291,7 +295,7 @@ int main(int argc, char* argv[])
             if(muonselection) varvalue = run1MuonSelection.cutset.cuts[input].value;
         }
 
-        varhisto->Fill(varvalue, s->getWeight());   
+        if(!(s->sampleType.Contains("data") && varname.Contains("recoCandMass") && varvalue > 110 && varvalue < 140)) varhisto->Fill(varvalue, s->getWeight());   
         nhisto->Fill(0.5, s->getWeight());   
         //varhisto->Fill(s->vars.reco2.var, s->getWeight());   
         
@@ -397,13 +401,13 @@ int main(int argc, char* argv[])
 
     std::cout << "Asimov Significance vs Cut Value" << std::endl;
     SignificanceMetric::outputSignificanceVsCut(svecAsimov);
-    TGraph* asimovGraph = SignificanceMetric::makeTGraph(svecAsimov, "asimov_significance_w_err", "Asimov significance vs cut on reco1_pt", "cut on reco1.pt", "Asimov Significance");
+    TGraph* asimovGraph = SignificanceMetric::makeTGraph(svecAsimov, "asimov_significance_w_err", "Asimov significance vs cut on "+varname, "cut on "+varname, "Asimov Significance");
     siglist->Add(asimovGraph);
     std::cout << std::endl;
 
     std::cout << "S/sqrt(B) Significance vs Cut Value" << std::endl;
     SignificanceMetric::outputSignificanceVsCut(svecRootB);
-    TGraph* rootBGraph = SignificanceMetric::makeTGraph(svecRootB, "s_over_sqrt_b_no_err", "S/sqrt(B) significance vs cut on reco1_pt", "cut on reco1.pt", "s/sqrt(B) Significance");
+    TGraph* rootBGraph = SignificanceMetric::makeTGraph(svecRootB, "s_over_sqrt_b_no_err", "S/sqrt(B) significance vs cut on "+varname, "cut on "+varname, "s/sqrt(B) Significance");
     siglist->Add(rootBGraph);
     std::cout << std::endl;
 
@@ -430,7 +434,7 @@ int main(int argc, char* argv[])
     TCanvas* nstackcanvas = dps->stackedHistogramsAndRatio(nlist, "c_counts", "nstack", "counted", "Num Entries");
     std::cout << std::endl;
 
-    TCanvas* sigcanvas = dps->overlay(siglist, "c_sig_overlay", "Significance vs cut on reco1.pt", "reco1.pt cut value", "Significance");
+    TCanvas* sigcanvas = dps->overlay(siglist, "c_sig_overlay", "Significance vs cut on "+varname, varname+" cut value", "Significance");
     std::cout << std::endl;
 
     std::cout << "  /// Saving plots..." << std::endl;

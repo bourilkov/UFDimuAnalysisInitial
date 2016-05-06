@@ -52,7 +52,7 @@ class SignificanceMetric
             if(ismin)
             {
                 sIntegral = signal->Integral(cutbin, signal->GetSize()-1);
-                bIntegral = background->Integral(cutbin, signal->GetSize()-1);
+                bIntegral = background->Integral(cutbin, background->GetSize()-1);
                 
             }
             // the cut is a maximum bound we want the integral from beginning to the cut
