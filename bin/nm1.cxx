@@ -371,10 +371,10 @@ int main(int argc, char* argv[])
     // ========= Significance =====================================================
     // ////////////////////////////////////////////////////////////////////////////
     
-    AsimovSignificance asimov0(12596, 0);
-    AsimovSignificance asimov1(12596, 0.06);
-    PoissonSignificance poisson0(12596, 0);
-    PoissonSignificance poisson1(12596, 0.06);
+    AsimovSignificance asimov0(0);
+    AsimovSignificance asimov1;
+    PoissonSignificance poisson0(0);
+    PoissonSignificance poisson1;
 
     // unc = 0.06 for 12596 background events, scales like 1/sqrt(N)
     double asimovZ0 = asimov0.significance(nsignal, nbackground);

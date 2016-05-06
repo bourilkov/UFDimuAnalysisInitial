@@ -628,7 +628,8 @@ Run1EventSelectionCuts::Run1EventSelectionCuts()
 
     cTrigMuPtMin = 20;          // >, originally 24 GeV in accordance with the IsoMu24_Eta2p1 trigger
                                 // we are using IsoMu20 triggers so this has been reduced to 20
-    cDimuMassMin = 60;
+    cDimuMassMin = 110;
+    //cDimuMassMin = 60;
     cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
 }

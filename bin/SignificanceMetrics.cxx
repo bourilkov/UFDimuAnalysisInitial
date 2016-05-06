@@ -18,14 +18,12 @@ class SignificanceMetric
 
     public:
 
-        double unc_0 = 0;  // the percent uncertainty for a given number of backbround events nbg_0
-        double nbg_0 = 0;  // the number of background events when the percent uncertainty unc_0 was calculated
+        int unctype = 3;   // the type of uncertainty to use
         double unc = 0;    // the percent uncertainty for the current number of bg events
 
-        SignificanceMetric(double nbg_0, double unc_0)
+        SignificanceMetric(int unctype)
         {
-            this->nbg_0 = nbg_0;
-            this->unc_0 = unc_0;
+            this->unctype = unctype;
         }
 
         void setUncertainty(double background)
@@ -33,7 +31,11 @@ class SignificanceMetric
         // The uncertainty appears to scale with the sqrt(B).
         // we use the uncertainty and nbackground from the run1 paper or some other benchmark and then scale from there
         // depending on how much background there is in the current calculation
-            unc = unc_0 * TMath::Sqrt(nbg_0/background);
+            //unc = unc_0*TMath::Sqrt(nbg_0/background);
+            if(unctype == 0) unc = 0; 
+            else if(unctype == 1) unc = TMath::Sqrt(1.37*background + 0.01727*0.01727*background*background)/background; // using net variance
+            else if(unctype == 2) unc = TMath::Sqrt(29.625*background + 0.064338*0.064338*background*background)/background; // using average error
+            else unc = TMath::Sqrt(383.744*background + 0.0747027*0.0747027*background*background)/background; // using max variance
         }
 
 
@@ -106,7 +108,8 @@ class AsimovSignificance : public SignificanceMetric
 {
     public:
 
-        AsimovSignificance(double nbg_0, double unc_0) : SignificanceMetric(nbg_0, unc_0){}
+        AsimovSignificance() : SignificanceMetric(3){}
+        AsimovSignificance(int unctype) : SignificanceMetric(unctype){}
 
         double significance(double signal, double background)
         {
@@ -134,7 +137,8 @@ class PoissonSignificance : public SignificanceMetric
 {
     public:
 
-        PoissonSignificance(double nbg_0, double unc_0) : SignificanceMetric(nbg_0, unc_0){}
+        PoissonSignificance() : SignificanceMetric(3){}
+        PoissonSignificance(int unctype) : SignificanceMetric(unctype){}
 
         double significance(double signal, double background)
         {
