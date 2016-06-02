@@ -18,12 +18,16 @@ class SignificanceMetric
 
     public:
 
-        int unctype = 3;   // the type of uncertainty to use
+        int unctype = 0;   // the type of uncertainty to use
         double unc = 0;    // the percent uncertainty for the current number of bg events
 
         SignificanceMetric(int unctype)
         {
             this->unctype = unctype;
+            // keeping for reference. I think this is the wrong way to use the run1 unc.
+            //if(unctype == 0) unc = 0;           // no uncertainty on the bg fit 
+            //else if(unctype == 1) unc = 0.93;   // 5 fb-1 unc on bg fit from run1 
+            //else unc = 1.33;                    // 20 fb-1 unc on bg fit from run1
         }
 
         void setUncertainty(double background)
@@ -37,7 +41,6 @@ class SignificanceMetric
             else if(unctype == 2) unc = TMath::Sqrt(29.625*background + 0.064338*0.064338*background*background)/background; // using average error
             else unc = TMath::Sqrt(383.744*background + 0.0747027*0.0747027*background*background)/background; // using max variance
         }
-
 
         // the significance is different depending on the metric, so make this abstract
         virtual double significance(double signal, double background) = 0;
@@ -114,7 +117,6 @@ class AsimovSignificance : public SignificanceMetric
         double significance(double signal, double background)
         {
             setUncertainty(background);
-
             if(unc == 0 && background == 0) return 0;
             if(background == 0 && signal == 0) return 0;
             

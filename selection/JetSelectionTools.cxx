@@ -62,10 +62,12 @@ float JetSelectionTools::dR(float eta1, float phi1, float eta2, float phi2)
 {
 // Determine the number of valid jets using the given cuts
 
-    float dEta = eta2 - eta1; 
-    float dPhi = phi2 - phi1;
-    float dr = TMath::Sqrt(dEta*dEta + dPhi*dPhi); 
-    return dr; 
+    // it's easiest to use the TLorentzVector class to account for the dPhi > pi problem
+    TLorentzVector v1;
+    TLorentzVector v2;
+    v1.SetPtEtaPhiM(10, eta1, phi1, 0); // doesn't matter what pt and mass are we only care about the dR value
+    v2.SetPtEtaPhiM(10, eta2, phi2, 0); // same thing
+    return v1.DeltaR(v2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

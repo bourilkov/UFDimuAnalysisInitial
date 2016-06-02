@@ -5,6 +5,7 @@
 
 #include "VarSet.h"
 #include "TString.h"
+#include <iostream>
 
 class CutInfo
 {
@@ -53,6 +54,28 @@ class CutSet
 
         CutInfo cutinfo;                         // represent the set of cuts as a tstring
         std::vector<CutInfo> cuts;               // the collection of cuts
+
+        void resetCuts()
+        {
+           for(unsigned int i=0; i<cuts.size(); i++)
+           {
+               cuts[i].value = -9999;      
+               cuts[i].passed = true;
+           }
+        }
+
+        void outputFailedCuts()
+        {
+           for(unsigned int i=0; i<cuts.size(); i++)
+           {
+               if(!cuts[i].passed)
+               {
+                   std::cout << "        +++ " <<cuts[i].tstring << " FAILED." << std::endl;
+                   std::cout << "        +++ " <<cuts[i].name << ": " << cuts[i].value << std::endl;
+               }
+           }
+
+        }
 
         void concatenate(std::vector<CutInfo>& cuts)         // see whether the event passes the set of cuts
         {

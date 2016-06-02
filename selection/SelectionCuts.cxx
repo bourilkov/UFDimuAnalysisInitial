@@ -61,6 +61,9 @@ int normChiSquare, float d0_PV, float dz_PV)
 
 bool TightMuonIdCuts::evaluate(VarSet& vars)
 {
+    // Make sure passed is true at first and the value is reset
+    cutset.resetCuts();
+
     // Keep track of the value that was cut on
     cutset.cuts[0].value = vars.reco1.isGlobal;
     cutset.cuts[1].value = vars.reco1.isPFMuon;
@@ -367,19 +370,22 @@ SynchEventSelectionCuts::SynchEventSelectionCuts(float dimuMassMin, float dimuMa
 
 bool SynchEventSelectionCuts::evaluate(VarSet& vars)
 {
+    // Make sure passed is true at first and the value is reset
+    cutset.resetCuts();
+
     // keep track of the values that were cut on
     cutset.cuts[0].value = vars.reco1.charge != vars.reco2.charge;
-    cutset.cuts[1].value = vars.recoCandMass;
+    cutset.cuts[1].value = vars.recoCandMassPF;
     cutset.cuts[2].value = 1;
     cutset.cuts[3].value = 1;
     cutset.cuts[4].value = vars.validJets.size();
 
     // if the event fails a single cut return false
     // Require oppositely charged muons in the event
-    if(!(vars.reco1.charge != vars.reco2.charge) && cutset.cuts[0].on) return false;
+    if(!(vars.reco1.charge != vars.reco2.charge) && cutset.cuts[0].on){ cutset.cuts[0].passed = false; return false;}
 
     // Look at a certain mass range for synchronization purposes
-    if(!(vars.recoCandMass > cDimuMassMin && vars.recoCandMass < cDimuMassMax) && cutset.cuts[1].on) return false;
+    if(!(vars.recoCandMassPF > cDimuMassMin && vars.recoCandMassPF < cDimuMassMax) && cutset.cuts[1].on){ cutset.cuts[1].passed = false; return false;}
 
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
@@ -391,18 +397,20 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     else 
     {
         cutset.cuts[2].value = 0;
+        cutset.cuts[2].passed = false;
         return false;                                                                                                   // no muon passed a trigger
     }
 
     // Vertex selection
     if(!passesVertexSelection(vars.vertices) && cutset.cuts[3].on)
     { 
+        cutset.cuts[3].passed = false;
         cutset.cuts[3].value = 0;
         return false;
     }
 
     // nJets selection
-    if(!(vars.validJets.size() <= cNJets) && cutset.cuts[4].on) return false;
+    if(!(vars.validJets.size() <= cNJets) && cutset.cuts[4].on){ cutset.cuts[4].passed = false;  return false;}
 
     // Passed all the cuts
     return true;
@@ -453,14 +461,14 @@ void SynchEventSelectionCuts::makeCutSet()
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
 
-    cutset.cuts[1].name = "recoCandMass";
-    cutset.cuts[1].tstring.Form("recoCandMass > %f && recoCandMass < %f", cDimuMassMin, cDimuMassMax);
+    cutset.cuts[1].name = "recoCandMassPF";
+    cutset.cuts[1].tstring.Form("recoCandMassPF > %f && recoCandMassPF < %f", cDimuMassMin, cDimuMassMax);
     cutset.cuts[1].bins = 140;
     cutset.cuts[1].min = 60;
     cutset.cuts[1].max = 200;
 
     cutset.cuts[2].name = "passes HLT Trigger Selection";
-    cutset.cuts[2].tstring.Form("reco1.isHltMatched[0||1] && reco1.pt > %5.2f && TMath::Abs(reco1.eta) < %4.2f", cTrigMuPtMin, cTrigMuEtaMax);
+    cutset.cuts[2].tstring.Form("recoMu.isHltMatched[0||1] && recoMu.pt > %5.2f && TMath::Abs(recoMu.eta) < %4.2f", cTrigMuPtMin, cTrigMuEtaMax);
     cutset.cuts[2].bins = 2;
     cutset.cuts[2].min = 0;
     cutset.cuts[2].max = 2;
@@ -516,6 +524,9 @@ SynchMuonSelectionCuts::SynchMuonSelectionCuts(float minPt, float maxEta, float 
 
 bool SynchMuonSelectionCuts::evaluate(VarSet& vars)
 {
+    // Make sure passed is true at first and the value is reset
+    cutset.resetCuts();
+
     // keep track of the values that were cut on
     // reco1
     cutset.cuts[0].value = vars.reco1.pt;
@@ -629,9 +640,9 @@ Run1EventSelectionCuts::Run1EventSelectionCuts()
 
     cTrigMuPtMin = 20;          // >, originally 24 GeV in accordance with the IsoMu24_Eta2p1 trigger
                                 // we are using IsoMu20 triggers so this has been reduced to 20
-    cDimuMassMin = 110;
-    //cDimuMassMin = 60;
-    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
+    cDimuMassMin = 122.5;
+    cDimuMassMax = 127.5;
+    cutset.cuts = std::vector<CutInfo>(4, CutInfo());
     makeCutSet();
 }
 
@@ -639,13 +650,14 @@ Run1EventSelectionCuts::Run1EventSelectionCuts()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Run1EventSelectionCuts::Run1EventSelectionCuts(float trigMuPtMin, float dimuMassMin)
+Run1EventSelectionCuts::Run1EventSelectionCuts(float trigMuPtMin, float dimuMassMin, float dimuMassMax)
 {
 // Default values for the modified run 1 event selection
 
     cTrigMuPtMin = trigMuPtMin;      // >
     cDimuMassMin = dimuMassMin;      // >
-    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
+    cDimuMassMax = dimuMassMax;      // <
+    cutset.cuts = std::vector<CutInfo>(4, CutInfo());
     makeCutSet();
 }
 
@@ -655,9 +667,13 @@ Run1EventSelectionCuts::Run1EventSelectionCuts(float trigMuPtMin, float dimuMass
 
 bool Run1EventSelectionCuts::evaluate(VarSet& vars)
 {
+    // Make sure passed is true at first and the value is reset
+    cutset.resetCuts();
+
     cutset.cuts[0].value = vars.reco1.charge != vars.reco2.charge;
     cutset.cuts[1].value = -1;
-    cutset.cuts[2].value = vars.recoCandMass;
+    cutset.cuts[2].value = vars.recoCandMassPF;
+    cutset.cuts[3].value = vars.recoCandMassPF;
 
     // Set cuts[1].value correctly
     if(vars.reco1.isHltMatched[0]) cutset.cuts[1].value = TMath::Abs(vars.reco1.pt);
@@ -685,7 +701,8 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
          return false;
     }
 
-    if(!(vars.recoCandMass > cDimuMassMin) && cutset.cuts[2].on) return false;
+    if(!(vars.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
+    if(!(vars.recoCandMassPF < cDimuMassMax) && cutset.cuts[3].on) return false;
 
     return true;
 }
@@ -723,13 +740,21 @@ void Run1EventSelectionCuts::makeCutSet()
     cutset.cuts[1].cutvalue = &cTrigMuPtMin;
     cutset.cuts[1].ismin = true;
 
-    cutset.cuts[2].name = "recoCandMass";
-    cutset.cuts[2].tstring.Form("recoCandMass > %5.2f", cDimuMassMin);
+    cutset.cuts[2].name = "recoCandMassPF_Min";
+    cutset.cuts[2].tstring.Form("recoCandMassPF > %5.2f", cDimuMassMin);
     cutset.cuts[2].bins = 150;
     cutset.cuts[2].min = 50;
     cutset.cuts[2].max = 200;
     cutset.cuts[2].cutvalue = &cDimuMassMin;
     cutset.cuts[2].ismin = true;
+
+    cutset.cuts[3].name = "recoCandMassPF_Max";
+    cutset.cuts[3].tstring.Form("recoCandMassPF < %5.2f", cDimuMassMax);
+    cutset.cuts[3].bins = 150;
+    cutset.cuts[3].min = 50;
+    cutset.cuts[3].max = 200;
+    cutset.cuts[3].cutvalue = &cDimuMassMin;
+    cutset.cuts[3].ismin = false;
 
     //cutset.cuts[2].name = "passes Vertex Selection";
     //cutset.cuts[2].tstring.Form("v in V s.t. abs(vertices.z[v]) < %4.2f && v in V s.t. vertices.ndf[v] > %d", cPVzMax, cNDFpv);
@@ -776,6 +801,9 @@ Run1MuonSelectionCuts::Run1MuonSelectionCuts(float minPt, float maxEta, float ma
 
 bool Run1MuonSelectionCuts::evaluate(VarSet& vars)
 {
+    // Make sure passed is true at first and the value is reset
+    cutset.resetCuts();
+
     // keep track of the values that were cut on
     // reco1
     cutset.cuts[0].value = TMath::Abs(vars.reco1.pt);

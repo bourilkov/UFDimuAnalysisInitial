@@ -16,7 +16,7 @@ SDIR = ../selection/
 CFLAGS = -I${LIBDIR} -I${SDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-MAIN = nm1
+MAIN = synch
 
 # link all of the objects to the main program
 ${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h

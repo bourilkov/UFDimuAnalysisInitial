@@ -14,6 +14,7 @@
 #include "TString.h"
 #include "VarSet.h"
 #include "CategorySelection.h"
+#include "JetSelectionTools.h"
 
 //////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------
@@ -46,8 +47,6 @@ void loadEventsFromFile(TString filename, std::vector<std::pair<int, long long i
 
 void outputEventsToFile(std::vector<std::pair<int,long long int>>& v, TString filename)
 {
-// Take the map that maps samples to the number of events in the mass, npv, eta, mupt, and dimupt histograms and convert it into a CSV.
-
     std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
     std::ofstream file(filename, std::ofstream::out);
     for(auto const &e : v)
@@ -86,18 +85,22 @@ bool eventInVector(std::pair<int,long long int> e, std::vector<std::pair<int,lon
 
 void outputEvent(VarSet& vars)
 {
+         JetSelectionTools js;
          std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
          std::cout << std::endl;
          std::cout << "  recoCandMass: " << vars.recoCandMass << std::endl;
+         std::cout << "  recoCandMassPF: " << vars.recoCandMassPF << std::endl;
          std::cout << "  recoCandPt: " << vars.recoCandPt << std::endl;
          std::cout << std::endl;
          std::cout << "  reco1.pt: " << vars.reco1.pt << std::endl;
          std::cout << "  reco1.phi: " << vars.reco1.phi << std::endl;
          std::cout << "  reco1.eta: " << vars.reco1.eta << std::endl;
+         std::cout << "  reco1.isHltMatched: " << (vars.reco1.isHltMatched[0] || vars.reco2.isHltMatched[1]) << std::endl;
          std::cout << std::endl;
          std::cout << "  reco2.pt: " << vars.reco2.pt << std::endl;
          std::cout << "  reco2.phi: " << vars.reco2.phi << std::endl;
          std::cout << "  reco2.eta: " << vars.reco2.eta << std::endl;
+         std::cout << "  reco2.isHltMatched: " << (vars.reco2.isHltMatched[0] || vars.reco2.isHltMatched[1]) << std::endl;
          std::cout << std::endl;
          std::cout << "  nJets: " << vars.jets.nJets << std::endl;
          std::cout << "  nValidJets: " << vars.validJets.size() << std::endl;
@@ -109,6 +112,8 @@ void outputEvent(VarSet& vars)
              std::cout << "  jet" << j << " pt: " <<  vars.jets.pt[j] << std::endl;
              std::cout << "  jet" << j << " phi: " << vars.jets.phi[j] << std::endl;
              std::cout << "  jet" << j << " eta: " << vars.jets.eta[j] << std::endl;
+             std::cout << "  jet" << j << " dR1: " << js.dR(vars.jets.eta[j], vars.jets.phi[j], vars.reco1.eta, vars.reco1.phi) << std::endl;
+             std::cout << "  jet" << j << " dR2: " << js.dR(vars.jets.eta[j], vars.jets.phi[j], vars.reco2.eta, vars.reco2.phi) << std::endl;
              std::cout << std::endl;
 
          }
@@ -120,6 +125,8 @@ void outputEvent(VarSet& vars)
              std::cout << "  validjet" << j << " pt: " <<  vars.validJets[j].Pt() << std::endl;
              std::cout << "  validjet" << j << " phi: " << vars.validJets[j].Phi() << std::endl;
              std::cout << "  validjet" << j << " eta: " << vars.validJets[j].Eta() << std::endl;
+             std::cout << "  validjet" << j << " dR1: " << js.dR(vars.validJets[j].Eta(), vars.validJets[j].Phi(), vars.reco1.eta, vars.reco1.phi) << std::endl;
+             std::cout << "  validjet" << j << " dR2: " << js.dR(vars.validJets[j].Eta(), vars.validJets[j].Phi(), vars.reco2.eta, vars.reco2.phi) << std::endl;
              std::cout << std::endl;
 
          }
@@ -130,11 +137,8 @@ void outputEvent(VarSet& vars)
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void outputEvent(VarSet& vars, CategorySelection& categorySelection)
+void outputCategory(VarSet& vars, CategorySelection& categorySelection)
 {
-         // output standard information about the event
-         outputEvent(vars);
-
          // ////////////////////////////////////////////////////////////////////////////
          // ========= 2Jet Categories ==================================================
          // ////////////////////////////////////////////////////////////////////////////
@@ -191,6 +195,17 @@ void outputEvent(VarSet& vars, CategorySelection& categorySelection)
              if(categorySelection.isTight01) std::cout << "    CATEGORY: 10tight, recoCandPt: " << vars.recoCandPt << std::endl;
              if(categorySelection.isLoose01) std::cout << "    CATEGORY: 10loose, recoCandPt: " << vars.recoCandPt << std::endl;
          }
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+void outputEvent(VarSet& vars, CategorySelection& categorySelection)
+{
+         // output standard information about the event
+         outputEvent(vars);
+         outputCategory(vars, categorySelection);
 }
 
 #endif

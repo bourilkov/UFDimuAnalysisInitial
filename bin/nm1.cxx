@@ -164,7 +164,8 @@ int main(int argc, char* argv[])
     // 0 = charge1 != charge2
     // 1 = cTrigMuPtMin
     // 2 = cDimuMassMin
-    if(input >=1 && input <=2)
+    // 3 = cDimuMassMax
+    if(input >=1 && input <=3)
     {
         run1EventSelection.cutset.cuts[input].on = false;
         eventselection = true;
@@ -189,10 +190,10 @@ int main(int argc, char* argv[])
     // 4 = cMaxEta
     // 5 = cMaxRelIso
     // first three for reco1, second three for reco2, though both use the same value for the cut
-    else if(input >= 3 && input <= 8)
+    else if(input >= 4 && input <= 9)
     {
         // adjust the input by three so that input=3 is the 0th muon selection cut
-        input-=3;
+        input-=4;
         run1MuonSelection.cutset.cuts[input].on = false;
         muonselection = true;
         bins = run1MuonSelection.cutset.cuts[input].bins;
@@ -234,7 +235,7 @@ int main(int argc, char* argv[])
     double ndata = 0;               // the number of background events
 
     // Not sure how to deal with the scaling correctly when using a subset of events
-    float reductionFactor = 10;
+    float reductionFactor = 1;
 
     // make histograms to count everything
     TH1F* nhistosignal = new TH1F("counts_"+TString("signal"), "counts_"+TString("signal"), 1, 0, 1);
@@ -376,9 +377,9 @@ int main(int argc, char* argv[])
     // ////////////////////////////////////////////////////////////////////////////
     
     AsimovSignificance asimov0(0);
-    AsimovSignificance asimov1;
+    AsimovSignificance asimov1(1);
     PoissonSignificance poisson0(0);
-    PoissonSignificance poisson1;
+    PoissonSignificance poisson1(1);
 
     // unc = 0.06 for 12596 background events, scales like 1/sqrt(N)
     double asimovZ0 = asimov0.significance(nsignal, nbackground);
@@ -474,19 +475,12 @@ int main(int argc, char* argv[])
     // ========= Total Counts =====================================================
     // ////////////////////////////////////////////////////////////////////////////
     
-    //std::cout << std::endl;
-    //std::cout << "=========== Category Counts ============" << std::endl;
-    //std::cout << "VBFTight: " << VBFTightVec.size() << std::endl;
-    //std::cout << "GGFTight: " << GGFTightVec.size() << std::endl;
-    //std::cout << "VBFLoose: " << VBFLooseVec.size() << std::endl;
-    //std::cout << "10Tight: " << tight01Vec.size() <<  std::endl;
-    //std::cout << "10Loose: " << loose01Vec.size() <<  std::endl;
-    //std::cout << std::endl;
-
-    //int dimutotal = VBFTightVec.size() + GGFTightVec.size() + VBFLooseVec.size() + tight01Vec.size() + loose01Vec.size();
-    //std::cout << "total: " << dimutotal << std::endl;
-    //std::cout << std::endl;
-
+    std::cout << std::endl;
+    std::cout << "=========== Counts ============" << std::endl;
+    std::cout << "Data: " << nhistodata->Integral() << std::endl;
+    std::cout << "Signal: " << nhistosignal->Integral() << std::endl;
+    std::cout << "Background: " << nhistobg->Integral() << std::endl;
+    std::cout << std::endl;
 
     return 0;
 }
