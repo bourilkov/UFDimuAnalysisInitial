@@ -49,6 +49,11 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     float luminosity = 2169;
+    float lumiSF = 10;
+
+    // use this to scale the MC for some projected amount of luminosity
+    luminosity *= lumiSF;
+
     float signalSF = 100;
 
     // ================================================================
@@ -342,6 +347,10 @@ int main(int argc, char* argv[])
       }
       if(s->sampleType.Contains("data")) 
       {
+          // Project the data to a higher luminosity
+          varhisto->Scale(lumiSF);
+          nhisto->Scale(lumiSF);
+
           varhistodata->Add(varhisto); 
           nhistodata->Add(nhisto); 
       }
@@ -424,6 +433,7 @@ int main(int argc, char* argv[])
       if(TString(varhisto->GetName()).Contains("signal"))
       {
           // scale the signal so that it's easier to see on the plots
+          // only do this right before saving or it would skew the significance results
           varhisto->Scale(signalSF);
       }
     }

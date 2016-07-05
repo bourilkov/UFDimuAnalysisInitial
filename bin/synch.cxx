@@ -238,11 +238,11 @@ int main(int argc, char* argv[])
     std::cout << "to check total: " << eventsToCheck.size() << std::endl;
 
     std::cout << std::endl;
-    outputEventsToFile(VBFTightVec, "txt/andrew/VBFTight.txt");
-    outputEventsToFile(GGFTightVec, "txt/andrew/GGFTight.txt");
-    outputEventsToFile(VBFLooseVec, "txt/andrew/VBFLoose.txt");
-    outputEventsToFile(tight01Vec, "txt/andrew/10Tight.txt");
-    outputEventsToFile(loose01Vec, "txt/andrew/10Loose.txt");
+    //outputEventsToFile(VBFTightVec, "txt/andrew/VBFTight.txt");
+    //outputEventsToFile(GGFTightVec, "txt/andrew/GGFTight.txt");
+    //outputEventsToFile(VBFLooseVec, "txt/andrew/VBFLoose.txt");
+    //outputEventsToFile(tight01Vec, "txt/andrew/10Tight.txt");
+    //outputEventsToFile(loose01Vec, "txt/andrew/10Loose.txt");
     //outputEventsToFile(xmissingVec, "txt/andrew/xMissing.txt");
 
 
