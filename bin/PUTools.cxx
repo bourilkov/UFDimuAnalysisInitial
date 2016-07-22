@@ -29,7 +29,7 @@ void savePUHisto(Sample* s, TString savedir)
         pileuphist->Fill(s->vars.nPU, s->vars.genWeight);
     }   
 
-    TFile* savefile = new TFile(savedir+"PUCalib_gw_"+s->name+".root", "RECREATE");
+    TFile* savefile = new TFile(savedir+"PUCalib_"+s->name+".root", "RECREATE");
     savefile->cd();
     pileuphist->Write();
     savefile->Close();
@@ -56,7 +56,7 @@ void makePUHistos(std::map<std::string, Sample*> samples)
         std::cout << "    +++ Saving the histo..."  << std::endl;
         std::cout << std::endl;
 
-        savePUHisto(i.second, "pu_reweight_trees/");
+        savePUHisto(i.second, "pu_reweight_trees/8_0_X/");
     }
 }
 
