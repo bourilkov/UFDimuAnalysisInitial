@@ -155,6 +155,7 @@ float Sample::getWeight()
 // Assumes getEntry has already been called to load the appropriate values.
 // Gets the weight for the histogram depending on the sample type 
     if(sampleType.Contains("data")) return 1.0;
+    else if(lumiWeights == 0) return 1.0*vars.genWeight;
     else return 1.0*vars.genWeight*lumiWeights->weight(vars.nPU);
     //else return 1.0*vars.genWeight;
 }

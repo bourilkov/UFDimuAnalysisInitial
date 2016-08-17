@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    float luminosity = 15110;      // pb-1
+    float luminosity = 3990;       // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;
 
@@ -60,15 +60,16 @@ int main(int argc, char* argv[])
  
 
     TString datafilename = 
-    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDE_ALL.root");
+    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016B_ALL.root");
 
     Sample* datasample = new Sample(datafilename, "Data", "data");
     datasample->lumi = luminosity;
     datasample->xsec = 9999;
     //datasample->pileupfile = "/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/pileup/old/PUCalib_Golden_71mb.root";
-    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDE_xsec69p2mb_CMSSW_8_0_X.root";
+    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69mb_CMSSW_8_0_X.root";
     samples["Data"] = datasample;
 
+/*
     // ================================================================
     // DYJetsToLL -----------------------------------------------------
     // ================================================================
@@ -104,6 +105,7 @@ int main(int argc, char* argv[])
     samples["GGF"] = new Sample(ggfilename, "GGF", "signal");
     samples["GGF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_GGF.root"; //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
+*/
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING---------------------------------------------------
@@ -114,7 +116,7 @@ int main(int argc, char* argv[])
     std::cout << "======== Preprocess the samples... " << std::endl;
     std::cout << std::endl;
 
-    makePUHistos(samples);
+    //makePUHistos(samples);
     
     for(auto const &i : samples)
     {
@@ -145,6 +147,8 @@ int main(int argc, char* argv[])
     // Sort the samples by xsec. Useful when making the histogram stack.
     std::sort(samplevec.begin(), samplevec.end(), [](Sample* a, Sample* b){ return a->xsec < b->xsec; }); 
     
+    TList* histolist = new TList();   // the list of objects to save
+    TList* graphlist = new TList();   // the list of objects to save
 
     ///////////////////////////////////////////////////////////////////
     // Cut and Categorize ---------------------------------------------
@@ -154,68 +158,51 @@ int main(int argc, char* argv[])
     JetSelectionTools jetSelectionTools;
     CategorySelection categorySelection;
     Run1MuonSelectionCuts run1MuonSelection;
-    Run1EventSelectionCuts80X run1EventSelectionData(true);
+    Run1EventSelectionCuts80X run1EventSelectionData(true); //true sets the slightly different data cuts
     Run1EventSelectionCuts80X run1EventSelectionMC;
 
-    TString varname;
-    int bins;
-    float min;
-    float max;
+    ///////////////////////////////////////////////////////////////////
+    // Plot Settings Depending on Input--------------------------------
+    ///////////////////////////////////////////////////////////////////
+    
+    TString xname;
+    Float_t fitsig, massmin, massmax, xmin, xmax;
+    Int_t massbins, xbins;
 
-    // recoCandMass
+    massmin = 86.2;
+    massmax = 96.2;
+    massbins = 50;
+    xbins = 25;
+    fitsig = 1;
+
     if(input == 0)
     {
-        bins = 150;
-        min = 50;
-        max = 200;
-        varname = "dimuMass";
+        xname = "phi_plus";
+        xmin = -3.14;
+        xmax = 3.14;
     }
 
-    // dimuPt 
     if(input == 1)
     {
-        bins = 200;
-        min = 0;
-        max = 100;
-        varname = "dimuPt";
+        xname = "phi_minus";
+        xmin = -3.14;
+        xmax = 3.14;
     }
 
-    // recoPt
     if(input == 2)
     {
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "recoMu_Pt";
+        xname = "eta_plus";
+        xmin = -2.4;
+        xmax = 2.4;
     }
- 
-    // recoEta
+
     if(input == 3)
     {
-        bins = 100;
-        min = -2.5;
-        max = 2.5;
-        varname = "recoMu_Eta";
+        xname = "eta_minus";
+        xmin = -2.4;
+        xmax = 2.4;
     }
 
-    // NPV
-    if(input == 4)
-    {
-        bins = 50;
-        min = 0;
-        max = 50;
-        varname = "NPV";
-    }
-
-    std::cout << std::endl;
-    std::cout << "======== Plot Configs ========" << std::endl;
-    std::cout << "var         : " << varname << std::endl;
-    std::cout << "min         : " << min << std::endl;
-    std::cout << "max         : " << max << std::endl;
-    std::cout << "bins        : " << bins << std::endl;
-    std::cout << std::endl;
-
-    TList* varlist = new TList();   // the list of histograms used to make the stack for var
 
     // Not sure how to deal with the scaling correctly when using a subset of events
     float reductionFactor = 1;
@@ -226,11 +213,11 @@ int main(int argc, char* argv[])
       std::cout << std::endl;
       std::cout << "  /// Looping over " << s->name << std::endl;
 
+      ZCalibration* zcal = new ZCalibration(xname, fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+
       ///////////////////////////////////////////////////////////////////
       // HISTOGRAMS TO FILL ---------------------------------------------
       ///////////////////////////////////////////////////////////////////
-
-      TH1F* varhisto = new TH1F(varname+"_"+s->name, varname+"_"+s->name, bins, min, max);
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
@@ -265,37 +252,21 @@ int main(int argc, char* argv[])
             continue; 
         }
 
-        // recoCandMass
-        if(varname.Contains("dimuMass")) 
-        {
-            float varvalue = -9999;
-            varvalue = s->vars.recoCandMassPF;
-            if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140)) varhisto->Fill(varvalue, s->getWeight());   
-        }
+        //phi plus
+        if(s->vars.reco1.charge == 1 && input == 0) zcal->fill(s->vars.reco1.phi, s->vars.recoCandMassPF);
+        if(s->vars.reco2.charge == 1 && input == 0) zcal->fill(s->vars.reco2.phi, s->vars.recoCandMassPF);
 
-        // recoCandPt
-        if(varname.Contains("dimuPt"))
-             varhisto->Fill(s->vars.recoCandPtPF, s->getWeight());
+        //phi minus
+        if(s->vars.reco1.charge == -1 && input == 1) zcal->fill(s->vars.reco1.phi, s->vars.recoCandMassPF);
+        if(s->vars.reco2.charge == -1 && input == 1) zcal->fill(s->vars.reco2.phi, s->vars.recoCandMassPF);
 
-        // recoMu_Pt
-        if(varname.Contains("recoMu_Pt"))
-        {
-             varhisto->Fill(s->vars.reco1.pt, s->getWeight());
-             varhisto->Fill(s->vars.reco2.pt, s->getWeight());
-        }
+        //eta plus
+        if(s->vars.reco1.charge == 1 && input == 2) zcal->fill(s->vars.reco1.eta, s->vars.recoCandMassPF);
+        if(s->vars.reco2.charge == 1 && input == 2) zcal->fill(s->vars.reco2.eta, s->vars.recoCandMassPF);
 
-        // recoMu_Eta
-        if(varname.Contains("recoMu_Eta"))
-        {
-             varhisto->Fill(s->vars.reco1.eta, s->getWeight());
-             varhisto->Fill(s->vars.reco2.eta, s->getWeight());
-        }
-
-        // NPV
-        if(varname.Contains("NPV"))
-        {
-             varhisto->Fill(s->vars.vertices.nVertices, s->getWeight());
-        }
+        //eta minus
+        if(s->vars.reco1.charge == -1 && input == 3) zcal->fill(s->vars.reco1.eta, s->vars.recoCandMassPF);
+        if(s->vars.reco2.charge == -1 && input == 3) zcal->fill(s->vars.reco2.eta, s->vars.recoCandMassPF);
 
         if(false)
           // ouput pt, mass info etc
@@ -305,48 +276,25 @@ int main(int argc, char* argv[])
         categorySelection.reset();
       }
 
-      varhisto->Scale(s->getScaleFactor(luminosity));
+      for(unsigned int i=0; i<zcal->histos.size(); i++)
+          histolist->Add(zcal->histos[i]);
 
-      // No trigger info in 80X MC samples, scale for trigger efficiency
-      if(!s->sampleType.Contains("data"))
-          varhisto->Scale(triggerSF);
-
-      varlist->Add(varhisto);
+      graphlist->Add(zcal->plot());
     }
 
-    // ////////////////////////////////////////////////////////////////////////////
-    // ========= Scale, Stack, Save ===============================================
-    // ////////////////////////////////////////////////////////////////////////////
-
-    //TIter next(varlist);
-    //TObject* object = 0;
-    //while( (object = next()) )
-    //{
-    //  TH1F* varhisto = (TH1F*) object;
-    //  if(TString(varhisto->GetName()).Contains("signal"))
-    //  {
-    //      // scale the signal so that it's easier to see on the plots
-    //      // only do this right before saving or it would skew the significance results
-    //      varhisto->Scale(signalSF);
-    //  }
-    //}
-
     // Create the stack and ratio plot    
-    TCanvas* varstackcanvas = dps->stackedHistogramsAndRatio(varlist, "c_"+varname, varname+"_stack", varname, "Num Entries");
-    std::cout << std::endl;
-
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/validate_"+varname+"_69p2mb_8_0_X_MC_15fb-1.root", "RECREATE");
-    TDirectory* stacks = savefile->mkdir("stacks");
-    TDirectory* histos = savefile->mkdir("histos");
+    TFile* savefile = new TFile("rootfiles/"+xname+"_data_8_0_X.root", "RECREATE");
+    TDirectory* graphs = savefile->mkdir("graphs");
+    TDirectory* hists = savefile->mkdir("hists");
 
     // save the different histos in the appropriate directories in the tfile
-    stacks->cd();
-    varstackcanvas->Write();
+    hists->cd();
+    histolist->Write();
 
-    histos->cd();
-    varlist->Write();
+    graphs->cd();
+    graphlist->Write();
 
     savefile->Close();
 

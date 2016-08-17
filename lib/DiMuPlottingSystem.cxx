@@ -307,7 +307,7 @@ TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle)
+TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, TString ratiotitle)
 {
     // Define two gaussian histograms. Note the X and Y title are defined
     // at booking time using the convention "Hist_title ; X_title ; Y_title"
@@ -393,7 +393,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->SetTitle(""); // Remove the ratio title
 
     // Y axis ratio plot settings
-    hratio->GetYaxis()->SetTitle("Data/MC");
+    hratio->GetYaxis()->SetTitle(ratiotitle);
     hratio->GetYaxis()->SetNdivisions(505);
     hratio->GetYaxis()->SetTitleSize(20);
     hratio->GetYaxis()->SetTitleFont(43);
@@ -409,4 +409,205 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetXaxis()->SetLabelSize(15);
 
     return c;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+ZCalibration::ZCalibration()
+{
+    xname = "phi_plus";
+    massmin = 86.2;
+    massmax = 96.2;
+    massbins = 50;
+    xmin = -3.14;
+    xmax = 3.14;
+    xbins = 25;
+    fitsig = 1;
+
+    histos = std::vector<TH1F*>();
+    binning = std::vector<Float_t>();
+    vfis = std::vector<VoigtFitInfo>();
+    init();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+ZCalibration::ZCalibration(TString xname, Float_t fitsig, Float_t massmin, Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins)
+{
+    this->xname = xname;
+    this->massmin = massmin;
+    this->massmax = massmax;
+    this->massbins = massbins;
+    this->xmin = xmin;
+    this->xmax = xmax;
+    this->xbins = xbins;
+ 
+    this->fitsig = fitsig;
+
+    histos = std::vector<TH1F*>();
+    binning = std::vector<Float_t>();
+    vfis = std::vector<VoigtFitInfo>();
+    init();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+void ZCalibration::init()
+{
+    TString basename = "Z_Peak_Calibration_";
+    basename+=xname;
+
+    binning.push_back(xmin);
+    Float_t interval = (xmax - xmin)/xbins;
+    Float_t upper_bin_edge = xmin;
+
+    // Set up the bin edges 
+    for(unsigned int i=0; i<xbins; i++)
+    {
+        upper_bin_edge += interval;
+        binning.push_back(upper_bin_edge);
+    }
+
+    // print binning for debugging
+    //for(unsigned int i=0; i<binning.size(); i++)
+    //{
+    //    std::cout << binning[i] << std::endl;
+    //}
+
+    // Set up the TH1Fs
+    for(unsigned int i=0; i<binning.size()-1; i++)
+    {
+        TString range = Form("_%5.2f_to_%5.2f", binning[i], binning[i+1]);
+        TString title = basename+range;
+        histos.push_back(new TH1F(title, title, massbins, massmin, massmax));
+        histos[i]->GetXaxis()->SetTitle("Dimuon Mass (GeV)");
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+int ZCalibration::whichTH1F(Float_t xvalue)
+{
+    Float_t interval = (xmax - xmin)/xbins;
+    int bin = (xvalue-xmin)/interval;
+
+    if(xvalue == xmin) bin = 0;
+    if(xvalue == xmax) bin = binning.size()-2;
+
+    if(xvalue < xmin || xvalue > xmax) bin = -9999;
+
+    return bin;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
+{
+    int h = whichTH1F(xvalue);
+    if(h>=0) 
+        histos[h]->Fill(massvalue);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+VoigtFitInfo ZCalibration::fit(TH1F* inhist, Float_t x, Float_t x_err)
+{
+    VoigtFitInfo vfi;
+    vfi.x = x;
+    vfi.x_err = x_err;
+    
+    // Grab the results we are interested in.
+    vfi.hmean = inhist->GetMean();
+    vfi.hmean_err = inhist->GetMeanError();
+    
+    vfi.hrms = inhist->GetRMS();
+    vfi.hrms_err = inhist->GetRMSError();
+    
+    // Display fit info on canvas.
+    gStyle->SetOptFit(0011);
+    // Fit things.
+    TString fitname = TString("fit_")+xname+Form("_%5.2f", x);
+    TF1* fit = new TF1(fitname, "[0]*TMath::Voigt(x - [1], [2], [3])", 87, 95);
+    fit->SetParNames("Constant", "Mean", "Sigma", "Gamma");
+    
+    // Reasonable initial guesses for the fit parameters
+    fit->SetParameters(inhist->GetMaximum(), inhist->GetMean(), inhist->GetRMS(), vfi.gamma);
+    fit->SetParLimits(2, 0.001, 2 * inhist->GetRMS());
+
+    // Fix the intrinsic width to the theoretical value
+    fit->FixParameter(3, 0.083985);
+
+    // Sometimes we have to fit the data a few times before the fit converges
+    bool converged = 0;
+    int ntries = 0;
+    
+    // Make sure the fit converges.
+    while(!converged) 
+    {
+      if(ntries >= 50) break;
+      std::cout << "==== " << inhist->GetTitle() << " ====" << std::endl;
+      fit->SetParameter(1, inhist->GetRMS());
+      inhist->Fit(fitname);
+
+      // Fit to a width of fitsig sigmas
+      inhist->Fit(fitname,"","", fit->GetParameter(1) - fitsig*fit->GetParameter(2), fit->GetParameter(1) + fitsig*fit->GetParameter(2));
+      TString sconverge = gMinuit->fCstatu.Data();
+      converged = sconverge.Contains(TString("CONVERGED"));
+      ntries++; 
+    }
+
+    vfi.fit = fit;
+    vfi.vmean = fit->GetParameter(1);
+    vfi.vmean_err = fit->GetParError(1);
+    vfi.vsigma = fit->GetParameter(2);
+    vfi.vsigma_err = fit->GetParError(2);
+    vfi.vgamma = fit->GetParameter(3);
+    vfi.vgamma_err = fit->GetParError(3);
+
+    return vfi;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+void ZCalibration::fit()
+{
+    for(unsigned int h=0; h<histos.size(); h++)
+    {
+        VoigtFitInfo vfi = fit(histos[h], (binning[h+1] + binning[h])/2, binning[h+1] - binning[h]);
+        vfis.push_back(vfi);
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+TGraphErrors* ZCalibration::plot()
+{
+    fit();
+    massvsx = new TGraphErrors();
+    for(unsigned int i=0; i<vfis.size(); i++)
+    {
+        massvsx->SetPoint(i, vfis[i].x, vfis[i].vmean);
+        massvsx->SetPointError(i, vfis[i].x_err, vfis[i].vmean_err);
+    }
+    massvsx->SetTitle("graph_"+xname);
+    massvsx->SetName("graph_"+xname);
+    massvsx->GetXaxis()->SetTitle(xname);
+    massvsx->GetYaxis()->SetTitle("Z Peak Voigtian Mean Mass (GeV)");
+    return massvsx;
 }

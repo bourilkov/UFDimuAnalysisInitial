@@ -6,8 +6,17 @@
 #include "VarSet.h"
 #include "JetSelectionTools.h"
 
-// Define the different cuts
-class CategorySelection
+
+class Categorizer
+{
+    public:
+        // Determine which category the event belongs to
+        virtual void evaluate(VarSet& vars) = 0;
+        // reset the boolean values for the categories
+        virtual void reset() = 0;
+};
+
+class CategorySelection : public Categorizer
 {
     public:
         CategorySelection(); 
@@ -42,6 +51,40 @@ class CategorySelection
 
         // Determine which category the event belongs to
         // result stored in isVBFTight, isGGFTight, etc 
+        void evaluate(VarSet& vars);
+        void reset();
+};
+
+class CategorySelectionFEWZ : public Categorizer
+{
+    public:
+        CategorySelectionFEWZ(); 
+        CategorySelectionFEWZ(float massSplit, float etaCentralSplit, float jetPtMin, float jetEtaMax); 
+
+        // Selections
+        float cMassSplit;
+        float cEtaCentralSplit;
+        float cJetPtMin;
+        float cJetEtaMax;
+
+        // Initial Tests
+        bool isWide;
+        bool isNarrow;
+        bool isCentralCentral;
+        bool isCentralNotCentral;
+        bool isOneJetInclusive;
+
+        // Final Categories
+        bool isCentralCentralWide;
+        bool isCentralCentralNarrow;
+
+        bool isCentralNotCentralWide;
+        bool isCentralNotCentralNarrow;
+
+        bool isOneJetInclusiveWide;
+        bool isOneJetInclusiveNarrow;
+
+        // Determine which category the event belongs to
         void evaluate(VarSet& vars);
         void reset();
 };

@@ -869,3 +869,160 @@ void Run1EventSelectionCuts80X::makeCutSet()
     cutset.cuts[2].cutvalue = &cDimuMassMin;
     cutset.cuts[2].ismin = true;
 }
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// _______________________FEWZCompareCuts________________________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+FEWZCompareCuts::FEWZCompareCuts()
+{
+// Default values for the fewz comparison selection cuts
+
+    cLeadPtMin = 20;   
+    cSubleadPtMin = 10;   
+    cMaxEta = 2.4;     
+    cDimuMassMin = 110; 
+    cDimuMassMax = 310; 
+    cutset.cuts = std::vector<CutInfo>(6, CutInfo());
+    makeCutSet();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+FEWZCompareCuts::FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax)
+{
+// Custom selection cuts for the fewz comparison
+
+    cLeadPtMin = leadPtMin;
+    cSubleadPtMin = subleadPtMin;
+    cMaxEta = maxEta;
+    cDimuMassMin = dimuMassMin;
+    cDimuMassMax = dimuMassMax;
+    cutset.cuts = std::vector<CutInfo>(6, CutInfo());
+    makeCutSet();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+bool FEWZCompareCuts::evaluate(VarSet& vars)
+{
+    // Make sure passed is true at first and the value is reset
+    cutset.resetCuts();
+
+    float leadPt = TMath::Max(TMath::Abs(vars.reco1.pt), TMath::Abs(vars.reco2.pt));
+    float subleadPt = TMath::Min(TMath::Abs(vars.reco1.pt), TMath::Abs(vars.reco2.pt));
+
+    // keep track of the values that were cut on
+    cutset.cuts[0].value = TMath::Abs(leadPt);
+    cutset.cuts[1].value = TMath::Abs(subleadPt);
+    cutset.cuts[2].value = TMath::Abs(vars.reco1.eta);
+    cutset.cuts[3].value = TMath::Abs(vars.reco2.eta);
+    cutset.cuts[4].value = TMath::Abs(vars.recoCandMass);
+    cutset.cuts[5].value = TMath::Abs(vars.recoCandMass);
+
+    // if a muon fails any of the criterea that are turned on then reutrn false
+    if(cutset.cuts[0].on)
+    {
+        if(leadPt <= cLeadPtMin) return false;
+    }
+    if(cutset.cuts[1].on)
+    {
+        if(subleadPt <= cSubleadPtMin) return false;
+    }
+    if(cutset.cuts[2].on)
+    {
+        if(TMath::Abs(vars.reco1.eta) >= cMaxEta) return false;
+    }
+    if(cutset.cuts[3].on)
+    {
+        if(TMath::Abs(vars.reco2.eta) >= cMaxEta) return false;
+    }
+    if(cutset.cuts[4].on)
+    {
+        if(vars.recoCandMass <= cDimuMassMin) return false;
+    }
+    if(cutset.cuts[5].on)
+    {
+        if(vars.recoCandMass >= cDimuMassMax) return false;
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+TString FEWZCompareCuts::string()
+{
+    return TString("FEWZ Comparison Cuts");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void FEWZCompareCuts::makeCutSet()
+{
+    //cLeadPtMin 
+    //cSubleadPtMin
+    //cMaxEta1
+    //cMaxEta2
+    //cDimuMassMin
+    //cDimuMassMax
+
+    // reco1 cuts
+    cutset.cuts[0].name = "recoLead.pt";
+    cutset.cuts[0].tstring.Form("recoLead.pt > %4.1f", cLeadPtMin);
+    cutset.cuts[0].bins = 200;
+    cutset.cuts[0].min = 0;
+    cutset.cuts[0].max = 200;
+    cutset.cuts[0].cutvalue = &cLeadPtMin;
+    cutset.cuts[0].ismin = true;
+
+    cutset.cuts[1].name = "recoSublead.pt";
+    cutset.cuts[1].tstring.Form("recoSublead.pt > %4.1f", cSubleadPtMin);
+    cutset.cuts[1].bins = 200;
+    cutset.cuts[1].min = 0;
+    cutset.cuts[1].max = 200;
+    cutset.cuts[1].cutvalue = &cSubleadPtMin;
+    cutset.cuts[1].ismin = true;
+
+    cutset.cuts[2].name = "reco1.eta";
+    cutset.cuts[2].tstring.Form("TMath::Abs(reco1.eta) < %4.2f", cMaxEta);
+    cutset.cuts[2].bins = 50;
+    cutset.cuts[2].min = 0;
+    cutset.cuts[2].max = 3;
+    cutset.cuts[2].cutvalue = &cMaxEta;
+    cutset.cuts[2].ismin = false;
+
+    cutset.cuts[3].name = "reco2.eta";
+    cutset.cuts[3].tstring.Form("TMath::Abs(reco2.eta) < %4.2f", cMaxEta);
+    cutset.cuts[3].bins = 50;
+    cutset.cuts[3].min = 0;
+    cutset.cuts[3].max = 3;
+    cutset.cuts[3].cutvalue = &cMaxEta;
+    cutset.cuts[3].ismin = false;
+
+    cutset.cuts[4].name = "recoCandMass_Min";
+    cutset.cuts[4].tstring.Form("recoCandMass < %5.2f", cDimuMassMin);
+    cutset.cuts[4].bins = 100;
+    cutset.cuts[4].min = 110;
+    cutset.cuts[4].max = 310;
+    cutset.cuts[4].cutvalue = &cDimuMassMin;
+    cutset.cuts[4].ismin = true;
+
+    cutset.cuts[5].name = "recoCandMass_Max";
+    cutset.cuts[5].tstring.Form("recoCandMass < %5.2f", cDimuMassMax);
+    cutset.cuts[5].bins = 100;
+    cutset.cuts[5].min = 110;
+    cutset.cuts[5].max = 310;
+    cutset.cuts[5].cutvalue = &cDimuMassMax;
+    cutset.cuts[5].ismin = false;
+}
+

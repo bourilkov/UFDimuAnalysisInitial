@@ -50,7 +50,9 @@ int main(int argc, char* argv[])
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    float luminosity = 15110;      // pb-1
+    float luminosity = 3990;       // pb-1
+    //float luminosity = 12900;      // pb-1 (ICHEP)
+    //float luminosity = 15900;      // pb-1   (2016-08-03)
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;
 
@@ -60,13 +62,16 @@ int main(int argc, char* argv[])
  
 
     TString datafilename = 
-    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDE_ALL.root");
+    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/old/stage_1_singleMuon_Run2016B_ALL.root");
+    //TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCD_ICHEP_ALL.root");
+    //TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDE_ALL.root");
 
     Sample* datasample = new Sample(datafilename, "Data", "data");
     datasample->lumi = luminosity;
     datasample->xsec = 9999;
-    //datasample->pileupfile = "/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/pileup/old/PUCalib_Golden_71mb.root";
-    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDE_xsec69p2mb_CMSSW_8_0_X.root";
+    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69mb_CMSSW_8_0_X.root";
+    //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCD_ICHEP_xsec69p2mb_CMSSW_8_0_X.root";
+    //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDE_xsec69p2mb_CMSSW_8_0_X.root";
     samples["Data"] = datasample;
 
     // ================================================================
@@ -114,7 +119,7 @@ int main(int argc, char* argv[])
     std::cout << "======== Preprocess the samples... " << std::endl;
     std::cout << std::endl;
 
-    makePUHistos(samples);
+    //makePUHistos(samples);
     
     for(auto const &i : samples)
     {
@@ -215,7 +220,13 @@ int main(int argc, char* argv[])
     std::cout << "bins        : " << bins << std::endl;
     std::cout << std::endl;
 
-    TList* varlist = new TList();   // the list of histograms used to make the stack for var
+    // The lists of histograms used to make the stacks
+    TList* varlistall = new TList();   // all events passing cuts 
+    TList* varlistVBFt = new TList();  // VBF Tight category
+    TList* varlistVBFl = new TList();  // VBF Loose
+    TList* varlistGGFt = new TList();  // GGF Tight
+    TList* varlist01t = new TList();   // 01 Jet Tight
+    TList* varlist01l = new TList();   // 01 Jet Loose
 
     // Not sure how to deal with the scaling correctly when using a subset of events
     float reductionFactor = 1;
@@ -230,7 +241,14 @@ int main(int argc, char* argv[])
       // HISTOGRAMS TO FILL ---------------------------------------------
       ///////////////////////////////////////////////////////////////////
 
-      TH1F* varhisto = new TH1F(varname+"_"+s->name, varname+"_"+s->name, bins, min, max);
+      TH1F* varhistoall  = new TH1F(varname+"_all_"+s->name, varname+"_all_"+s->name, bins, min, max);
+
+      // Different categories for the analysis
+      TH1F* varhistoVBFt = new TH1F(varname+"_vbft_"+s->name, varname+"_vbft_"+s->name, bins/5, min, max);
+      TH1F* varhistoVBFl = new TH1F(varname+"_vbfl_"+s->name, varname+"_vbfl_"+s->name, bins/5, min, max);
+      TH1F* varhistoGGFt = new TH1F(varname+"_ggft_"+s->name, varname+"_ggft_"+s->name, bins/5, min, max);
+      TH1F* varhisto01t  = new TH1F(varname+"_01t_"+s->name, varname+"_01t_"+s->name, bins, min, max);
+      TH1F* varhisto01l  = new TH1F(varname+"_01l_"+s->name, varname+"_01l_"+s->name, bins, min, max);
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
@@ -265,36 +283,84 @@ int main(int argc, char* argv[])
             continue; 
         }
 
+        // Figure out which category the event belongs to
+        categorySelection.evaluate(s->vars);
+
         // recoCandMass
         if(varname.Contains("dimuMass")) 
         {
             float varvalue = -9999;
             varvalue = s->vars.recoCandMassPF;
-            if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140)) varhisto->Fill(varvalue, s->getWeight());   
+            if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140))
+            {
+                varhistoall->Fill(varvalue, s->getWeight());   
+                if(categorySelection.isVBFTight) varhistoVBFt->Fill(varvalue, s->getWeight());
+                if(categorySelection.isGGFTight) varhistoGGFt->Fill(varvalue, s->getWeight());
+                if(categorySelection.isVBFLoose) varhistoVBFl->Fill(varvalue, s->getWeight());
+                if(categorySelection.isTight01)  varhisto01t->Fill(varvalue, s->getWeight());
+                if(categorySelection.isLoose01)  varhisto01l->Fill(varvalue, s->getWeight());
+            }
         }
 
         // recoCandPt
         if(varname.Contains("dimuPt"))
-             varhisto->Fill(s->vars.recoCandPtPF, s->getWeight());
+        {
+             varhistoall->Fill(s->vars.recoCandPtPF, s->getWeight());
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.recoCandPtPF, s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.recoCandPtPF, s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.recoCandPtPF, s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.recoCandPtPF, s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.recoCandPtPF, s->getWeight());
+        }
 
         // recoMu_Pt
         if(varname.Contains("recoMu_Pt"))
         {
-             varhisto->Fill(s->vars.reco1.pt, s->getWeight());
-             varhisto->Fill(s->vars.reco2.pt, s->getWeight());
+             varhistoall->Fill(s->vars.reco1.pt, s->getWeight());
+             varhistoall->Fill(s->vars.reco2.pt, s->getWeight());
+
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.reco1.pt, s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.reco1.pt, s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.reco1.pt, s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.reco1.pt, s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.reco1.pt, s->getWeight());
+
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.reco2.pt, s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.reco2.pt, s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.reco2.pt, s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.reco2.pt, s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.reco2.pt, s->getWeight());
         }
 
         // recoMu_Eta
         if(varname.Contains("recoMu_Eta"))
         {
-             varhisto->Fill(s->vars.reco1.eta, s->getWeight());
-             varhisto->Fill(s->vars.reco2.eta, s->getWeight());
+             varhistoall->Fill(s->vars.reco1.eta, s->getWeight());
+             varhistoall->Fill(s->vars.reco2.eta, s->getWeight());
+
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.reco1.eta, s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.reco1.eta, s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.reco1.eta, s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.reco1.eta, s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.reco1.eta, s->getWeight());
+
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.reco2.eta, s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.reco2.eta, s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.reco2.eta, s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.reco2.eta, s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.reco2.eta, s->getWeight());
         }
 
         // NPV
         if(varname.Contains("NPV"))
         {
-             varhisto->Fill(s->vars.vertices.nVertices, s->getWeight());
+             varhistoall->Fill(s->vars.vertices.nVertices, s->getWeight());
+
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.vertices.nVertices, s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.vertices.nVertices, s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.vertices.nVertices, s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.vertices.nVertices, s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.vertices.nVertices, s->getWeight());
         }
 
         if(false)
@@ -305,13 +371,32 @@ int main(int argc, char* argv[])
         categorySelection.reset();
       }
 
-      varhisto->Scale(s->getScaleFactor(luminosity));
+      // Scale according to luminosity
+      varhistoall->Scale(s->getScaleFactor(luminosity));
+      varhistoVBFt->Scale(s->getScaleFactor(luminosity));
+      varhistoGGFt->Scale(s->getScaleFactor(luminosity));
+      varhistoVBFl->Scale(s->getScaleFactor(luminosity));
+      varhisto01t->Scale(s->getScaleFactor(luminosity));
+      varhisto01l->Scale(s->getScaleFactor(luminosity));
 
       // No trigger info in 80X MC samples, scale for trigger efficiency
       if(!s->sampleType.Contains("data"))
-          varhisto->Scale(triggerSF);
+      {
+          varhistoall->Scale(triggerSF);
+          varhistoVBFt->Scale(triggerSF);
+          varhistoGGFt->Scale(triggerSF);
+          varhistoVBFl->Scale(triggerSF);
+          varhisto01t->Scale(triggerSF);
+          varhisto01l->Scale(triggerSF);
+      }
 
-      varlist->Add(varhisto);
+      // Add to the appropriate list
+      varlistall->Add(varhistoall);
+      varlistVBFt->Add(varhistoVBFt);
+      varlistGGFt->Add(varhistoGGFt);
+      varlistVBFl->Add(varhistoVBFl);
+      varlist01t->Add(varhisto01t);
+      varlist01l->Add(varhisto01l);
     }
 
     // ////////////////////////////////////////////////////////////////////////////
@@ -332,21 +417,36 @@ int main(int argc, char* argv[])
     //}
 
     // Create the stack and ratio plot    
-    TCanvas* varstackcanvas = dps->stackedHistogramsAndRatio(varlist, "c_"+varname, varname+"_stack", varname, "Num Entries");
+    TCanvas* varstackcanvasall = dps->stackedHistogramsAndRatio(varlistall, "c_all_"+varname, varname+"_all_stack", varname, "Num Entries");
+    TCanvas* varstackcanvasVBFt = dps->stackedHistogramsAndRatio(varlistVBFt, "c_vbft_"+varname, varname+"_vbft_stack", varname, "Num Entries");
+    TCanvas* varstackcanvasVBFl = dps->stackedHistogramsAndRatio(varlistVBFl, "c_vbfl_"+varname, varname+"_vbfl_stack", varname, "Num Entries");
+    TCanvas* varstackcanvasGGFt = dps->stackedHistogramsAndRatio(varlistGGFt, "c_ggft_"+varname, varname+"_ggft_stack", varname, "Num Entries");
+    TCanvas* varstackcanvas01t = dps->stackedHistogramsAndRatio(varlist01t, "c_01t_"+varname, varname+"_01t_stack", varname, "Num Entries");
+    TCanvas* varstackcanvas01l = dps->stackedHistogramsAndRatio(varlist01l, "c_01l_"+varname, varname+"_01l_stack", varname, "Num Entries");
     std::cout << std::endl;
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/validate_"+varname+"_69p2mb_8_0_X_MC_15fb-1.root", "RECREATE");
+    TFile* savefile = new TFile("rootfiles/validate_"+varname+"_x69_8_0_X_MC_categories_"+Form("%d",(int)luminosity)+".root", "RECREATE");
     TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* histos = savefile->mkdir("histos");
 
     // save the different histos in the appropriate directories in the tfile
     stacks->cd();
-    varstackcanvas->Write();
+    varstackcanvasall->Write();
+    varstackcanvasVBFt->Write();
+    varstackcanvasGGFt->Write();
+    varstackcanvasVBFl->Write();
+    varstackcanvas01t->Write();
+    varstackcanvas01l->Write();
 
     histos->cd();
-    varlist->Write();
+    varlistall->Write();
+    varlistVBFt->Write();
+    varlistVBFl->Write();
+    varlistGGFt->Write();
+    varlist01t->Write();
+    varlist01l->Write();
 
     savefile->Close();
 

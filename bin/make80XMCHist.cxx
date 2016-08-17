@@ -50,15 +50,15 @@ int main(int argc, char* argv[])
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    float luminosity = 3990;       // pb-1
+    //float luminosity = 3990;       // pb-1
+    float luminosity = 30000;       // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
-    float signalSF = 100;
+    float signalSF = 1;
 
     // ================================================================
     // Data -----------------------------------------------------------
     // ================================================================
  
-
     TString datafilename = 
     TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016B_ALL.root");
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     datasample->lumi = luminosity;
     datasample->xsec = 9999;
     //datasample->pileupfile = "/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data_from_json/25ns/golden/pileup/old/PUCalib_Golden_71mb.root";
-    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec71p3mb_CMSSW_8_0_X.root";
+    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69p6mb_CMSSW_8_0_X.root";
     samples["Data"] = datasample;
 
     // ================================================================
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 
     TString vbffilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_vbf_HToMuMu_ALL.root");
     samples["VBF"] = new Sample(vbffilename, "VBF", "signal");
-    samples["VBF"]->pileupfile = "./pu_reweight_trees/7_6_X/PUCalib_VBF.root"; //nPU
+    samples["VBF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_VBF.root"; //nPU
     samples["VBF"]->xsec = 3.727*0.00022; // pb
 
     // ================================================================
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
     TString ggfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_gg_HToMuMu2_ALL.root");
     samples["GGF"] = new Sample(ggfilename, "GGF", "signal");
-    samples["GGF"]->pileupfile = "./pu_reweight_trees/7_6_X/PUCalib_GGF.root"; //nPU
+    samples["GGF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_GGF.root"; //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
 
     ///////////////////////////////////////////////////////////////////
@@ -162,50 +162,10 @@ int main(int argc, char* argv[])
     float min;
     float max;
 
-    // recoCandMass
-    if(input == 0)
-    {
-        bins = 150;
-        min = 50;
-        max = 200;
-        varname = "dimuMass";
-    }
-
-    // dimuPt 
-    if(input == 1)
-    {
-        bins = 200;
-        min = 0;
-        max = 100;
-        varname = "dimuPt";
-    }
-
-    // recoPt
-    if(input == 2)
-    {
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "recoMu_Pt";
-    }
- 
-    // recoEta
-    if(input == 3)
-    {
-        bins = 100;
-        min = -2.5;
-        max = 2.5;
-        varname = "recoMu_Eta";
-    }
-
-    // NPV
-    if(input == 4)
-    {
-        bins = 50;
-        min = 0;
-        max = 50;
-        varname = "NPV";
-    }
+    bins = 200;
+    min = 110;
+    max = 160;
+    varname = "dimuMass";
 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
@@ -222,6 +182,8 @@ int main(int argc, char* argv[])
 
     for(auto const &s : samplevec)
     {
+      if(s->sampleType.Contains("data")) continue;
+
       // Output some info about the current file
       std::cout << std::endl;
       std::cout << "  /// Looping over " << s->name << std::endl;
@@ -265,37 +227,9 @@ int main(int argc, char* argv[])
             continue; 
         }
 
-        // recoCandMass
-        if(varname.Contains("dimuMass")) 
-        {
-            float varvalue = -9999;
-            varvalue = s->vars.recoCandMassPF;
-            if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140)) varhisto->Fill(varvalue, s->getWeight());   
-        }
-
-        // recoCandPt
-        if(varname.Contains("dimuPt"))
-             varhisto->Fill(s->vars.recoCandPtPF, s->getWeight());
-
-        // recoMu_Pt
-        if(varname.Contains("recoMu_Pt"))
-        {
-             varhisto->Fill(s->vars.reco1.pt, s->getWeight());
-             varhisto->Fill(s->vars.reco2.pt, s->getWeight());
-        }
-
-        // recoMu_Eta
-        if(varname.Contains("recoMu_Eta"))
-        {
-             varhisto->Fill(s->vars.reco1.eta, s->getWeight());
-             varhisto->Fill(s->vars.reco2.eta, s->getWeight());
-        }
-
-        // NPV
-        if(varname.Contains("NPV"))
-        {
-             varhisto->Fill(s->vars.vertices.nVertices, s->getWeight());
-        }
+        float varvalue = -9999;
+        varvalue = s->vars.recoCandMassPF;
+        if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140)) varhisto->Fill(varvalue, s->getWeight());   
 
         if(false)
           // ouput pt, mass info etc
@@ -318,32 +252,22 @@ int main(int argc, char* argv[])
     // ========= Scale, Stack, Save ===============================================
     // ////////////////////////////////////////////////////////////////////////////
 
-    //TIter next(varlist);
-    //TObject* object = 0;
-    //while( (object = next()) )
-    //{
-    //  TH1F* varhisto = (TH1F*) object;
-    //  if(TString(varhisto->GetName()).Contains("signal"))
-    //  {
-    //      // scale the signal so that it's easier to see on the plots
-    //      // only do this right before saving or it would skew the significance results
-    //      varhisto->Scale(signalSF);
-    //  }
-    //}
-
     // Create the stack and ratio plot    
-    TCanvas* varstackcanvas = dps->stackedHistogramsAndRatio(varlist, "c_"+varname, varname+"_stack", varname, "Num Entries");
+    TH1F* varadd = dps->addHists(varlist, "Mass");
+    varadd->SetTitle("Simulated Dimuon Mass Spectrum");
+    varadd->SetName("Mass");
+    varadd->GetXaxis()->SetTitle("Mass (GeV)");
+
     std::cout << std::endl;
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/validate_"+varname+"_8_0_X_MC_matching_cuts.root", "RECREATE");
-    TDirectory* stacks = savefile->mkdir("stacks");
+    TFile* savefile = new TFile("rootfiles/simulated_mass_distribution.root", "RECREATE");
     TDirectory* histos = savefile->mkdir("histos");
 
     // save the different histos in the appropriate directories in the tfile
-    stacks->cd();
-    varstackcanvas->Write();
+    savefile->cd();
+    varadd->Write();
 
     histos->cd();
     varlist->Write();

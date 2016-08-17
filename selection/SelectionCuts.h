@@ -129,4 +129,22 @@ class Run1MuonSelectionCuts : public Cut
         bool evaluate(_MuonInfo& recoMu, int m);
         TString string();
 };
+
+class FEWZCompareCuts : public Cut
+{
+    public:
+        FEWZCompareCuts();
+        FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax);
+
+        float cLeadPtMin;           
+        float cSubleadPtMin;        
+        float cMaxEta;              
+        float cDimuMassMin;         
+        float cDimuMassMax;         
+
+        void makeCutSet();
+        bool evaluate(VarSet& vars);
+        bool evaluate(_MuonInfo& recoMu, int m);
+        TString string();
+};
 #endif

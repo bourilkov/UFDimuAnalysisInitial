@@ -133,3 +133,132 @@ void CategorySelection::reset()
     isTight01 = false;
     isLoose01 = false;
 }
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// _______________________CategorySelectionFEWZ__________________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+CategorySelectionFEWZ::CategorySelectionFEWZ()
+{
+// Standard values for the FEWZ categorization
+
+    // init cut values
+    cMassSplit = 160;
+    cEtaCentralSplit = 0.8;
+    cJetPtMin = 30;
+    cJetEtaMax = 4.7;
+
+    // Intitial Tests
+    isWide = false;
+    isNarrow = false;
+    isCentralCentral = false;
+    isCentralNotCentral = false;
+    isOneJetInclusive = false;
+
+    // Final Categories
+    isCentralCentralWide = false;
+    isCentralCentralNarrow = false;
+
+    isCentralNotCentralWide = false;
+    isCentralNotCentralNarrow = false;
+
+    isOneJetInclusiveWide = false;
+    isOneJetInclusiveNarrow = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionFEWZ::CategorySelectionFEWZ(float massSplit, float etaCentralSplit, float jetPtMin, float jetEtaMax)
+{
+// Custom values for the cuts
+
+    // init cut values
+    cMassSplit = massSplit;
+    cEtaCentralSplit = etaCentralSplit;
+    cJetPtMin = jetPtMin;
+    cJetEtaMax = jetEtaMax;
+
+    // Intitial Tests
+    isWide = false;
+    isNarrow = false;
+    isCentralCentral = false;
+    isCentralNotCentral = false;
+    isOneJetInclusive = false;
+
+    // Final Categories
+    isCentralCentralWide = false;
+    isCentralCentralNarrow = false;
+
+    isCentralNotCentralWide = false;
+    isCentralNotCentralNarrow = false;
+
+    isOneJetInclusiveWide = false;
+    isOneJetInclusiveNarrow = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionFEWZ::evaluate(VarSet& vars)
+{
+// Determine which category the event belongs to
+
+    // Should cut out all events that don't fall into the wide mass window in earlier selection stage
+    // All events that pass are in window of min to max
+    isWide = true;
+
+    // Narrow goes from min to cMassSplit
+    if(vars.recoCandMass < cMassSplit) isNarrow = true;
+
+    // Both central
+    if(TMath::Abs(vars.reco1.eta) < 0.8 && TMath::Abs(vars.reco2.eta) < 0.8) isCentralCentral = true;
+
+    // Not both, but at least one is central
+    else if(TMath::Abs(vars.reco1.eta) < 0.8 || TMath::Abs(vars.reco2.eta) < 0.8) isCentralNotCentral = true;
+
+    // One category that passes basic selections and has exactly one jet
+    if(vars.validJets.size() == 1) isOneJetInclusive = true; 
+
+    // Final Categories ///////////////////////////////////////////////////////
+    if(isWide && isCentralCentral) isCentralCentralWide = true;
+    if(isNarrow && isCentralCentral) isCentralCentralNarrow = true;
+
+    if(isWide && isCentralNotCentral) isCentralNotCentralWide = true;
+    if(isNarrow && isCentralNotCentral) isCentralNotCentralNarrow = true;
+
+    if(isWide && isOneJetInclusive) isOneJetInclusiveWide = true;
+    if(isNarrow && isOneJetInclusive) isOneJetInclusiveNarrow = true;
+
+    return;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionFEWZ::reset()
+{
+// Reset the boolean values for the next iteration
+
+    // Intitial Tests
+    isWide = false;
+    isNarrow = false;
+    isCentralCentral = false;
+    isCentralNotCentral = false;
+    isOneJetInclusive = false;
+
+    // Final Categories
+    isCentralCentralWide = false;
+    isCentralCentralNarrow = false;
+
+    isCentralNotCentralWide = false;
+    isCentralNotCentralNarrow = false;
+
+    isOneJetInclusiveWide = false;
+    isOneJetInclusiveNarrow = false;
+}
