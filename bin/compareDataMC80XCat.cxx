@@ -212,6 +212,53 @@ int main(int argc, char* argv[])
         varname = "NPV";
     }
 
+    // jet_Pt
+    if(input == 5)
+    {   
+        bins = 200;
+        min = 0;
+        max = 200;
+        varname = "jet_Pt";
+    }   
+
+    // jet_Eta 
+    if(input == 6)
+    {   
+        bins = 100;
+        min = -5; 
+        max = 5;
+        varname = "jet_Eta";
+    }   
+
+    // N_valid_jets
+    if(input == 7)
+    {   
+        bins = 11;
+        min = 0; 
+        max = 11;
+        varname = "N_valid_jets";
+    }   
+
+    // Dijet_mass
+    if(input == 8)
+    {   
+        bins = 200;
+        min = 0; 
+        max = 2000;
+        varname = "Dijet_mass";
+    }   
+
+    // dEta_jj
+    if(input == 9)
+    {   
+        bins = 100;
+        min = -10; 
+        max = 10;
+        varname = "dEta_jj";
+    }   
+
+
+
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
     std::cout << "var         : " << varname << std::endl;
@@ -243,10 +290,13 @@ int main(int argc, char* argv[])
 
       TH1F* varhistoall  = new TH1F(varname+"_all_"+s->name, varname+"_all_"+s->name, bins, min, max);
 
+      int lowstatsbins = bins/5;
+      if(varname.Contains("N")) lowstatsbins = bins;
+
       // Different categories for the analysis
-      TH1F* varhistoVBFt = new TH1F(varname+"_vbft_"+s->name, varname+"_vbft_"+s->name, bins/5, min, max);
-      TH1F* varhistoVBFl = new TH1F(varname+"_vbfl_"+s->name, varname+"_vbfl_"+s->name, bins/5, min, max);
-      TH1F* varhistoGGFt = new TH1F(varname+"_ggft_"+s->name, varname+"_ggft_"+s->name, bins/5, min, max);
+      TH1F* varhistoVBFt = new TH1F(varname+"_vbft_"+s->name, varname+"_vbft_"+s->name, lowstatsbins, min, max);
+      TH1F* varhistoVBFl = new TH1F(varname+"_vbfl_"+s->name, varname+"_vbfl_"+s->name, lowstatsbins, min, max);
+      TH1F* varhistoGGFt = new TH1F(varname+"_ggft_"+s->name, varname+"_ggft_"+s->name, lowstatsbins, min, max);
       TH1F* varhisto01t  = new TH1F(varname+"_01t_"+s->name, varname+"_01t_"+s->name, bins, min, max);
       TH1F* varhisto01l  = new TH1F(varname+"_01l_"+s->name, varname+"_01l_"+s->name, bins, min, max);
 
@@ -363,6 +413,164 @@ int main(int argc, char* argv[])
              if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.vertices.nVertices, s->getWeight());
         }
 
+        // jet_Pt
+        if(varname.Contains("jet_Pt"))
+        {
+            float varvalue = -9999;
+
+            for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+            {
+                varvalue = s->vars.validJets[i].Pt();
+                varhistoall->Fill(varvalue, s->getWeight());
+            }
+
+            if(categorySelection.isVBFTight)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Pt();
+                    varhistoVBFt->Fill(varvalue, s->getWeight());
+                }
+            }
+
+            if(categorySelection.isGGFTight)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Pt();
+                    varhistoGGFt->Fill(varvalue, s->getWeight());
+                }
+            }
+            if(categorySelection.isVBFLoose)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Pt();
+                    varhistoVBFl->Fill(varvalue, s->getWeight());
+                }
+            }
+
+            if(categorySelection.isTight01)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Pt();
+                    varhisto01t->Fill(varvalue, s->getWeight());
+                }
+            }
+
+            if(categorySelection.isLoose01)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Pt();
+                    varhisto01l->Fill(varvalue, s->getWeight());
+                }
+            }
+        }
+
+        // jet_Eta
+        if(varname.Contains("jet_Eta"))
+        {
+            float varvalue = -9999;
+
+            for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+            {
+                varvalue = s->vars.validJets[i].Eta();
+                varhistoall->Fill(varvalue, s->getWeight());
+            }
+
+            if(categorySelection.isVBFTight)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Eta();
+                    varhistoVBFt->Fill(varvalue, s->getWeight());
+                }
+            }
+
+            if(categorySelection.isGGFTight)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Eta();
+                    varhistoGGFt->Fill(varvalue, s->getWeight());
+                }
+            }
+            if(categorySelection.isVBFLoose)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Eta();
+                    varhistoVBFl->Fill(varvalue, s->getWeight());
+                }
+            }
+
+            if(categorySelection.isTight01)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Eta();
+                    varhisto01t->Fill(varvalue, s->getWeight());
+                }
+            }
+
+            if(categorySelection.isLoose01)
+            {
+                for(unsigned int i=0; i<s->vars.validJets.size(); i++)
+                {
+                    varvalue = s->vars.validJets[i].Eta();
+                    varhisto01l->Fill(varvalue, s->getWeight());
+                }
+            }
+        }
+
+        // N_valid_jets
+        if(varname.Contains("N_valid_jets"))
+        {
+             varhistoall->Fill(s->vars.validJets.size(), s->getWeight());
+
+             if(categorySelection.isVBFTight) varhistoVBFt->Fill(s->vars.validJets.size(), s->getWeight());
+             if(categorySelection.isGGFTight) varhistoGGFt->Fill(s->vars.validJets.size(), s->getWeight());
+             if(categorySelection.isVBFLoose) varhistoVBFl->Fill(s->vars.validJets.size(), s->getWeight());
+             if(categorySelection.isTight01)  varhisto01t->Fill(s->vars.validJets.size(), s->getWeight());
+             if(categorySelection.isLoose01)  varhisto01l->Fill(s->vars.validJets.size(), s->getWeight());
+        }
+
+        // Dijet_mass
+        if(varname.Contains("Dijet_mass"))
+        {
+             if(s->vars.validJets.size() >= 2)
+             {
+                 TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
+                 varhistoall->Fill(dijet.M(), s->getWeight());
+
+                 if(categorySelection.isVBFTight) varhistoVBFt->Fill(dijet.M(), s->getWeight());
+                 if(categorySelection.isGGFTight) varhistoGGFt->Fill(dijet.M(), s->getWeight());
+                 if(categorySelection.isVBFLoose) varhistoVBFl->Fill(dijet.M(), s->getWeight());
+                 if(categorySelection.isTight01)  varhisto01t->Fill(dijet.M(), s->getWeight());
+                 if(categorySelection.isLoose01)  varhisto01l->Fill(dijet.M(), s->getWeight());
+             }
+        }
+
+        // Dijet_mass
+        if(varname.Contains("dEta_jj"))
+        {
+             if(s->vars.validJets.size() >= 2)
+             {
+                 float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
+                 varhistoall->Fill(dEta, s->getWeight());
+
+                 if(categorySelection.isVBFTight) varhistoVBFt->Fill(dEta, s->getWeight());
+                 if(categorySelection.isGGFTight) varhistoGGFt->Fill(dEta, s->getWeight());
+                 if(categorySelection.isVBFLoose) varhistoVBFl->Fill(dEta, s->getWeight());
+                 if(categorySelection.isTight01)  varhisto01t->Fill(dEta, s->getWeight());
+                 if(categorySelection.isLoose01)  varhisto01l->Fill(dEta, s->getWeight());
+             }
+        }
+
+
+
         if(false)
           // ouput pt, mass info etc
           outputEvent(s->vars, categorySelection);
@@ -439,6 +647,13 @@ int main(int argc, char* argv[])
     varstackcanvasVBFl->Write();
     varstackcanvas01t->Write();
     varstackcanvas01l->Write();
+
+    varstackcanvasall ->SaveAs("imgs/"+TString(varstackcanvasall->GetName())+".png");
+    varstackcanvasVBFt->SaveAs("imgs/"+TString(varstackcanvasVBFt->GetName())+".png");
+    varstackcanvasGGFt->SaveAs("imgs/"+TString(varstackcanvasGGFt->GetName())+".png");
+    varstackcanvasVBFl->SaveAs("imgs/"+TString(varstackcanvasVBFl->GetName())+".png");
+    varstackcanvas01t ->SaveAs("imgs/"+TString(varstackcanvas01t->GetName())+".png");
+    varstackcanvas01l ->SaveAs("imgs/"+TString(varstackcanvas01l->GetName())+".png");
 
     histos->cd();
     varlistall->Write();

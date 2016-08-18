@@ -207,7 +207,7 @@ THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, T
   //TLegend* l = new TLegend(0.68, 0.56, 0.88, 0.87, "", "brNDC");
 
   // Wide rectangle top right
-  TLegend* l = new TLegend(0.47, 0.56, 0.88, 0.88, "", "brNDC");
+  TLegend* l = new TLegend(0.71, 0.82, 1.0, 1.0, "", "brNDC");
   THStack* stack = new THStack();
   stack->SetTitle(title);
 
@@ -257,15 +257,19 @@ THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, T
           stack->GetXaxis()->SetTitle(xaxistitle);
           stack->GetYaxis()->SetTitle(yaxistitle);
           gPad->Modified();
+          gPad->SetLogy(1);
+          stack->SetMaximum(stack->GetMaximum()*10);
+          stack->SetMinimum(10e-6);
 
           hist->SetStats(1);
+          //hist->SetMinimum(10e-4);
 	  hist->Draw("epsames");
           gPad->Update();
           TPaveStats *st=(TPaveStats*)hist->GetListOfFunctions()->FindObject("stats");
-          st->SetX1NDC(0.69);
-          st->SetY1NDC(0.37);
-          st->SetX2NDC(0.88);
-          st->SetY2NDC(0.53);
+          st->SetX1NDC(0.52);
+          st->SetY1NDC(0.83);
+          st->SetX2NDC(0.70);
+          st->SetY2NDC(0.93);
           gPad->Modified();
           l->AddEntry(hist, legend_entry, "p");
       }
