@@ -106,7 +106,7 @@ def saveHistograms(histodict, savefilename):
 
 savefilename = re.sub('.txt', '.root', infilename)
 histodict = parseFile(infilename)
-#saveHistograms(histodict, savefilename)
+saveHistograms(histodict, savefilename)
 print 
 print savefilename
 print 

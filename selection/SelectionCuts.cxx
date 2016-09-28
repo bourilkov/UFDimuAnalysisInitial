@@ -885,7 +885,8 @@ FEWZCompareCuts::FEWZCompareCuts()
     cMaxEta = 2.4;     
     cDimuMassMin = 110; 
     cDimuMassMax = 310; 
-    cutset.cuts = std::vector<CutInfo>(6, CutInfo());
+    cMaxRelIso = 0.12; 
+    cutset.cuts = std::vector<CutInfo>(9, CutInfo());
     makeCutSet();
 }
 
@@ -893,7 +894,7 @@ FEWZCompareCuts::FEWZCompareCuts()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-FEWZCompareCuts::FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax)
+FEWZCompareCuts::FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax, float maxRelIso)
 {
 // Custom selection cuts for the fewz comparison
 
@@ -902,7 +903,8 @@ FEWZCompareCuts::FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxE
     cMaxEta = maxEta;
     cDimuMassMin = dimuMassMin;
     cDimuMassMax = dimuMassMax;
-    cutset.cuts = std::vector<CutInfo>(6, CutInfo());
+    cMaxRelIso = maxRelIso; 
+    cutset.cuts = std::vector<CutInfo>(9, CutInfo());
     makeCutSet();
 }
 
@@ -925,6 +927,7 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     cutset.cuts[3].value = TMath::Abs(vars.reco2.eta);
     cutset.cuts[4].value = TMath::Abs(vars.recoCandMass);
     cutset.cuts[5].value = TMath::Abs(vars.recoCandMass);
+    cutset.cuts[6].value = vars.reco1.charge != vars.reco2.charge;
 
     // if a muon fails any of the criterea that are turned on then reutrn false
     if(cutset.cuts[0].on)
@@ -950,6 +953,20 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     if(cutset.cuts[5].on)
     {
         if(vars.recoCandMass >= cDimuMassMax) return false;
+    }
+    if(cutset.cuts[6].on)
+    {
+        if(vars.reco1.charge == vars.reco2.charge) return false;
+    }
+    if(cutset.cuts[7].on)
+    {
+        if(!((vars.reco1.sumChargedHadronPtR03 + 
+              TMath::Max(0.0,vars.reco1.sumNeutralHadronEtR03+vars.reco1.sumPhotonEtR03 - 0.5*vars.reco1.sumPUPtR03))/vars.reco1.pt <= cMaxRelIso) ) return false;
+    }
+    if(cutset.cuts[8].on)
+    {
+        if(!((vars.reco2.sumChargedHadronPtR03 + 
+              TMath::Max(0.0,vars.reco2.sumNeutralHadronEtR03+vars.reco2.sumPhotonEtR03 - 0.5*vars.reco2.sumPUPtR03))/vars.reco2.pt <= cMaxRelIso) ) return false;
     }
     return true;
 }
@@ -1024,5 +1041,28 @@ void FEWZCompareCuts::makeCutSet()
     cutset.cuts[5].max = 310;
     cutset.cuts[5].cutvalue = &cDimuMassMax;
     cutset.cuts[5].ismin = false;
+
+    cutset.cuts[6].name = "reco1.charge != reco2.charge";
+    cutset.cuts[6].tstring = "reco1.charge != reco2.charge";
+    cutset.cuts[6].bins = 2;
+    cutset.cuts[6].min = 0;
+    cutset.cuts[6].max = 2;
+    cutset.cuts[6].ismin = true;
+
+    cutset.cuts[7].name = "reco1.iso";
+    cutset.cuts[7].tstring.Form("reco1.iso < %4.2f", cMaxRelIso);
+    cutset.cuts[7].bins = 50;
+    cutset.cuts[7].min = 0;
+    cutset.cuts[7].max = 1;
+    cutset.cuts[7].cutvalue = &cMaxRelIso;
+    cutset.cuts[7].ismin = false;
+
+    cutset.cuts[8].name = "reco2.iso";
+    cutset.cuts[8].tstring.Form("reco2.iso < %4.2f", cMaxRelIso);
+    cutset.cuts[8].bins = 50;
+    cutset.cuts[8].min = 0;
+    cutset.cuts[8].max = 1;
+    cutset.cuts[8].cutvalue = &cMaxRelIso;
+    cutset.cuts[8].ismin = false;
 }
 

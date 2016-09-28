@@ -265,7 +265,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
 
     // Not sure how to deal with the scaling correctly when using a subset of events
-    float reductionFactor = 100;
+    float reductionFactor = 1;
 
     for(auto &s : samplevec)
     {

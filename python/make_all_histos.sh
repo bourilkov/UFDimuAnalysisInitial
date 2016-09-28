@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for f in ./fewz/*; do
+for f in ./fewz/*.txt; do
   echo ""
   echo "--------------------------------------------"
   echo "Making histograms from $f ..."

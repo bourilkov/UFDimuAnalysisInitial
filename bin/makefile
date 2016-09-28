@@ -16,12 +16,15 @@ SDIR = ../selection/
 CFLAGS = -I${LIBDIR} -I${SDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = zcorr80X
-#MAIN = make80XMCHist
+#MAIN = zcorr80X_v2
+#MAIN = nm1_v2
+#MAIN = make80XMCHist_v2
+#MAIN = synch_v2
 #MAIN = compareDataMC80X
 #MAIN = compareDataMC80XCat
-#MAIN = fewzCompare
-MAIN = categorize_v2
+#MAIN = fewzCompare_v2
+MAIN = overlayFewz
+#MAIN = categorize_v2
 
 # link all of the objects to the main program
 ${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection_v2.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h

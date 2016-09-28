@@ -134,13 +134,14 @@ class FEWZCompareCuts : public Cut
 {
     public:
         FEWZCompareCuts();
-        FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax);
+        FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax, float maxRelIso);
 
         float cLeadPtMin;           
         float cSubleadPtMin;        
         float cMaxEta;              
         float cDimuMassMin;         
         float cDimuMassMax;         
+        float cMaxRelIso;         
 
         void makeCutSet();
         bool evaluate(VarSet& vars);

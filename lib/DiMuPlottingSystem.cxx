@@ -93,7 +93,7 @@ void DiMuPlottingSystem::arrangeLegend(TCanvas* c, int i)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle)
+TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log)
 {
 // Overlay itmes in the list. 
 
@@ -136,6 +136,8 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
 
   TMultiGraph* multigraph = 0;
   THStack* stack = 0;
+  float minimum = 999999999;  // minimum of all the histograms
+  float minMax = 999999999;   // minimum of the largest values of the histograms
 
   while ((object = next()))
   {
@@ -147,13 +149,21 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
       {
           hist = (TH1F*) object;
           hist->SetLineColor(colors[i]);
-          hist->SetFillColor(colors[i]);
+          hist->SetLineWidth(2);
+          //hist->SetFillColor(colors[i]);
+          
+          std::cout << hist->GetName() << std::endl;
 
           if(object == ilist->First())
           {
+              minimum = hist->GetMinimum();
+              minMax = hist->GetMaximum();
               stack = new THStack();
-              stack->SetTitle(title+";"+xaxistitle+";"+yaxistitle);
+              stack->SetTitle(title+"_"+xaxistitle+"_"+yaxistitle);
           }
+
+          if(hist->GetMinimum() < minimum) minimum = hist->GetMinimum();
+          if(hist->GetMaximum() < minMax) minMax = hist->GetMaximum();
 
           stack->Add(hist);
           
@@ -161,15 +171,27 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
           l->AddEntry(hist, legend_entry, "f");
 
           if(object == ilist->Last())
-              stack->Draw();
-              //stack->Draw("nostack");
+          {   
+               //stack->Draw();
+              stack->Draw("nostack,l");
+              stack->GetXaxis()->SetTitle(xaxistitle);
+              stack->GetYaxis()->SetTitle(yaxistitle);
+              gPad->Modified();
+              if(log) 
+              {
+                  gPad->SetLogy(1);
+                  stack->SetMaximum(stack->GetMaximum()*1.5);
+                  if(minimum > 0) stack->SetMinimum(minimum*0.5);
+                  else stack->SetMinimum(minMax*10e-3);
+              }
+          }
       }
       if(object->InheritsFrom("TGraph"))
       {
           if(object == ilist->First())
           {
               multigraph = new TMultiGraph();
-              multigraph->SetTitle(title+";"+xaxistitle+";"+yaxistitle);
+              multigraph->SetTitle(title+"_"+xaxistitle+"_"+yaxistitle);
           }
 
           graph = (TGraph*) object;
@@ -194,7 +216,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, TString xaxistitle, TString yaxistitle)
+THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TString xaxistitle, TString yaxistitle, bool log, bool stats)
 {
 // Creates a THStack of the histograms in the list. Overlays the data ontop of this without adding it to the stack.
 // Assumes data is in the last ilist location so that it appears on top of the other histograms.
@@ -217,6 +239,8 @@ THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, T
   TIter next(ilist);
   TObject* object = 0;
   int i=0;
+  float minimum = 999999999;
+  float minMax = 999999999;
 
   std::vector<int> colors;
   colors.push_back(2);
@@ -245,6 +269,14 @@ THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, T
       //if((i+1)==10) v[i]->SetFillColor(50);
       //v[i]->SetLineWidth(3);
  
+      if(object == ilist->First()) 
+      {
+          minimum = hist->GetMinimum();
+          minMax = hist->GetMaximum();
+      }
+
+      if(hist->GetMinimum() < minimum) minimum = hist->GetMinimum();
+      if(hist->GetMaximum() < minMax) minMax = hist->GetMaximum();
 
       // Assuming data is in the last location
       if(object == ilist->Last())
@@ -257,20 +289,28 @@ THStack* DiMuPlottingSystem::stackMCHistosAndData(TList* ilist, TString title, T
           stack->GetXaxis()->SetTitle(xaxistitle);
           stack->GetYaxis()->SetTitle(yaxistitle);
           gPad->Modified();
-          gPad->SetLogy(1);
-          stack->SetMaximum(stack->GetMaximum()*10);
-          stack->SetMinimum(10e-6);
 
-          hist->SetStats(1);
+          if(log) 
+          {
+              gPad->SetLogy(1);
+              stack->SetMaximum(stack->GetMaximum()*10);
+              if(minimum > 0) stack->SetMinimum(minimum*0.1);
+              else stack->SetMinimum(minMax*10e-3);
+          }
+
+          if(stats) hist->SetStats(1);
           //hist->SetMinimum(10e-4);
 	  hist->Draw("epsames");
-          gPad->Update();
-          TPaveStats *st=(TPaveStats*)hist->GetListOfFunctions()->FindObject("stats");
-          st->SetX1NDC(0.52);
-          st->SetY1NDC(0.83);
-          st->SetX2NDC(0.70);
-          st->SetY2NDC(0.93);
-          gPad->Modified();
+          if(stats)
+          {
+              gPad->Update();
+              TPaveStats *st=(TPaveStats*)hist->GetListOfFunctions()->FindObject("stats");
+              st->SetX1NDC(0.52);
+              st->SetY1NDC(0.83);
+              st->SetX2NDC(0.70);
+              st->SetY2NDC(0.93);
+              gPad->Modified();
+          }
           l->AddEntry(hist, legend_entry, "p");
       }
       else
@@ -311,7 +351,8 @@ TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, TString ratiotitle)
+TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, TString ratiotitle,
+                                                       bool log, bool stats)
 {
     // Define two gaussian histograms. Note the X and Y title are defined
     // at booking time using the convention "Hist_title ; X_title ; Y_title"
@@ -341,7 +382,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
 
     // Draw stacked histograms here
     first->SetStats(0);          // No statistics on upper plot
-    THStack* stack = stackMCHistosAndData(ilist, title, xaxistitle, yaxistitle);
+    THStack* stack = stackComparison(ilist, title, xaxistitle, yaxistitle, log, stats);
 
     // Not sure how to work with this
     // Do not draw the Y axis label on the upper plot and redraw a small
