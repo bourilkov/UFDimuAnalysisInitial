@@ -12,33 +12,46 @@ LIBDIR = ../lib/
 # the directory for the cut selection objects specific to the analysis
 SDIR = ../selection/
 
+# the directory for the cut tool objects specific to the analysis
+TDIR = ../tools/
+
 # include the libdir and sdir and the root libraries
-CFLAGS = -I${LIBDIR} -I${SDIR} -c -g `root-config --cflags`
+CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = zcorr80X_v2
-#MAIN = nm1_v2
-#MAIN = make80XMCHist_v2
-#MAIN = synch_v2
+#MAIN = zcorr80X
+#MAIN = nm1
+#MAIN = make80XMCHist
+#MAIN = synch
 #MAIN = compareDataMC80X
 #MAIN = compareDataMC80XCat
-#MAIN = fewzCompare_v2
-MAIN = overlayFewz
-#MAIN = categorize_v2
+#MAIN = fewzCompare
+#MAIN = overlayFewz
+MAIN = fewzGenSmearing
+#MAIN = categorize
+#MAIN = exploreDY
 
 # link all of the objects to the main program
-${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection_v2.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}SelectionCuts.h ${SDIR}JetSelectionTools.h
-	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection_v2.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
+${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h
+	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
 
-${MAIN}.o: ${MAIN}.cxx EventTools_v2.cxx SignificanceMetrics.cxx PUTools.cxx ${LIBDIR}DataFormats.h 
+${MAIN}.o: ${MAIN}.cxx SignificanceMetrics.cxx ${LIBDIR}DataFormats.h 
 	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
 
-# compile the dependencies
+${TDIR}EventTools.o: ${TDIR}EventTools.cxx ${TDIR}EventTools.h ${LIBDIR}VarSet.h
+	$(CC) $(CFLAGS) ${TDIR}EventTools.cxx -o ${TDIR}EventTools.o
+
+${TDIR}PUTools.o: ${TDIR}PUTools.cxx ${TDIR}PUTools.h ${LIBDIR}VarSet.h
+	$(CC) $(CFLAGS) ${TDIR}PUTools.cxx -o ${TDIR}PUTools.o
+
+${TDIR}ParticleTools.o: ${TDIR}ParticleTools.cxx ${TDIR}ParticleTools.h ${LIBDIR}VarSet.h
+	$(CC) $(CFLAGS) ${TDIR}ParticleTools.cxx -o ${TDIR}ParticleTools.o
+
 ${SDIR}SelectionCuts.o: ${SDIR}SelectionCuts.cxx ${SDIR}SelectionCuts.h ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
 	$(CC) $(CFLAGS) ${SDIR}SelectionCuts.cxx -o ${SDIR}SelectionCuts.o
 
-${SDIR}CategorySelection_v2.o: ${SDIR}CategorySelection_v2.cxx ${SDIR}CategorySelection_v2.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}CategorySelection_v2.cxx -o ${SDIR}CategorySelection_v2.o
+${SDIR}CategorySelection.o: ${SDIR}CategorySelection.cxx ${SDIR}CategorySelection.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
+	$(CC) $(CFLAGS) ${SDIR}CategorySelection.cxx -o ${SDIR}CategorySelection.o
 
 ${SDIR}JetSelectionTools.o: ${SDIR}JetSelectionTools.cxx ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
 	$(CC) $(CFLAGS) ${SDIR}JetSelectionTools.cxx -o ${SDIR}JetSelectionTools.o
@@ -49,6 +62,7 @@ ${LIBDIR}Sample.o: ${LIBDIR}Sample.cxx ${LIBDIR}Sample.h ${LIBDIR}VarSet.h ${LIB
 ${LIBDIR}DiMuPlottingSystem.o: ${LIBDIR}DiMuPlottingSystem.cxx ${LIBDIR}DiMuPlottingSystem.h ${LIBDIR}Sample.h 
 	$(CC) $(CFLAGS) ${LIBDIR}DiMuPlottingSystem.cxx -o ${LIBDIR}DiMuPlottingSystem.o
 
+
 clean:
 	rm *.o
 
@@ -56,3 +70,4 @@ cleanall:
 	rm *.o
 	rm ${LIBDIR}*.o
 	rm ${SDIR}*.o
+	rm ${TDIR}*.o

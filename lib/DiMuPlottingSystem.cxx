@@ -30,6 +30,7 @@
 #include "TPaveText.h"
 #include "TGraph.h"
 #include "TMultiGraph.h"
+#include "TLatex.h"
 
 #include <vector>
 #include <sstream>
@@ -216,7 +217,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TString xaxistitle, TString yaxistitle, bool log, bool stats)
+THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TString xaxistitle, TString yaxistitle, bool log, bool stats, int legend)
 {
 // Creates a THStack of the histograms in the list. Overlays the data ontop of this without adding it to the stack.
 // Assumes data is in the last ilist location so that it appears on top of the other histograms.
@@ -229,7 +230,11 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
   //TLegend* l = new TLegend(0.68, 0.56, 0.88, 0.87, "", "brNDC");
 
   // Wide rectangle top right
-  TLegend* l = new TLegend(0.71, 0.82, 1.0, 1.0, "", "brNDC");
+  TLegend* l = 0;
+  if(legend == 0) l = new TLegend(0.71, 0.82, 1.0, 1.0, "", "brNDC");
+  else if(legend == 1) l = new TLegend(0.313, 0.491, 0.883, 0.886, "", "brNDC");
+  else l = new TLegend(0.71, 0.82, 1.0, 1.0, "", "brNDC"); 
+
   THStack* stack = new THStack();
   stack->SetTitle(title);
 
@@ -305,10 +310,13 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
           {
               gPad->Update();
               TPaveStats *st=(TPaveStats*)hist->GetListOfFunctions()->FindObject("stats");
+              // legend == 0 default alignment for stat box
               st->SetX1NDC(0.52);
               st->SetY1NDC(0.83);
               st->SetX2NDC(0.70);
               st->SetY2NDC(0.93);
+
+              // different legend setting alignments not yet implemented
               gPad->Modified();
           }
           l->AddEntry(hist, legend_entry, "p");
@@ -323,6 +331,7 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
   }
     
   l->Draw();
+
   return stack;
 }
 
@@ -351,8 +360,8 @@ TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, TString ratiotitle,
-                                                       bool log, bool stats)
+TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, bool fit, TString ratiotitle,
+                                                       bool log, bool stats, int legend)
 {
     // Define two gaussian histograms. Note the X and Y title are defined
     // at booking time using the convention "Hist_title ; X_title ; Y_title"
@@ -382,7 +391,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
 
     // Draw stacked histograms here
     first->SetStats(0);          // No statistics on upper plot
-    THStack* stack = stackComparison(ilist, title, xaxistitle, yaxistitle, log, stats);
+    THStack* stack = stackComparison(ilist, title, xaxistitle, yaxistitle, log, stats, legend);
 
     // Not sure how to work with this
     // Do not draw the Y axis label on the upper plot and redraw a small
@@ -406,16 +415,11 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     // Clone the data histogram from the last location in the vector
     // The remainder of the vector consits of MC samples
     TH1F* hratio = (TH1F*)last->Clone("hratio");
-
-    // We want a ratio to the sum of the MC in order to compare data to the net contribution from all MC, BG+SIG
-    //TList* sublist = (TList*)list->Clone();
-    //sublist->Remove(sublist->Last());
-    //TH1F* hadd = addHists(sublist, "mctotalhist"); 
     
     // Create the ratio plot an easier way using THStack::GetStack()->Last()
     TH1F* hadd = (TH1F*)stack->GetStack()->Last();
 
-    // scale the histograms to match
+    // Output the overall scale discrepancy between the stack and the hist of interest
     scale = hratio->Integral()/hadd->Integral();
     std::cout << "########## Scale factor for MC stack: " << scale << std::endl;
     //hadd->Scale(scale);
@@ -424,7 +428,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->SetMinimum(0.58);  // Define Y ..
     hratio->SetMaximum(1.42); // .. range
     hratio->Sumw2();
-    hratio->SetStats(0);      // No statistics on lower plot
+    hratio->SetStats(1);
     hratio->Divide(hadd);
     hratio->SetMarkerStyle(20);
     hratio->Draw("ep");       // Draw the ratio plot
@@ -447,12 +451,91 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetYaxis()->SetLabelSize(15);
 
     // X axis ratio plot settings
+    hratio->GetXaxis()->SetTitle(xaxistitle);
     hratio->GetXaxis()->SetTitleSize(20);
     hratio->GetXaxis()->SetTitleFont(43);
     hratio->GetXaxis()->SetTitleOffset(4.);
     hratio->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
     hratio->GetXaxis()->SetLabelSize(15);
 
+    if(fit)
+    {
+        // Display fit info on canvas, mess with stat box styles.
+        //gStyle->SetStatStyle(0);
+        //gStyle->SetStatBorderSize(0);
+        gStyle->SetOptFit(0111);
+
+        // Fit things.
+        TString fitname = TString("linear_fit_")+name;
+        TF1* fit = new TF1(fitname, "[1]*x+[0]", hratio->GetXaxis()->GetXmin(), hratio->GetXaxis()->GetXmax());
+        fit->SetParNames("Fit_Offset", "Fit_Slope");
+        
+        // Reasonable initial guesses for the fit parameters
+        fit->SetParameters(hratio->GetMean(), 0.0001);
+        fit->SetParLimits(0, 0.01, 100);
+        //fit->SetParLimits(1, 0.00001, 0.1);
+
+        // Sometimes we have to fit the data a few times before the fit converges
+        bool converged = 0;
+        int ntries = 0;
+        
+        // Make sure the fit converges.
+        while(!converged) 
+        {
+          if(ntries >= 50) break;
+          std::cout << "==== Fitting " << name << " ====" << std::endl;
+          hratio->Fit(fitname);
+
+          TString sconverge = gMinuit->fCstatu.Data();
+          converged = sconverge.Contains(TString("CONVERGED"));
+          ntries++; 
+        }
+
+
+        // Seg fault if we do this stat box editing earlier
+        // needs to be here
+        gStyle->SetOptStat("n");
+        TPaveStats* st = (TPaveStats*) hratio->GetListOfFunctions()->FindObject("stats");
+        st->SetName("mystats");
+
+        // legend == 0 default
+        // directly overlays stats from pad1 if the user drew pad1 stats... 
+        // should ifnd better alignment later
+        st->SetX1NDC(0.52);
+        st->SetY1NDC(0.83);
+        st->SetX2NDC(0.70);
+        st->SetY2NDC(0.93);
+
+        // for fewz mass plots
+        if(legend == 1)
+        {
+            st->SetX1NDC(0.425);
+            st->SetY1NDC(0.280);
+            st->SetX2NDC(0.882);
+            st->SetY2NDC(0.458);
+        }
+
+        float slope_value = fit->GetParameter(1);
+        float slope_err = fit->GetParError(1);
+        float slope_percent_err = abs(slope_err/slope_value*100);
+
+        // Remove the offset line
+        TList* listOfLines = st->GetListOfLines();
+        TText* title = st->GetLineWith("hratio");
+        title->SetText(0.5, 0.5, "Ratio Info");
+        //TText* tconst_s = st->GetLineWith("Slope");
+        //listOfLines->Remove(tconst_o);
+        //listOfLines->Remove(tconst_s);
+        st->AddText(Form("Mean = %5.3f", scale));
+
+        hratio->SetStats(0);
+        TPaveStats* st2 = (TPaveStats*)st->Clone();
+        st->Delete();
+        gPad->Modified();
+        pad1->cd();
+        st2->Draw();
+        gPad->Modified();
+    }
     return c;
 }
 

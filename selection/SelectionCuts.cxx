@@ -11,6 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "SelectionCuts.h"
+#include "ParticleTools.h"
 #include "TMath.h"
 #include <iostream>
 
@@ -66,7 +67,7 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     cutset.resetCuts();
 
     // keep track of the values that were cut on
-    cutset.cuts[0].value = vars.reco1.charge != vars.reco2.charge;
+    cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = vars.recoCandMassPF;
     cutset.cuts[2].value = 1;
     cutset.cuts[3].value = 1;
@@ -74,7 +75,7 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
 
     // if the event fails a single cut return false
     // Require oppositely charged muons in the event
-    if(!(vars.reco1.charge != vars.reco2.charge) && cutset.cuts[0].on){ cutset.cuts[0].passed = false; return false;}
+    if(!(vars.recoMuons.charge[0] != vars.recoMuons.charge[1]) && cutset.cuts[0].on){ cutset.cuts[0].passed = false; return false;}
 
     // Look at a certain mass range for synchronization purposes
     if(!(vars.recoCandMassPF > cDimuMassMin && vars.recoCandMassPF < cDimuMassMax) && cutset.cuts[1].on){ cutset.cuts[1].passed = false; return false;}
@@ -82,10 +83,10 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
     if(!cutset.cuts[2].on) ;
-    else if(vars.reco1.isHltMatched[0] && vars.reco1.pt > cTrigMuPtMin && TMath::Abs(vars.reco1.eta) < cTrigMuEtaMax) ; // reco1 passes trigger0
-    else if(vars.reco1.isHltMatched[1] && vars.reco1.pt > cTrigMuPtMin && TMath::Abs(vars.reco1.eta) < cTrigMuEtaMax) ; // reco1 passes trigger1
-    else if(vars.reco2.isHltMatched[0] && vars.reco2.pt > cTrigMuPtMin && TMath::Abs(vars.reco2.eta) < cTrigMuEtaMax) ; // reco2 passes trigger0
-    else if(vars.reco2.isHltMatched[1] && vars.reco2.pt > cTrigMuPtMin && TMath::Abs(vars.reco2.eta) < cTrigMuEtaMax) ; // reco2 passes trigger1
+    else if(vars.recoMuons.isHltMatched[0][0] && vars.recoMuons.pt[0] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[0]) < cTrigMuEtaMax) ; // recoMuon0 passes trigger0
+    else if(vars.recoMuons.isHltMatched[0][1] && vars.recoMuons.pt[0] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[0]) < cTrigMuEtaMax) ; // recoMuon0 passes trigger1
+    else if(vars.recoMuons.isHltMatched[1][0] && vars.recoMuons.pt[1] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[1]) < cTrigMuEtaMax) ; // recoMuon1 passes trigger0
+    else if(vars.recoMuons.isHltMatched[1][1] && vars.recoMuons.pt[1] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[1]) < cTrigMuEtaMax) ; // recoMuon1 passes trigger1
     else 
     {
         cutset.cuts[2].value = 0;
@@ -147,8 +148,8 @@ TString SynchEventSelectionCuts::string()
 
 void SynchEventSelectionCuts::makeCutSet()
 {
-    cutset.cuts[0].name = "reco1.charge != reco2.charge";
-    cutset.cuts[0].tstring = "reco1.charge != reco2.charge";
+    cutset.cuts[0].name = "recoMuons.charge[0] != recoMuons.charge[1]";
+    cutset.cuts[0].tstring = "recoMuons.charge[0] != recoMuons.charge[1]";
     cutset.cuts[0].bins = 2;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
@@ -220,52 +221,40 @@ bool SynchMuonSelectionCuts::evaluate(VarSet& vars)
     cutset.resetCuts();
 
     // keep track of the values that were cut on
-    // reco1
-    cutset.cuts[0].value = vars.reco1.pt;
-    cutset.cuts[1].value = vars.reco1.eta;
-    cutset.cuts[2].value = vars.reco1.trackIsoSumPt/vars.reco1.pt;
+    // recoMuon0
+    cutset.cuts[0].value = vars.recoMuons.pt[0];
+    cutset.cuts[1].value = vars.recoMuons.eta[0];
+    cutset.cuts[2].value = vars.recoMuons.trackIsoSumPt[0]/vars.recoMuons.pt[0];
 
-    // reco2
-    cutset.cuts[3].value = vars.reco2.pt;
-    cutset.cuts[4].value = vars.reco2.eta;
-    cutset.cuts[5].value = vars.reco2.trackIsoSumPt/vars.reco2.pt;
+    // recoMuon1
+    cutset.cuts[3].value = vars.recoMuons.pt[1];
+    cutset.cuts[4].value = vars.recoMuons.eta[1];
+    cutset.cuts[5].value = vars.recoMuons.trackIsoSumPt[1]/vars.recoMuons.pt[1];
 
     // if either muon fails the selection return false
-    if(!(evaluate(vars.reco1, 1))) return false;
-    if(!(evaluate(vars.reco2, 2))) return false;
+    if(!(evaluate(vars.recoMuons, 0))) return false;
+    if(!(evaluate(vars.recoMuons, 1))) return false;
     return true;
-    // Some references for the iso cuts (from old code)
-    //synchCuts.push_back("(reco1.trackIsoSumPt + max(0.0,reco1.ecalIso + reco1.hcalIso - rho*pi*0.09))/reco1.pt < 0.25");
-    //synchCuts.push_back("(reco2.trackIsoSumPt + max(0.0,reco2.ecalIso + reco2.hcalIso - rho*pi*0.09))/reco2.pt < 0.25");
-    //synchCuts.push_back("(reco1.sumChargedHadronPtR03 + max(0.0,reco1.sumNeutralHadronEtR03+reco1.sumPhotonEtR03 - 0.5*reco1.sumPUPtR03))/reco1.pt <= 0.12");
-    //synchCuts.push_back("(reco2.sumChargedHadronPtR03 + max(0.0,reco2.sumNeutralHadronEtR03+reco2.sumPhotonEtR03 - 0.5*reco2.sumPUPtR03))/reco2.pt <= 0.12");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-bool SynchMuonSelectionCuts::evaluate(_MuonInfo& recoMu, int m)
+bool SynchMuonSelectionCuts::evaluate(_MuonInfo& recoMuons, int m)
 {
     // if the event fails a single cut return false
-    // pt cuts
     // only return false if the cut is activated for the specific muon m=1or2
-    if(!(recoMu.pt > cMinPt) && ((m==1 && cutset.cuts[0].on) || (m==2 && cutset.cuts[3].on)) ) return false;
+    if(!(recoMuons.pt[m] > cMinPt) && ((m==0 && cutset.cuts[0].on) || (m==1 && cutset.cuts[3].on)) ) return false;
 
     // eta cuts
-    if(!(TMath::Abs(recoMu.eta) < cMaxEta)  && ((m==1 && cutset.cuts[1].on) || (m==2 && cutset.cuts[4].on))) return false;
+    if(!(TMath::Abs(recoMuons.eta[m]) < cMaxEta)  && ((m==0 && cutset.cuts[1].on) || (m==1 && cutset.cuts[4].on))) return false;
 
     // isolation cuts
-    if(!(recoMu.trackIsoSumPt/recoMu.pt < cMaxRelIso)  && ((m==1 && cutset.cuts[2].on) || (m==2 && cutset.cuts[5].on))) return false;
-    //if(!( (recoMu.sumChargedHadronPtR03 + max(0.0,recoMu.sumNeutralHadronEtR03+recoMu.sumPhotonEtR03 - 0.5*recoMu.sumPUPtR03))/recoMu.pt <= cMaxRelIso) );
+    if(!(recoMuons.trackIsoSumPt[m]/recoMuons.pt[m] < cMaxRelIso)  && ((m==0 && cutset.cuts[2].on) || (m==1 && cutset.cuts[5].on))) return false;
+    //if(!( (recoMuons.sumChargedHadronPtR03 + max(0.0,recoMuons.sumNeutralHadronEtR03+recoMuons.sumPhotonEtR03 - 0.5*recoMuons.sumPUPtR03))/recoMuons.pt <= cMaxRelIso) );
 
     return true;
-
-    // Some references for the iso cuts (from old code)
-    //synchCuts.push_back("(reco1.trackIsoSumPt + max(0.0,reco1.ecalIso + reco1.hcalIso - rho*pi*0.09))/reco1.pt < 0.25");
-    //synchCuts.push_back("(reco2.trackIsoSumPt + max(0.0,reco2.ecalIso + reco2.hcalIso - rho*pi*0.09))/reco2.pt < 0.25");
-    //synchCuts.push_back("(reco1.sumChargedHadronPtR03 + max(0.0,reco1.sumNeutralHadronEtR03+reco1.sumPhotonEtR03 - 0.5*reco1.sumPUPtR03))/reco1.pt <= 0.12");
-    //synchCuts.push_back("(reco2.sumChargedHadronPtR03 + max(0.0,reco2.sumNeutralHadronEtR03+reco2.sumPhotonEtR03 - 0.5*reco2.sumPUPtR03))/reco2.pt <= 0.12");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -283,38 +272,38 @@ TString SynchMuonSelectionCuts::string()
 
 void SynchMuonSelectionCuts::makeCutSet()
 {
-    cutset.cuts[0].name = "reco1.pt";
-    cutset.cuts[0].tstring.Form("reco1.pt > %4.1f", cMinPt);
+    cutset.cuts[0].name = "recoMuons.pt[0]";
+    cutset.cuts[0].tstring.Form("recoMuons.pt[0] > %4.1f", cMinPt);
     cutset.cuts[0].bins = 200;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 200;
 
-    cutset.cuts[1].name = "reco1.eta";
-    cutset.cuts[1].tstring.Form("TMath::Abs(reco1.eta) < %4.2f", cMaxEta);
+    cutset.cuts[1].name = "recoMuons.eta[0]";
+    cutset.cuts[1].tstring.Form("TMath::Abs(recoMuons.eta[0]) < %4.2f", cMaxEta);
     cutset.cuts[1].bins = 50;
     cutset.cuts[1].min = -3;
     cutset.cuts[1].max = 3;
 
-    cutset.cuts[2].name = "reco1.iso";
-    cutset.cuts[2].tstring.Form("reco1.trackIsoSumPt/reco1.pt < %4.2f", cMaxRelIso);
+    cutset.cuts[2].name = "recoMuons.iso[0]";
+    cutset.cuts[2].tstring.Form("recoMuons.trackIsoSumPt[0]/recoMuons.pt[0] < %4.2f", cMaxRelIso);
     cutset.cuts[2].bins = 100;
     cutset.cuts[2].min = 0;
     cutset.cuts[2].max = 5;
 
-    cutset.cuts[3].name = "reco2.pt";
-    cutset.cuts[3].tstring.Form("reco2.pt > %f", cMinPt);
+    cutset.cuts[3].name = "recoMuons.pt[1]";
+    cutset.cuts[3].tstring.Form("recoMuons.pt[1] > %f", cMinPt);
     cutset.cuts[3].bins = 200;
     cutset.cuts[3].min = 0;
     cutset.cuts[3].max = 200;
 
-    cutset.cuts[4].name = "reco2.eta";
-    cutset.cuts[4].tstring.Form("TMath::Abs(reco2.eta) < %4.2f", cMaxEta);
+    cutset.cuts[4].name = "recoMuons.eta[1]";
+    cutset.cuts[4].tstring.Form("TMath::Abs(recoMuons.eta[1]) < %4.2f", cMaxEta);
     cutset.cuts[4].bins = 50;
     cutset.cuts[4].min = -3;
     cutset.cuts[4].max = 3;
 
-    cutset.cuts[5].name = "reco2.iso";
-    cutset.cuts[5].tstring.Form("reco2.trackIsoSumPt/reco2.pt < %4.2f", cMaxRelIso);
+    cutset.cuts[5].name = "recoMuons.iso[1]";
+    cutset.cuts[5].tstring.Form("recoMuons.trackIsoSumPt[1]/recoMuons.pt[1] < %4.2f", cMaxRelIso);
     cutset.cuts[5].bins = 100;
     cutset.cuts[5].min = 0;
     cutset.cuts[5].max = 5;
@@ -360,15 +349,15 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
     // Make sure passed is true at first and the value is reset
     cutset.resetCuts();
 
-    cutset.cuts[0].value = vars.reco1.charge != vars.reco2.charge;
+    cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = -1;
     cutset.cuts[2].value = vars.recoCandMassPF;
 
     // Set cuts[1].value correctly
-    if(vars.reco1.isHltMatched[0]) cutset.cuts[1].value = TMath::Abs(vars.reco1.pt);
-    else if(vars.reco1.isHltMatched[1]) cutset.cuts[1].value = TMath::Abs(vars.reco1.pt);
-    else if(vars.reco2.isHltMatched[0]) cutset.cuts[1].value = TMath::Abs(vars.reco2.pt);
-    else if(vars.reco2.isHltMatched[1]) cutset.cuts[1].value = TMath::Abs(vars.reco2.pt);
+    if(vars.recoMuons.isHltMatched[0][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[0][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[1][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
+    else if(vars.recoMuons.isHltMatched[1][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
     else
     {
          cutset.cuts[1].value = -1;
@@ -376,15 +365,15 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
 
     // if the event fails a single cut return false
     // Require oppositely charged muons in the event
-    if(!(vars.reco1.charge != vars.reco2.charge) && cutset.cuts[0].on) return false;
+    if(!(vars.recoMuons.charge[0] != vars.recoMuons.charge[1]) && cutset.cuts[0].on) return false;
 
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
     if(!cutset.cuts[1].on) ;
-    else if(vars.reco1.isHltMatched[0] && TMath::Abs(vars.reco1.pt) > cTrigMuPtMin) ;
-    else if(vars.reco1.isHltMatched[1] && TMath::Abs(vars.reco1.pt) > cTrigMuPtMin) ;
-    else if(vars.reco2.isHltMatched[0] && TMath::Abs(vars.reco2.pt) > cTrigMuPtMin) ;
-    else if(vars.reco2.isHltMatched[1] && TMath::Abs(vars.reco2.pt) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][0] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][1] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][0] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][1] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
     else
     {
          return false;
@@ -410,15 +399,15 @@ TString Run1EventSelectionCuts::string()
 
 void Run1EventSelectionCuts::makeCutSet()
 {
-    cutset.cuts[0].name = "reco1.charge != reco2.charge";
-    cutset.cuts[0].tstring = "reco1.charge != reco2.charge";
+    cutset.cuts[0].name = "recoMuons.charge[0] != recoMuons.charge[1]";
+    cutset.cuts[0].tstring = "recoMuons.charge[0] != recoMuons.charge[1]";
     cutset.cuts[0].bins = 2;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
     cutset.cuts[0].ismin = true;
 
     cutset.cuts[1].name = "trigMatchedRecoMu.pt";
-    cutset.cuts[1].tstring.Form("reco1.isHltMatched[0||1] && reco1.pt > %5.2f", cTrigMuPtMin);
+    cutset.cuts[1].tstring.Form("recoMuons.isHltMatched[0][0||1] && recoMuons.pt[0] > %5.2f", cTrigMuPtMin);
     cutset.cuts[1].bins = 201;
     cutset.cuts[1].min = -1;
     cutset.cuts[1].max = 200;
@@ -476,16 +465,16 @@ bool Run1EventSelectionSigCuts::evaluate(VarSet& vars)
     // Make sure passed is true at first and the value is reset
     cutset.resetCuts();
 
-    cutset.cuts[0].value = vars.reco1.charge != vars.reco2.charge;
+    cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = -1;
     cutset.cuts[2].value = vars.recoCandMassPF;
     cutset.cuts[3].value = vars.recoCandMassPF;
 
     // Set cuts[1].value correctly
-    if(vars.reco1.isHltMatched[0]) cutset.cuts[1].value = TMath::Abs(vars.reco1.pt);
-    else if(vars.reco1.isHltMatched[1]) cutset.cuts[1].value = TMath::Abs(vars.reco1.pt);
-    else if(vars.reco2.isHltMatched[0]) cutset.cuts[1].value = TMath::Abs(vars.reco2.pt);
-    else if(vars.reco2.isHltMatched[1]) cutset.cuts[1].value = TMath::Abs(vars.reco2.pt);
+    if(vars.recoMuons.isHltMatched[0][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[0][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[1][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
+    else if(vars.recoMuons.isHltMatched[1][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
     else
     {
          cutset.cuts[1].value = -1;
@@ -493,15 +482,15 @@ bool Run1EventSelectionSigCuts::evaluate(VarSet& vars)
 
     // if the event fails a single cut return false
     // Require oppositely charged muons in the event
-    if(!(vars.reco1.charge != vars.reco2.charge) && cutset.cuts[0].on) return false;
+    if(!(vars.recoMuons.charge[0] != vars.recoMuons.charge[1]) && cutset.cuts[0].on) return false;
 
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
     if(!cutset.cuts[1].on) ;
-    else if(vars.reco1.isHltMatched[0] && TMath::Abs(vars.reco1.pt) > cTrigMuPtMin) ;
-    else if(vars.reco1.isHltMatched[1] && TMath::Abs(vars.reco1.pt) > cTrigMuPtMin) ;
-    else if(vars.reco2.isHltMatched[0] && TMath::Abs(vars.reco2.pt) > cTrigMuPtMin) ;
-    else if(vars.reco2.isHltMatched[1] && TMath::Abs(vars.reco2.pt) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][0] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][1] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][0] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][1] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
     else
     {
          return false;
@@ -531,15 +520,15 @@ void Run1EventSelectionSigCuts::makeCutSet()
     //cTrigMuPtMin; 
     //cDimuMassMin; 
 
-    cutset.cuts[0].name = "reco1.charge != reco2.charge";
-    cutset.cuts[0].tstring = "reco1.charge != reco2.charge";
+    cutset.cuts[0].name = "recoMuons.charge[0] != recoMuons.charge[1]";
+    cutset.cuts[0].tstring = "recoMuons.charge[0] != recoMuons.charge[1]";
     cutset.cuts[0].bins = 2;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
     cutset.cuts[0].ismin = true;
 
     cutset.cuts[1].name = "trigMatchedRecoMu.pt";
-    cutset.cuts[1].tstring.Form("reco1.isHltMatched[0||1] && reco1.pt > %5.2f", cTrigMuPtMin);
+    cutset.cuts[1].tstring.Form("recoMuons.isHltMatched[0][0||1] && recoMuons.pt[0] > %5.2f", cTrigMuPtMin);
     cutset.cuts[1].bins = 201;
     cutset.cuts[1].min = -1;
     cutset.cuts[1].max = 200;
@@ -611,19 +600,19 @@ bool Run1MuonSelectionCuts::evaluate(VarSet& vars)
     cutset.resetCuts();
 
     // keep track of the values that were cut on
-    // reco1
-    cutset.cuts[0].value = TMath::Abs(vars.reco1.pt);
-    cutset.cuts[1].value = TMath::Abs(vars.reco1.eta);
-    cutset.cuts[2].value = (vars.reco1.sumChargedHadronPtR03 + TMath::Max(0.0,vars.reco1.sumNeutralHadronEtR03+vars.reco1.sumPhotonEtR03 - 0.5*vars.reco1.sumPUPtR03))/vars.reco1.pt;
+    // recoMuon0
+    cutset.cuts[0].value = TMath::Abs(vars.recoMuons.pt[0]);
+    cutset.cuts[1].value = TMath::Abs(vars.recoMuons.eta[0]);
+    cutset.cuts[2].value = (vars.recoMuons.sumChargedHadronPtR03[0] + TMath::Max(0.0,vars.recoMuons.sumNeutralHadronEtR03[0]+vars.recoMuons.sumPhotonEtR03[0] - 0.5*vars.recoMuons.sumPUPtR03[0]))/vars.recoMuons.pt[0];
 
-    // reco2
-    cutset.cuts[3].value = TMath::Abs(vars.reco2.pt);
-    cutset.cuts[4].value = TMath::Abs(vars.reco2.eta);
-    cutset.cuts[5].value = (vars.reco2.sumChargedHadronPtR03 + TMath::Max(0.0,vars.reco2.sumNeutralHadronEtR03+vars.reco2.sumPhotonEtR03 - 0.5*vars.reco2.sumPUPtR03))/vars.reco2.pt;
+    // recoMuon1
+    cutset.cuts[3].value = TMath::Abs(vars.recoMuons.pt[1]);
+    cutset.cuts[4].value = TMath::Abs(vars.recoMuons.eta[1]);
+    cutset.cuts[5].value = (vars.recoMuons.sumChargedHadronPtR03[1] + TMath::Max(0.0,vars.recoMuons.sumNeutralHadronEtR03[1]+vars.recoMuons.sumPhotonEtR03[1] - 0.5*vars.recoMuons.sumPUPtR03[1]))/vars.recoMuons.pt[1];
 
     // if either muon fails the selection return false
-    if(!evaluate(vars.reco1, 1)) return false;
-    if(!evaluate(vars.reco2, 2)) return false;
+    if(!evaluate(vars.recoMuons, 0)) return false;
+    if(!evaluate(vars.recoMuons, 1)) return false;
     return true;
 }
 
@@ -631,29 +620,22 @@ bool Run1MuonSelectionCuts::evaluate(VarSet& vars)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-bool Run1MuonSelectionCuts::evaluate(_MuonInfo& recoMu, int m)
+bool Run1MuonSelectionCuts::evaluate(_MuonInfo& recoMuons, int m)
 {
 // Test a single muon 
 
     // if the event fails a single cut return false
-    // pt cuts
-    // only return false if the cut is activated for the specific muon m=1or2
-    if(!(TMath::Abs(recoMu.pt) > cMinPt) && ((m==1 && cutset.cuts[0].on) || (m==2 && cutset.cuts[3].on)) ) return false;
+    // only return false if the cut is activated for the specific muon m=0or1
+    if(!(TMath::Abs(recoMuons.pt[m]) > cMinPt) && ((m==0 && cutset.cuts[0].on) || (m==0 && cutset.cuts[3].on)) ) return false;
 
     // eta cuts
-    if(!(TMath::Abs(recoMu.eta) < cMaxEta)  && ((m==1 && cutset.cuts[1].on) || (m==2 && cutset.cuts[4].on))) return false;
+    if(!(TMath::Abs(recoMuons.eta[m]) < cMaxEta)  && ((m==0 && cutset.cuts[1].on) || (m==1 && cutset.cuts[4].on))) return false;
 
     // isolation cuts
-    if(!((recoMu.sumChargedHadronPtR03 + 
-          TMath::Max(0.0,recoMu.sumNeutralHadronEtR03+recoMu.sumPhotonEtR03 - 0.5*recoMu.sumPUPtR03))/recoMu.pt <= cMaxRelIso) && ((m==1 && cutset.cuts[2].on) || (m==2 && cutset.cuts[5].on))) return false;
+    if(!((recoMuons.sumChargedHadronPtR03[m] + TMath::Max(0.0,recoMuons.sumNeutralHadronEtR03[m]+recoMuons.sumPhotonEtR03[m] 
+          - 0.5*recoMuons.sumPUPtR03[m]))/recoMuons.pt[m] <= cMaxRelIso) && ((m==0 && cutset.cuts[2].on) || (m==1 && cutset.cuts[5].on))) return false;
     
     return true;
-
-    // Some references for the iso cuts (from old code)
-    //synchCuts.push_back("(reco1.trackIsoSumPt + max(0.0,reco1.ecalIso + reco1.hcalIso - rho*pi*0.09))/reco1.pt < 0.25");
-    //synchCuts.push_back("(reco2.trackIsoSumPt + max(0.0,reco2.ecalIso + reco2.hcalIso - rho*pi*0.09))/reco2.pt < 0.25");
-    //synchCuts.push_back("(reco1.sumChargedHadronPtR03 + max(0.0,reco1.sumNeutralHadronEtR03+reco1.sumPhotonEtR03 - 0.5*reco1.sumPUPtR03))/reco1.pt <= 0.12");
-    //synchCuts.push_back("(reco2.sumChargedHadronPtR03 + max(0.0,reco2.sumNeutralHadronEtR03+reco2.sumPhotonEtR03 - 0.5*reco2.sumPUPtR03))/reco2.pt <= 0.12");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -675,50 +657,50 @@ void Run1MuonSelectionCuts::makeCutSet()
     //cMaxEta
     //cMaxRelIso
 
-    // reco1 cuts
-    cutset.cuts[0].name = "reco1.pt";
-    cutset.cuts[0].tstring.Form("reco1.pt > %4.1f", cMinPt);
+    // recoMuon0 cuts
+    cutset.cuts[0].name = "recoMuons.pt[0]";
+    cutset.cuts[0].tstring.Form("recoMuons.pt[0] > %4.1f", cMinPt);
     cutset.cuts[0].bins = 200;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 200;
     cutset.cuts[0].cutvalue = &cMinPt;
     cutset.cuts[0].ismin = true;
 
-    cutset.cuts[1].name = "reco1.eta";
-    cutset.cuts[1].tstring.Form("TMath::Abs(reco1.eta) < %4.2f", cMaxEta);
+    cutset.cuts[1].name = "recoMuons.eta[0]";
+    cutset.cuts[1].tstring.Form("TMath::Abs(recoMuons.eta[0]) < %4.2f", cMaxEta);
     cutset.cuts[1].bins = 50;
     cutset.cuts[1].min = 0;
     cutset.cuts[1].max = 3;
     cutset.cuts[1].cutvalue = &cMaxEta;
     cutset.cuts[1].ismin = false;
 
-    cutset.cuts[2].name = "reco1.iso";
-    cutset.cuts[2].tstring.Form("reco1.iso < %4.2f", cMaxRelIso);
+    cutset.cuts[2].name = "recoMuon0.iso";
+    cutset.cuts[2].tstring.Form("recoMuon0.iso < %4.2f", cMaxRelIso);
     cutset.cuts[2].bins = 50;
     cutset.cuts[2].min = 0;
     cutset.cuts[2].max = 1;
     cutset.cuts[2].cutvalue = &cMaxRelIso;
     cutset.cuts[2].ismin = false;
 
-     // reco2 cuts
-    cutset.cuts[3].name = "reco2.pt";
-    cutset.cuts[3].tstring.Form("reco2.pt > %f", cMinPt);
+     // recoMuon1 cuts
+    cutset.cuts[3].name = "recoMuons.pt[1]";
+    cutset.cuts[3].tstring.Form("recoMuons.pt[1] > %f", cMinPt);
     cutset.cuts[3].bins = 200;
     cutset.cuts[3].min = 0;
     cutset.cuts[3].max = 200;
     cutset.cuts[3].cutvalue = &cMinPt;
     cutset.cuts[3].ismin = true;
 
-    cutset.cuts[4].name = "reco2.eta";
-    cutset.cuts[4].tstring.Form("TMath::Abs(reco2.eta) < %4.2f", cMaxEta);
+    cutset.cuts[4].name = "recoMuons.eta[1]";
+    cutset.cuts[4].tstring.Form("TMath::Abs(recoMuons.eta[1]) < %4.2f", cMaxEta);
     cutset.cuts[4].bins = 50;
     cutset.cuts[4].min = 0;
     cutset.cuts[4].max = 3;
     cutset.cuts[4].cutvalue = &cMaxEta;
     cutset.cuts[4].ismin = false;
 
-    cutset.cuts[5].name = "reco2.iso";
-    cutset.cuts[5].tstring.Form("reco2.iso < %4.2f", cMaxRelIso);
+    cutset.cuts[5].name = "recoMuon1.iso";
+    cutset.cuts[5].tstring.Form("recoMuon1.iso < %4.2f", cMaxRelIso);
     cutset.cuts[5].bins = 50;
     cutset.cuts[5].min = 0;
     cutset.cuts[5].max = 1;
@@ -799,28 +781,28 @@ bool Run1EventSelectionCuts80X::evaluate(VarSet& vars)
     // Make sure passed is true at first and the value is reset
     cutset.resetCuts();
 
-    cutset.cuts[0].value = vars.reco1.charge != vars.reco2.charge;
+    cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = -1;
     cutset.cuts[2].value = vars.recoCandMassPF;
 
     // Set cuts[1].value correctly
-    if(vars.reco1.pt >= vars.reco2.pt) cutset.cuts[1].value = vars.reco1.pt;
-    else cutset.cuts[1].value = vars.reco2.pt;
+    if(vars.recoMuons.pt[0] >= vars.recoMuons.pt[1]) cutset.cuts[1].value = vars.recoMuons.pt[0];
+    else cutset.cuts[1].value = vars.recoMuons.pt[1];
 
     // Data has HLT triggers
     if(isData)
     {
-        if(!(vars.reco1.isHltMatched[0] || vars.reco1.isHltMatched[1] || vars.reco2.isHltMatched[0] || vars.reco2.isHltMatched[1]))
+        if(!(vars.recoMuons.isHltMatched[0][0] || vars.recoMuons.isHltMatched[0][1] || vars.recoMuons.isHltMatched[1][0] || vars.recoMuons.isHltMatched[1][1]))
             return false;
     }
     // if the event fails a single cut return false
     // Require oppositely charged muons in the event
-    if(!(vars.reco1.charge != vars.reco2.charge) && cutset.cuts[0].on) return false;
+    if(!(vars.recoMuons.charge[0] != vars.recoMuons.charge[1]) && cutset.cuts[0].on) return false;
 
     // Apply cut to the higher momentum muon since we don't have trigger matching info in cmssw 80X
     if(!cutset.cuts[1].on) ;
-    else if(vars.reco1.pt >= vars.reco2.pt && TMath::Abs(vars.reco1.pt) > cTrigMuPtMin) ;
-    else if(vars.reco1.pt < vars.reco2.pt && TMath::Abs(vars.reco2.pt) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.pt[0] >= vars.recoMuons.pt[1] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.pt[0] < vars.recoMuons.pt[1] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
     else
     {
          return false;
@@ -846,8 +828,8 @@ TString Run1EventSelectionCuts80X::string()
 
 void Run1EventSelectionCuts80X::makeCutSet()
 {
-    cutset.cuts[0].name = "reco1.charge != reco2.charge";
-    cutset.cuts[0].tstring = "reco1.charge != reco2.charge";
+    cutset.cuts[0].name = "recoMuons.charge[0] != recoMuons.charge[1]";
+    cutset.cuts[0].tstring = "recoMuons.charge[0] != recoMuons.charge[1]";
     cutset.cuts[0].bins = 2;
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
@@ -880,12 +862,13 @@ FEWZCompareCuts::FEWZCompareCuts()
 {
 // Default values for the fewz comparison selection cuts
 
+    useReco = false;
     cLeadPtMin = 20;   
     cSubleadPtMin = 10;   
     cMaxEta = 2.4;     
     cDimuMassMin = 110; 
     cDimuMassMax = 310; 
-    cMaxRelIso = 0.12; 
+    cMaxRelIso = 0.12;
     cutset.cuts = std::vector<CutInfo>(9, CutInfo());
     makeCutSet();
 }
@@ -894,10 +877,28 @@ FEWZCompareCuts::FEWZCompareCuts()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-FEWZCompareCuts::FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax, float maxRelIso)
+FEWZCompareCuts::FEWZCompareCuts(bool useReco)
+{
+// Default values for the fewz comparison selection cuts
+    this->useReco = useReco;
+    cLeadPtMin = 20;   
+    cSubleadPtMin = 10;   
+    cMaxEta = 2.4;     
+    cDimuMassMin = 110; 
+    cDimuMassMax = 310; 
+    cMaxRelIso = 0.12;      
+    cutset.cuts = std::vector<CutInfo>(9, CutInfo());
+    makeCutSet();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+FEWZCompareCuts::FEWZCompareCuts(bool useReco, float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax, float maxRelIso)
 {
 // Custom selection cuts for the fewz comparison
-
+    this->useReco = useReco;
     cLeadPtMin = leadPtMin;
     cSubleadPtMin = subleadPtMin;
     cMaxEta = maxEta;
@@ -917,17 +918,65 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     // Make sure passed is true at first and the value is reset
     cutset.resetCuts();
 
-    float leadPt = TMath::Max(TMath::Abs(vars.reco1.pt), TMath::Abs(vars.reco2.pt));
-    float subleadPt = TMath::Min(TMath::Abs(vars.reco1.pt), TMath::Abs(vars.reco2.pt));
+    float leadPt = -999;
+    float subleadPt = -999; 
+    float eta0 = -999;
+    float eta1 = -999;
+    float dimu_mass = -999;
+    int charge0 = -999;
+    int charge1 = -999;
+
+    if(useReco)
+    {
+        leadPt = TMath::Max(TMath::Abs(vars.recoMuons.pt[0]), TMath::Abs(vars.recoMuons.pt[1]));
+        subleadPt = TMath::Min(TMath::Abs(vars.recoMuons.pt[0]), TMath::Abs(vars.recoMuons.pt[1]));
+        eta0 = vars.recoMuons.eta[0];
+        eta1 = vars.recoMuons.eta[1];
+        dimu_mass = vars.recoCandMass;
+        charge0 = vars.recoMuons.charge[0];
+        charge1 = vars.recoMuons.charge[1];
+    }
+    // use gen values
+    else
+    {
+        // get first postFSR DY gen muon
+        _TrackInfo mu0 = ParticleTools::getGenMuDY(0, 1, vars);
+        // get second postFSR DY gen muon
+        _TrackInfo mu1 = ParticleTools::getGenMuDY(1, 1, vars);
+
+        if(mu0.charge == mu1.charge)
+        {
+            std::cout << "### ERROR: DYmu0.charge == DYmu1.charge in FEWZ SELECTION. Muons decayed from Z or gamma* should have opposite sign." << std::endl;
+            std::cout << "### And this shouldn't happen. This event will be cut due to charge selection anyways." << std::endl;
+        }
+
+        eta0 = mu0.eta;
+        eta1 = mu1.eta;
+        charge0 = mu0.charge;
+        charge1 = mu1.charge;
+
+        leadPt = TMath::Max(TMath::Abs(mu0.pt), TMath::Abs(mu1.pt));
+        subleadPt = TMath::Min(TMath::Abs(mu0.pt), TMath::Abs(mu1.pt));
+
+        if(mu0.pt > 0 && mu1.pt > 0) dimu_mass = ParticleTools::getMotherPtEtaPhiM(mu0.pt, mu0.eta, mu0.phi, MASS_MUON, mu1.pt, mu1.eta, mu1.phi, MASS_MUON).M();
+        else
+        {
+            std::cout << "### ERROR: gen_dimu_mass < 0 in FEWZ SELECTION" << std::endl;
+            std::cout << vars.eventInfo.run << "," << vars.eventInfo.lumi << "," << vars.eventInfo.event << std::endl;
+            std::cout << mu0.pt << "," << mu0.eta << "," << mu0.phi << std::endl;
+            std::cout << mu1.pt << "," << mu1.eta << "," << mu1.phi << std::endl;
+            std::cout << std::endl;
+        }
+    }
 
     // keep track of the values that were cut on
     cutset.cuts[0].value = TMath::Abs(leadPt);
     cutset.cuts[1].value = TMath::Abs(subleadPt);
-    cutset.cuts[2].value = TMath::Abs(vars.reco1.eta);
-    cutset.cuts[3].value = TMath::Abs(vars.reco2.eta);
-    cutset.cuts[4].value = TMath::Abs(vars.recoCandMass);
-    cutset.cuts[5].value = TMath::Abs(vars.recoCandMass);
-    cutset.cuts[6].value = vars.reco1.charge != vars.reco2.charge;
+    cutset.cuts[2].value = TMath::Abs(eta0);
+    cutset.cuts[3].value = TMath::Abs(eta1);
+    cutset.cuts[4].value = TMath::Abs(dimu_mass);
+    cutset.cuts[5].value = TMath::Abs(dimu_mass);
+    cutset.cuts[6].value = charge0 != charge1;
 
     // if a muon fails any of the criterea that are turned on then reutrn false
     if(cutset.cuts[0].on)
@@ -940,33 +989,33 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     }
     if(cutset.cuts[2].on)
     {
-        if(TMath::Abs(vars.reco1.eta) >= cMaxEta) return false;
+        if(TMath::Abs(eta0) >= cMaxEta) return false;
     }
     if(cutset.cuts[3].on)
     {
-        if(TMath::Abs(vars.reco2.eta) >= cMaxEta) return false;
+        if(TMath::Abs(eta1) >= cMaxEta) return false;
     }
     if(cutset.cuts[4].on)
     {
-        if(vars.recoCandMass <= cDimuMassMin) return false;
+        if(dimu_mass <= cDimuMassMin) return false;
     }
     if(cutset.cuts[5].on)
     {
-        if(vars.recoCandMass >= cDimuMassMax) return false;
+        if(dimu_mass >= cDimuMassMax) return false;
     }
     if(cutset.cuts[6].on)
     {
-        if(vars.reco1.charge == vars.reco2.charge) return false;
+        if(charge0 == charge1) return false;
     }
     if(cutset.cuts[7].on)
     {
-        if(!((vars.reco1.sumChargedHadronPtR03 + 
-              TMath::Max(0.0,vars.reco1.sumNeutralHadronEtR03+vars.reco1.sumPhotonEtR03 - 0.5*vars.reco1.sumPUPtR03))/vars.reco1.pt <= cMaxRelIso) ) return false;
+        if(!((vars.recoMuons.sumChargedHadronPtR03[0] + TMath::Max(0.0,vars.recoMuons.sumNeutralHadronEtR03[0]+vars.recoMuons.sumPhotonEtR03[0] 
+              - 0.5*vars.recoMuons.sumPUPtR03[0]))/vars.recoMuons.pt[0] <= cMaxRelIso) ) return false;
     }
     if(cutset.cuts[8].on)
     {
-        if(!((vars.reco2.sumChargedHadronPtR03 + 
-              TMath::Max(0.0,vars.reco2.sumNeutralHadronEtR03+vars.reco2.sumPhotonEtR03 - 0.5*vars.reco2.sumPUPtR03))/vars.reco2.pt <= cMaxRelIso) ) return false;
+        if(!((vars.recoMuons.sumChargedHadronPtR03[1] + TMath::Max(0.0,vars.recoMuons.sumNeutralHadronEtR03[1]+vars.recoMuons.sumPhotonEtR03[1] 
+              - 0.5*vars.recoMuons.sumPUPtR03[1]))/vars.recoMuons.pt[1] <= cMaxRelIso) ) return false;
     }
     return true;
 }
@@ -992,8 +1041,11 @@ void FEWZCompareCuts::makeCutSet()
     //cMaxEta2
     //cDimuMassMin
     //cDimuMassMax
+    //charge
+    //iso0
+    //iso1
 
-    // reco1 cuts
+    // recoMuon0 cuts
     cutset.cuts[0].name = "recoLead.pt";
     cutset.cuts[0].tstring.Form("recoLead.pt > %4.1f", cLeadPtMin);
     cutset.cuts[0].bins = 200;
@@ -1010,16 +1062,16 @@ void FEWZCompareCuts::makeCutSet()
     cutset.cuts[1].cutvalue = &cSubleadPtMin;
     cutset.cuts[1].ismin = true;
 
-    cutset.cuts[2].name = "reco1.eta";
-    cutset.cuts[2].tstring.Form("TMath::Abs(reco1.eta) < %4.2f", cMaxEta);
+    cutset.cuts[2].name = "recoMuons.eta[0]";
+    cutset.cuts[2].tstring.Form("TMath::Abs(recoMuons.eta[0]) < %4.2f", cMaxEta);
     cutset.cuts[2].bins = 50;
     cutset.cuts[2].min = 0;
     cutset.cuts[2].max = 3;
     cutset.cuts[2].cutvalue = &cMaxEta;
     cutset.cuts[2].ismin = false;
 
-    cutset.cuts[3].name = "reco2.eta";
-    cutset.cuts[3].tstring.Form("TMath::Abs(reco2.eta) < %4.2f", cMaxEta);
+    cutset.cuts[3].name = "recoMuons.eta[1]";
+    cutset.cuts[3].tstring.Form("TMath::Abs(recoMuons.eta[1]) < %4.2f", cMaxEta);
     cutset.cuts[3].bins = 50;
     cutset.cuts[3].min = 0;
     cutset.cuts[3].max = 3;
@@ -1042,23 +1094,23 @@ void FEWZCompareCuts::makeCutSet()
     cutset.cuts[5].cutvalue = &cDimuMassMax;
     cutset.cuts[5].ismin = false;
 
-    cutset.cuts[6].name = "reco1.charge != reco2.charge";
-    cutset.cuts[6].tstring = "reco1.charge != reco2.charge";
+    cutset.cuts[6].name = "recoMuons.charge[0] != recoMuons.charge[1]";
+    cutset.cuts[6].tstring = "recoMuons.charge[0] != recoMuons.charge[1]";
     cutset.cuts[6].bins = 2;
     cutset.cuts[6].min = 0;
     cutset.cuts[6].max = 2;
     cutset.cuts[6].ismin = true;
 
-    cutset.cuts[7].name = "reco1.iso";
-    cutset.cuts[7].tstring.Form("reco1.iso < %4.2f", cMaxRelIso);
+    cutset.cuts[7].name = "recoMuons.iso[0]";
+    cutset.cuts[7].tstring.Form("recoMuons.iso[0] < %4.2f", cMaxRelIso);
     cutset.cuts[7].bins = 50;
     cutset.cuts[7].min = 0;
     cutset.cuts[7].max = 1;
     cutset.cuts[7].cutvalue = &cMaxRelIso;
     cutset.cuts[7].ismin = false;
 
-    cutset.cuts[8].name = "reco2.iso";
-    cutset.cuts[8].tstring.Form("reco2.iso < %4.2f", cMaxRelIso);
+    cutset.cuts[8].name = "recoMuons.iso[1]";
+    cutset.cuts[8].tstring.Form("recoMuons.iso[1] < %4.2f", cMaxRelIso);
     cutset.cuts[8].bins = 50;
     cutset.cuts[8].min = 0;
     cutset.cuts[8].max = 1;

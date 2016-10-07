@@ -1,8 +1,5 @@
 //PUTools.cxx
 
-#ifndef PUTOOLS
-#define PUTOOLS
-
 #include <vector>
 #include <utility> // pair
 #include <map>
@@ -11,6 +8,7 @@
 #include <sstream>
 #include <fstream>
 
+#include "PUTools.h"
 #include "TString.h"
 #include "Sample.h"
 
@@ -18,7 +16,7 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void savePUHisto(Sample* s, TString savedir)
+void PUTools::savePUHisto(Sample* s, TString savedir)
 {
 // Save the pileup histogram needed by reweight::lumiReWeighting for a MC sample.
 
@@ -40,7 +38,7 @@ void savePUHisto(Sample* s, TString savedir)
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void makePUHistos(std::map<std::string, Sample*> samples)
+void PUTools::makePUHistos(std::map<std::string, Sample*> samples)
 {
 // Make the pileup histograms for the MC samples. reweight::lumiReWeighting uses these to calculate the
 // pileup reweighting weights.
@@ -59,5 +57,3 @@ void makePUHistos(std::map<std::string, Sample*> samples)
         savePUHisto(i.second, "pu_reweight_trees/8_0_X/");
     }
 }
-
-#endif

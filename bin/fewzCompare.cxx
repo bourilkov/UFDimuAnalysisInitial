@@ -6,11 +6,12 @@
 #include "CutSet.h"
 #include "Cut.h"
 #include "SelectionCuts.h"
-#include "CategorySelection_v2.h"
+#include "CategorySelection.h"
 #include "JetSelectionTools.h"
 
-#include "EventTools_v2.cxx"
-#include "PUTools.cxx"
+#include "EventTools.h"
+#include "PUTools.h"
+#include "ParticleTools.h"
 #include "SignificanceMetrics.cxx"
 
 #include "TLorentzVector.h"
@@ -27,11 +28,22 @@
 int main(int argc, char* argv[])
 {
     int input = 0;
+    bool useRecoMuCuts = 0;
+    bool useRecoToPlotMu = 0;
+    bool useRecoJetCuts = 1;
+    bool useRecoToPlotJets = 1;
+    bool cutNoGens = 1;
+
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
         if(i==1) ss >> input;
+        if(i==2) ss >> useRecoMuCuts;
+        if(i==3) ss >> useRecoToPlotMu;
+        if(i==4) ss >> useRecoJetCuts;
+        if(i==5) ss >> useRecoToPlotJets;
+        if(i==6) ss >> cutNoGens;
     }   
 
     // Not sure that we need a map if we have a vector
@@ -77,7 +89,7 @@ int main(int argc, char* argv[])
     // DYJetsToLL -----------------------------------------------------
     // ================================================================
 
-    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_ALL.root");
+    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_bonusMuons_ALL.root");
     samples["DYJetsToLL"] = new Sample(dyfilename, "DYJetsToLL", "background");
     samples["DYJetsToLL"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_DYJetsToLL.root"; //nPU
     samples["DYJetsToLL"]->xsec = 6025.2; // pb
@@ -128,8 +140,8 @@ int main(int argc, char* argv[])
     
     // Objects to help with the cuts and selections
     JetSelectionTools jetSelectionTools;
-    FEWZCompareCuts FEWZselection;
-    CategorySelectionFEWZ categorySelection;
+    FEWZCompareCuts FEWZselection(useRecoMuCuts);
+    CategorySelectionFEWZ categorySelection(useRecoMuCuts, useRecoJetCuts);
 
     TString varname;
     int nbins, wbins;
@@ -175,7 +187,7 @@ int main(int argc, char* argv[])
         wmin = nmin;
         wmax = nmax;
 
-        varname = "recoMu_pt";
+        varname = "mu_pt";
     }
  
     // recoMu_eta
@@ -189,7 +201,7 @@ int main(int argc, char* argv[])
         wmin = nmin;
         wmax = nmax;
 
-        varname = "recoMu_eta";
+        varname = "mu_eta";
     }
 
     // NPV
@@ -276,8 +288,28 @@ int main(int argc, char* argv[])
         varname = "dEta_jj";
     }   
 
+    // dR_jj
+    if(input == 10)
+    {   
+        nbins = 100;
+        nmin = 0; 
+        nmax = 5;
+
+        wbins = nbins;
+        wmin = nmin;
+        wmax = nmax;
+
+        varname = "dR_jj";
+    }   
+
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
+    std::cout << "useRecoMuCuts    : " << useRecoMuCuts << std::endl;
+    std::cout << "useRecoToPlotMu  : " << useRecoToPlotMu << std::endl;
+    std::cout << "useRecoJetCuts   : " << useRecoJetCuts << std::endl;
+    std::cout << "useRecoToPlotJets: " << useRecoToPlotJets << std::endl;
+    std::cout << "cutNoGens        : " << cutNoGens << std::endl;
+    std::cout << std::endl;
     std::cout << "var          : " << varname << std::endl;
     std::cout << "nmin         : " << nmin << std::endl;
     std::cout << "nmax         : " << nmax << std::endl;
@@ -305,7 +337,7 @@ int main(int argc, char* argv[])
       TString hkey;
 
       // We usually fill the same plots for each category, just with different events
-      // so we loop through each category and fill the appropriate events
+      // so we loop through each category and fill the appropriate events for each category's histo
       for(auto &c : categorySelection.categoryMap)
       {
           //number of bins for the histogram, initialize to narrow category binning
@@ -340,19 +372,54 @@ int main(int argc, char* argv[])
         ///////////////////////////////////////////////////////////////////
 
         s->getEntry(i); 
+
         s->vars.validJets = std::vector<TLorentzVector>();
+        s->vars.validGenJets = std::vector<TLorentzVector>();
+
         jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
+        jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
+
+        // get first postFSR DY gen muon
+        _TrackInfo gen_mu0 = ParticleTools::getGenMuDY(0, 1, s->vars);
+        // get second postFSR DY gen muon
+        _TrackInfo gen_mu1 = ParticleTools::getGenMuDY(1, 1, s->vars);
+        // get dimuon candidate from DY gen muons
+        TLorentzVector gen_dimu = ParticleTools::getMotherPtEtaPhiM(gen_mu0.pt, gen_mu0.eta, gen_mu0.phi, MASS_MUON, gen_mu1.pt, gen_mu1.eta, gen_mu1.phi, MASS_MUON);
+
+        // If cutNoGens is true, we don't want to plot events where there are no gen muons from a Z or gamma*
+        if(gen_mu0.pt < 0 || gen_mu1.pt < 0 && cutNoGens)
+        {
+            continue;
+            // was printing this for debugging, don't want to print it right now, but leaving it here in case I do later
+            std::cout << "run, lumi, event" << std::endl;
+            std::cout << s->vars.eventInfo.run << ", " << s->vars.eventInfo.lumi << ", " << s->vars.eventInfo.event << std::endl;
+            std::cout << "gen muons gathered" << std::endl;
+            std::cout << gen_mu0.pt << "," << gen_mu0.eta << "," << gen_mu0.phi << std::endl;
+            std::cout << gen_mu1.pt << "," << gen_mu1.eta << "," << gen_mu1.phi << std::endl;
+            std::cout << "gen muons from Z" << std::endl;
+            std::cout << s->vars.genM1ZpostFSR.pt << "," << s->vars.genM1ZpostFSR.eta << "," << s->vars.genM1ZpostFSR.phi << std::endl;
+            std::cout << s->vars.genM2ZpostFSR.pt << "," << s->vars.genM2ZpostFSR.eta << "," << s->vars.genM2ZpostFSR.phi << std::endl;
+            std::cout << "gen muons from gamma*" << std::endl;
+            std::cout << s->vars.genM1GpostFSR.pt << "," << s->vars.genM1GpostFSR.eta << "," << s->vars.genM1GpostFSR.phi << std::endl;
+            std::cout << s->vars.genM2GpostFSR.pt << "," << s->vars.genM2GpostFSR.eta << "," << s->vars.genM2GpostFSR.phi << std::endl;
+            std::cout << "Dimuon gen mother" << std::endl;
+            std::cout << s->vars.genZpostFSR.pt << "," << s->vars.genZpostFSR.eta << "," << s->vars.genZpostFSR.phi << std::endl;
+            std::cout << s->vars.genGpostFSR.pt << "," << s->vars.genGpostFSR.eta << "," << s->vars.genGpostFSR.phi << std::endl;
+            std::cout << std::endl;
+        }
 
         ///////////////////////////////////////////////////////////////////
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
         
-        // don't apply iso cuts
-        FEWZselection.cutset.cuts[7].on = false;
-        FEWZselection.cutset.cuts[8].on = false;
+        // don't apply iso cuts when using reco, already turned off for gen
+        //FEWZselection.cutset.cuts[7].on = false;
+        //FEWZselection.cutset.cuts[8].on = false;
 
-        if(!s->vars.reco1.isTightMuon || !s->vars.reco2.isTightMuon)
+        //if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1] && useRecoMuCuts)
+        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
         {
             continue; 
         }
@@ -370,7 +437,7 @@ int main(int argc, char* argv[])
             // recoCandMass
             if(varname.Contains("dimu_mass")) 
             {
-                float varvalue = s->vars.recoCandMassPF;
+                float varvalue = useRecoToPlotMu?s->vars.recoCandMassPF:gen_dimu.M();
                 // blind the signal region for data but not for MC
                 if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140))
                     // if the event is in the current category then fill the category's histogram for the given sample and variable
@@ -381,74 +448,126 @@ int main(int argc, char* argv[])
             if(varname.Contains("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoCandPtPF, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoCandPtPF:gen_dimu.Pt(), s->getWeight());
             }
 
-            if(varname.Contains("recoMu_pt"))
+            if(varname.Contains("mu_pt"))
             {
                 if(c.second.inCategory)
                 {
-                    c.second.histoMap[hkey]->Fill(s->vars.reco1.pt, s->getWeight());
-                    c.second.histoMap[hkey]->Fill(s->vars.reco2.pt, s->getWeight());
+                    c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.pt[0]:gen_mu0.pt, s->getWeight());
+                    c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.pt[1]:gen_mu1.pt, s->getWeight());
                 }
             }
 
             // recoMu_Eta
-            if(varname.Contains("recoMu_eta"))
+            if(varname.Contains("mu_eta"))
             {
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.reco1.eta, s->getWeight());
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.reco2.eta, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.eta[0]:gen_mu0.eta, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.eta[1]:gen_mu1.eta, s->getWeight());
             }
 
             // NPV
             if(varname.Contains("NPV"))
             {
-                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.vertices.nVertices, s->getWeight());
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.vertices.nVertices:s->vars.nPU, s->getWeight());
             }
 
-            // jet_pt
+            // jet_pt all valid
             if(varname.Contains("jet_pt"))
             {
-                if(c.second.inCategory) 
+                if(c.second.inCategory && useRecoToPlotJets) 
                 {
-                    for(unsigned int i=0; i<s->vars.validJets.size(); i++)
-                        c.second.histoMap[hkey]->Fill(s->vars.validJets[i].Pt(), s->getWeight());
+                    if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
+                    for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Pt(), s->getWeight());
+                }
+                if(c.second.inCategory && !useRecoToPlotJets) 
+                {
+                    if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
+                    for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validGenJets[j].Pt(), s->getWeight());
                 }
             }
 
-            // jet_eta
-            if(varname.Contains("jet_Eta"))
+            // jet_eta all valid
+            if(varname.Contains("jet_eta"))
             {
-                if(c.second.inCategory) 
+                if(c.second.inCategory && useRecoToPlotJets) 
                 {
-                    for(unsigned int i=0; i<s->vars.validJets.size(); i++)
-                        c.second.histoMap[hkey]->Fill(s->vars.validJets[i].Eta(), s->getWeight());
+                    for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Eta(), s->getWeight());
+                }
+                if(c.second.inCategory && !useRecoToPlotJets) 
+                {
+                    for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validGenJets[j].Eta(), s->getWeight());
                 }
             }
 
             // N_valid_jets
             if(varname.Contains("N_valid_jets"))
             {
-                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
+                 if(c.second.inCategory && useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
+                 if(c.second.inCategory && !useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validGenJets.size(), s->getWeight());
             }
 
-            // m_jj
+            // m_jj leading two
             if(varname.Contains("m_jj"))
             {
-                 if(s->vars.validJets.size() >= 2)
+                 if(s->vars.validJets.size() >= 2 && useRecoToPlotJets)
                  {
                      TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
                  }
+                 if(s->vars.validGenJets.size() >= 2 && !useRecoToPlotJets)
+                 {
+                     TLorentzVector dijet = s->vars.validGenJets[0] + s->vars.validGenJets[1];
+                     if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
+                 }
             }
 
-            // dEta_jj
+            // dEta_jj leading two
             if(varname.Contains("dEta_jj"))
             {
-                 if(s->vars.validJets.size() >= 2)
+                 if(s->vars.validJets.size() >= 2 && useRecoToPlotJets)
                  {
                      float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
+                 }
+                 if(s->vars.validGenJets.size() >= 2 && !useRecoToPlotJets)
+                 {
+                     float dEta = s->vars.validGenJets[0].Eta() - s->vars.validGenJets[1].Eta();
+                     if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
+                 }
+            }
+
+            // dR_jj
+            if(varname.Contains("dR_jj"))
+            {
+                 if(s->vars.validJets.size() >= 2 && useRecoToPlotJets)
+                 {
+                     for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                     {                
+                       for(unsigned int k=j+1; k<s->vars.validJets.size(); k++)
+                       {                
+                           float dR = JetSelectionTools::dR(s->vars.validJets[j].Eta(), s->vars.validJets[j].Phi(), 
+                                                            s->vars.validJets[k].Eta(),  s->vars.validJets[k].Phi());
+                           if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dR, s->getWeight());
+                       }
+                     }
+                 }
+                 if(s->vars.validGenJets.size() >= 2 && !useRecoToPlotJets)
+                 {
+                     for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
+                     {                
+                       for(unsigned int k=j+1; k<s->vars.validGenJets.size(); k++)
+                       {                
+                           float dR = JetSelectionTools::dR(s->vars.validGenJets[j].Eta(), s->vars.validGenJets[j].Phi(), 
+                                                            s->vars.validGenJets[k].Eta(),  s->vars.validGenJets[k].Phi());
+                           if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dR, s->getWeight());
+                       }
+                     }
                  }
             }
 
@@ -456,7 +575,7 @@ int main(int argc, char* argv[])
 
         if(false)
           // ouput pt, mass info etc for the event
-          outputEvent(s->vars, categorySelection);
+          EventTools::outputEvent(s->vars, categorySelection);
 
         // Reset the flags in preparation for the next event
         categorySelection.reset();
@@ -490,7 +609,9 @@ int main(int argc, char* argv[])
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/validate_"+varname+"_DY-FEWZ_MC_categories_"+Form("%d",(int)luminosity)+".root", "RECREATE");
+    TFile* savefile = new TFile(TString("rootfiles/")+Form("%d%d%d%d%d_", (int)useRecoMuCuts, (int)useRecoToPlotMu, (int)useRecoJetCuts, 
+                                (int)useRecoToPlotJets, (int)cutNoGens)+ "validate_"+varname+"_DY-FEWZ_MC_categories_"+
+                                Form("%d",(int)luminosity)+".root", "RECREATE");
     //TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* histos = savefile->mkdir("histos");
 
@@ -500,6 +621,5 @@ int main(int argc, char* argv[])
     histos->cd();
     histolist->Write();
     savefile->Close();
-
     return 0;
 }

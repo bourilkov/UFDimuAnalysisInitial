@@ -89,19 +89,43 @@ Sample::~Sample() {
 
 void Sample::setBranchAddresses()
 {
-    tree->SetBranchAddress("recoCandMass", &vars.recoCandMass);
-    tree->SetBranchAddress("nPU", &vars.nPU);
+    // reco info
+    tree->SetBranchAddress("recoMuons", &vars.recoMuons);
     tree->SetBranchAddress("recoCandPt", &vars.recoCandPt);
-    tree->SetBranchAddress("vertexInfo", &vars.vertices);
-    tree->SetBranchAddress("eventInfo", &vars.eventInfo);
-    tree->SetBranchAddress("reco1", &vars.reco1);
-    tree->SetBranchAddress("reco2", &vars.reco2);
-    tree->SetBranchAddress("genWeight", &vars.genWeight);
-    tree->SetBranchAddress("pfJets", &vars.jets);
-    tree->SetBranchAddress("met", &vars.met);
+    tree->SetBranchAddress("recoCandMass", &vars.recoCandMass);
     tree->SetBranchAddress("recoCandMassPF", &vars.recoCandMassPF);
     tree->SetBranchAddress("recoCandPtPF", &vars.recoCandPtPF);
+
+    tree->SetBranchAddress("pfJets", &vars.jets);
+    tree->SetBranchAddress("met", &vars.met);
+
+    tree->SetBranchAddress("nPU", &vars.nPU);
+    tree->SetBranchAddress("vertexInfo", &vars.vertices);
+    tree->SetBranchAddress("eventInfo", &vars.eventInfo);
     tree->SetBranchAddress("rho", &vars.rho);
+
+    // gen info
+    tree->SetBranchAddress("genJets", &vars.genJets);
+
+    // gen dimuon mothers
+    tree->SetBranchAddress("genZpreFSR", &vars.genZpreFSR);
+    tree->SetBranchAddress("genZpostFSR", &vars.genZpostFSR);
+    tree->SetBranchAddress("genGpreFSR", &vars.genGpreFSR);
+    tree->SetBranchAddress("genGpostFSR", &vars.genGpostFSR);
+
+    // gen muons from virutal gamma
+    tree->SetBranchAddress("genM1GpreFSR", &vars.genM1GpreFSR);
+    tree->SetBranchAddress("genM1GpostFSR", &vars.genM1GpostFSR);
+    tree->SetBranchAddress("genM2GpreFSR", &vars.genM2GpreFSR);
+    tree->SetBranchAddress("genM2GpostFSR", &vars.genM2GpostFSR);
+
+    // gen muons from Z
+    tree->SetBranchAddress("genM1ZpreFSR", &vars.genM1ZpreFSR);
+    tree->SetBranchAddress("genM1ZpostFSR", &vars.genM1ZpostFSR);
+    tree->SetBranchAddress("genM2ZpreFSR", &vars.genM2ZpreFSR);
+    tree->SetBranchAddress("genM2ZpostFSR", &vars.genM2ZpostFSR);
+
+    tree->SetBranchAddress("genWeight", &vars.genWeight);
 }
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------

@@ -16,10 +16,11 @@ class JetSelectionTools
         float cJetSelectionEtaMax;       
         float cJetSelectiondRMax;
  
-        float dR(float eta1, float phi1, float eta2, float phi2);
-        int getNValidJets(VarSet& vars);
+        static float dR(float eta1, float phi1, float eta2, float phi2);
+
         void getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec);
         void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
+        void getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
 };
 
 #endif

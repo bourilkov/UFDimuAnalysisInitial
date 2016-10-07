@@ -6,10 +6,10 @@
 #include "CutSet.h"
 #include "Cut.h"
 #include "SelectionCuts.h"
-#include "CategorySelection_v2.h"
+#include "CategorySelection.h"
 #include "JetSelectionTools.h"
 
-#include "EventTools_v2.cxx"
+#include "EventTools.cxx"
 #include "PUTools.cxx"
 #include "SignificanceMetrics.cxx"
 
@@ -389,8 +389,8 @@ int main(int argc, char* argv[])
             {
                 if(c.second.inCategory) 
                 {
-                    for(unsigned int i=0; i<s->vars.validJets.size(); i++)
-                        c.second.histoMap[hkey]->Fill(s->vars.validJets[i].Pt(), s->getWeight());
+                    for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Pt(), s->getWeight());
                 }
             }
 
@@ -399,8 +399,8 @@ int main(int argc, char* argv[])
             {
                 if(c.second.inCategory) 
                 {
-                    for(unsigned int i=0; i<s->vars.validJets.size(); i++)
-                        c.second.histoMap[hkey]->Fill(s->vars.validJets[i].Eta(), s->getWeight());
+                    for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Eta(), s->getWeight());
                 }
             }
 

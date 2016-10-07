@@ -134,7 +134,10 @@ class FEWZCompareCuts : public Cut
 {
     public:
         FEWZCompareCuts();
-        FEWZCompareCuts(float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax, float maxRelIso);
+        FEWZCompareCuts(bool useReco);
+        FEWZCompareCuts(bool useReco, float leadPtMin, float subleadPtMin, float maxEta, float dimuMassMin, float dimuMassMax, float maxRelIso);
+
+        bool useReco;
 
         float cLeadPtMin;           
         float cSubleadPtMin;        

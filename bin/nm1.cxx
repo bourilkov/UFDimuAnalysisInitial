@@ -3,10 +3,10 @@
 #include "CutSet.h"
 #include "Cut.h"
 #include "SelectionCuts.h"
-#include "CategorySelection_v2.h"
+#include "CategorySelection.h"
 #include "JetSelectionTools.h"
 
-#include "EventTools_v2.cxx"
+#include "EventTools.cxx"
 #include "PUTools.cxx"
 #include "SignificanceMetrics.cxx"
 
