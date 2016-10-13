@@ -27,8 +27,8 @@ CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -c -g `root-config --cflags`
 #MAIN = compareDataMC80XCat
 #MAIN = fewzCompare
 #MAIN = overlayFewz
-MAIN = fewzGenSmearing
-#MAIN = categorize
+#MAIN = fewzGenSmearing
+MAIN = categorize
 #MAIN = exploreDY
 
 # link all of the objects to the main program

@@ -9,8 +9,8 @@
 #include "CategorySelection.h"
 #include "JetSelectionTools.h"
 
-#include "EventTools.cxx"
-#include "PUTools.cxx"
+#include "EventTools.h"
+#include "PUTools.h"
 #include "SignificanceMetrics.cxx"
 
 #include "TLorentzVector.h"
@@ -27,11 +27,13 @@
 int main(int argc, char* argv[])
 {
     int input = 0;
+    int binning = 0;
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
         if(i==1) ss >> input;
+        if(i==2) ss >> binning;
     }   
 
     // Not sure that we need a map if we have a vector
@@ -49,11 +51,10 @@ int main(int argc, char* argv[])
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    float luminosity = 3990;       // pb-1
-    //float luminosity = 12900;      // pb-1 (ICHEP)
-    //float luminosity = 15900;      // pb-1   (2016-08-03)
+    //float luminosity = 3990;     // pb-1
+    float luminosity = 27217;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
-    float signalSF = 100;
+    float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
 
     // ================================================================
     // Data -----------------------------------------------------------
@@ -61,14 +62,13 @@ int main(int argc, char* argv[])
  
 
     TString datafilename = 
-    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/old/stage_1_singleMuon_Run2016B_ALL.root");
-    //TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCD_ICHEP_ALL.root");
-    //TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDE_ALL.root");
+    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDEFG_ALL.root");
 
     Sample* datasample = new Sample(datafilename, "Data", "data");
     datasample->lumi = luminosity;
     datasample->xsec = 9999;
-    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69mb_CMSSW_8_0_X.root";
+    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDEFG_xsec69p2mb_CMSSW_8_0_X.root";
+    //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69mb_CMSSW_8_0_X.root";
     //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCD_ICHEP_xsec69p2mb_CMSSW_8_0_X.root";
     //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDE_xsec69p2mb_CMSSW_8_0_X.root";
     samples["Data"] = datasample;
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     // TTJets ---------------------------------------------------------
     // ================================================================
 
-    TString ttbarfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/ttbar/CMSSW_8_0_X/stage_1_ttJets2_ALL.root");
+    TString ttbarfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/ttbar/CMSSW_8_0_X/stage_1_ttJets_ALL.root");
     samples["TTJets"] = new Sample(ttbarfilename, "TTJets", "background");
     samples["TTJets"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_TTJets.root"; //nPU
     samples["TTJets"]->xsec = 831.76; // pb
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     // GGF ---------------------------------------------------------
     // ================================================================
 
-    TString ggfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_gg_HToMuMu2_ALL.root");
+    TString ggfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_gg_HToMuMu_ALL.root");
     samples["GGF"] = new Sample(ggfilename, "GGF", "signal");
     samples["GGF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_GGF.root"; //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
@@ -169,9 +169,33 @@ int main(int argc, char* argv[])
     // dimu_mass
     if(input == 0)
     {
-        bins = 150;
-        min = 50;
-        max = 200;
+        if(binning == 0)
+        {
+            bins = 150;
+            min = 50;
+            max = 200;
+        }
+
+        else if(binning == 1)
+        {
+            bins = 50;
+            min = 110;
+            max = 160;
+        }
+        else if(binning == 2)
+        {
+            bins = 100;
+            min = 110;
+            max = 310;
+        }
+        else
+        {
+            bins = 150;
+            min = 50;
+            max = 200;
+        }
+
+
         varname = "dimu_mass";
     }
 
@@ -184,22 +208,22 @@ int main(int argc, char* argv[])
         varname = "dimu_pt";
     }
 
-    // recoMu_pt
+    // mu_pt
     if(input == 2)
     {
         bins = 200;
         min = 0;
         max = 150;
-        varname = "recoMu_pt";
+        varname = "mu_pt";
     }
  
-    // recoMu_eta
+    // mu_eta
     if(input == 3)
     {
         bins = 100;
         min = -2.5;
         max = 2.5;
-        varname = "recoMu_eta";
+        varname = "mu_eta";
     }
 
     // NPV
@@ -304,6 +328,9 @@ int main(int argc, char* argv[])
           // Set up the histogram for the category and variable to plot
           c.second.histoMap[hkey] = new TH1F(hname, hname, hbins, min, max);
           c.second.histoList->Add(c.second.histoMap[hkey]); // need them ordered by xsec for the stack and ratio plot
+          if(s->sampleType.Contains("data")) c.second.dataList->Add(c.second.histoMap[hkey]);      // data histo
+          if(s->sampleType.Contains("signal")) c.second.signalList->Add(c.second.histoMap[hkey]);  // signal histos
+          if(s->sampleType.Contains("background")) c.second.bkgList->Add(c.second.histoMap[hkey]); // bkg histos
       }
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
@@ -322,7 +349,7 @@ int main(int argc, char* argv[])
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
 
-        if(!s->vars.reco1.isTightMuon || !s->vars.reco2.isTightMuon)
+        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
         { 
             continue; 
         }
@@ -362,20 +389,20 @@ int main(int argc, char* argv[])
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoCandPtPF, s->getWeight());
             }
 
-            if(varname.Contains("recoMu_pt"))
+            if(varname.Contains("mu_pt"))
             {
                 if(c.second.inCategory)
                 {
-                    c.second.histoMap[hkey]->Fill(s->vars.reco1.pt, s->getWeight());
-                    c.second.histoMap[hkey]->Fill(s->vars.reco2.pt, s->getWeight());
+                    c.second.histoMap[hkey]->Fill(s->vars.recoMuons.pt[0], s->getWeight());
+                    c.second.histoMap[hkey]->Fill(s->vars.recoMuons.pt[1], s->getWeight());
                 }
             }
 
             // recoMu_Eta
-            if(varname.Contains("recoMu_eta"))
+            if(varname.Contains("mu_eta"))
             {
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.reco1.eta, s->getWeight());
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.reco2.eta, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[0], s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[1], s->getWeight());
             }
 
             // NPV
@@ -434,7 +461,7 @@ int main(int argc, char* argv[])
 
         if(false)
           // ouput pt, mass info etc for the event
-          outputEvent(s->vars, categorySelection);
+          EventTools::outputEvent(s->vars, categorySelection);
 
         // Reset the flags in preparation for the next event
         categorySelection.reset();
@@ -452,6 +479,7 @@ int main(int argc, char* argv[])
 
     TList* varstacklist = new TList();  // list to save all of the stacks
     TList* histolist = new TList();     // list to save all of the histos
+    TList* netlist = new TList();       // list to save all of the histos
 
     for(auto &c : categorySelection.categoryMap)
     {
@@ -460,6 +488,19 @@ int main(int argc, char* argv[])
         TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries");
         varstacklist->Add(stack);
         histolist->Add(c.second.histoList);
+       
+        // we need the data histo, the net signal, and the net bkg for the datacards
+        // so we make these histos if we are plotting the dimu_mass spectrum
+        if(varname.Contains("dimu_mass"))
+        {
+            TH1F* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"Net_Signal");
+            TH1F* hNetBkg    = dps->addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
+            TH1F* hNetData   = dps->addHists(c.second.dataList, c.first+"_Net_Data", c.first+"_Net_Data");
+
+            netlist->Add(hNetSignal);
+            netlist->Add(hNetBkg);
+            netlist->Add(hNetData);
+        }
 
         stack->SaveAs("imgs/"+cname+".png");
     }
@@ -467,15 +508,19 @@ int main(int argc, char* argv[])
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/validate_"+varname+"_x69_8_0_X_MC_categories_"+Form("%d",(int)luminosity)+".root", "RECREATE");
+    TFile* savefile = new TFile("rootfiles/validate_"+varname+Form("_%d_%d", (int)min, (int)max)+
+                                "_x69p2_8_0_X_MC_categories_"+Form("%d",(int)luminosity)+".root", "RECREATE");
     TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* histos = savefile->mkdir("histos");
+    TDirectory* net_histos = savefile->mkdir("net_histos");
 
     // save the different histos and stacks in the appropriate directories in the tfile
     stacks->cd();
     varstacklist->Write();
     histos->cd();
     histolist->Write();
+    net_histos->cd();
+    netlist->Write();
     savefile->Close();
 
     return 0;

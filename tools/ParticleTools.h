@@ -19,5 +19,8 @@ class ParticleTools
         static _TrackInfo getGenMuDY(bool m, bool postFSR, VarSet& vars);
         static TLorentzVector convertTrackMuTo4Vec(_TrackInfo& track);
         static bool isValid4Vec(TLorentzVector& v);
+        static float dR(float eta1, float phi1, float eta2, float phi2);
+        static bool isMuPairGenMatchedDY(float dRcut, float ptCut, VarSet& vars);
+         
 };
 #endif

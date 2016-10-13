@@ -339,7 +339,7 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name)
+TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name, TString title)
 {
 // Add all of the histograms in the list into a single histogram
 

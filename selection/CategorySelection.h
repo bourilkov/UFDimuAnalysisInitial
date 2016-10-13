@@ -28,6 +28,9 @@ class Category
        // Usually we want to make a bunch of histograms for each category, so we keep them here
        std::map<TString, TH1F*> histoMap;   // access histos by name
        TList* histoList = new TList();      // histos ordered by xsec so that we can create the ratio and stack plot
+       TList* signalList = new TList();     // signal histos
+       TList* bkgList = new TList();        // bkg histos
+       TList* dataList = new TList();       // data histo
 
        // Book-keeping
        TString name;

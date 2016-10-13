@@ -114,7 +114,7 @@ class DiMuPlottingSystem
         TCanvas* overlay(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
         TCanvas* stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool fit = true, 
                                            TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        TH1F* addHists(TList* list, TString name);
+        TH1F* addHists(TList* list, TString name, TString title);
 
         void arrangeStatBox(TCanvas* c, int i);
         void arrangeLegend(TCanvas* c, int i);

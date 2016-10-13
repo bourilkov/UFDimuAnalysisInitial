@@ -27,7 +27,7 @@ SynchEventSelectionCuts::SynchEventSelectionCuts()
 
     cDimuMassMin = 100;         // >
     cDimuMassMax = 110;         // <
-    cTrigMuPtMin = 20;          // >
+    cTrigMuPtMin = 24;          // >
     cTrigMuEtaMax = 2.4;        // <
     cPVzMax = 24;               // < 
     cNDFpv = 4;                 // >
@@ -83,10 +83,10 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
     if(!cutset.cuts[2].on) ;
-    else if(vars.recoMuons.isHltMatched[0][0] && vars.recoMuons.pt[0] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[0]) < cTrigMuEtaMax) ; // recoMuon0 passes trigger0
-    else if(vars.recoMuons.isHltMatched[0][1] && vars.recoMuons.pt[0] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[0]) < cTrigMuEtaMax) ; // recoMuon0 passes trigger1
-    else if(vars.recoMuons.isHltMatched[1][0] && vars.recoMuons.pt[1] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[1]) < cTrigMuEtaMax) ; // recoMuon1 passes trigger0
-    else if(vars.recoMuons.isHltMatched[1][1] && vars.recoMuons.pt[1] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[1]) < cTrigMuEtaMax) ; // recoMuon1 passes trigger1
+    else if(vars.recoMuons.isHltMatched[0][4] && vars.recoMuons.pt[0] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[0]) < cTrigMuEtaMax) ; // recoMuon0 passes trigger0
+    else if(vars.recoMuons.isHltMatched[0][5] && vars.recoMuons.pt[0] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[0]) < cTrigMuEtaMax) ; // recoMuon0 passes trigger1
+    else if(vars.recoMuons.isHltMatched[1][4] && vars.recoMuons.pt[1] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[1]) < cTrigMuEtaMax) ; // recoMuon1 passes trigger0
+    else if(vars.recoMuons.isHltMatched[1][5] && vars.recoMuons.pt[1] > cTrigMuPtMin && TMath::Abs(vars.recoMuons.eta[1]) < cTrigMuEtaMax) ; // recoMuon1 passes trigger1
     else 
     {
         cutset.cuts[2].value = 0;
@@ -161,7 +161,7 @@ void SynchEventSelectionCuts::makeCutSet()
     cutset.cuts[1].max = 200;
 
     cutset.cuts[2].name = "passes HLT Trigger Selection";
-    cutset.cuts[2].tstring.Form("recoMu.isHltMatched[0||1] && recoMu.pt > %5.2f && TMath::Abs(recoMu.eta) < %4.2f", cTrigMuPtMin, cTrigMuEtaMax);
+    cutset.cuts[2].tstring.Form("recoMu.isHltMatched[4||5] && recoMu.pt > %5.2f && TMath::Abs(recoMu.eta) < %4.2f", cTrigMuPtMin, cTrigMuEtaMax);
     cutset.cuts[2].bins = 2;
     cutset.cuts[2].min = 0;
     cutset.cuts[2].max = 2;
@@ -319,8 +319,8 @@ Run1EventSelectionCuts::Run1EventSelectionCuts()
 {
 // Default values for the modified run 1 event selection
 
-    cTrigMuPtMin = 20;          // >, originally 24 GeV in accordance with the IsoMu24_Eta2p1 trigger
-                                // we are using IsoMu20 triggers so this has been reduced to 20
+    cTrigMuPtMin = 24;
+                                
     cDimuMassMin = 60;
     cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
@@ -354,10 +354,10 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
     cutset.cuts[2].value = vars.recoCandMassPF;
 
     // Set cuts[1].value correctly
-    if(vars.recoMuons.isHltMatched[0][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
-    else if(vars.recoMuons.isHltMatched[0][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
-    else if(vars.recoMuons.isHltMatched[1][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
-    else if(vars.recoMuons.isHltMatched[1][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
+    if(vars.recoMuons.isHltMatched[0][4]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[0][5]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[1][4]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
+    else if(vars.recoMuons.isHltMatched[1][5]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
     else
     {
          cutset.cuts[1].value = -1;
@@ -370,10 +370,10 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
     if(!cutset.cuts[1].on) ;
-    else if(vars.recoMuons.isHltMatched[0][0] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
-    else if(vars.recoMuons.isHltMatched[0][1] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
-    else if(vars.recoMuons.isHltMatched[1][0] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
-    else if(vars.recoMuons.isHltMatched[1][1] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][4] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][5] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][4] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][5] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
     else
     {
          return false;
@@ -407,7 +407,7 @@ void Run1EventSelectionCuts::makeCutSet()
     cutset.cuts[0].ismin = true;
 
     cutset.cuts[1].name = "trigMatchedRecoMu.pt";
-    cutset.cuts[1].tstring.Form("recoMuons.isHltMatched[0][0||1] && recoMuons.pt[0] > %5.2f", cTrigMuPtMin);
+    cutset.cuts[1].tstring.Form("recoMuons.isHltMatched[0][4||5] && recoMuons.pt[0] > %5.2f", cTrigMuPtMin);
     cutset.cuts[1].bins = 201;
     cutset.cuts[1].min = -1;
     cutset.cuts[1].max = 200;
@@ -433,8 +433,8 @@ Run1EventSelectionSigCuts::Run1EventSelectionSigCuts()
 {
 // Default values for the modified run 1 event selection
 
-    cTrigMuPtMin = 20;          // >, originally 24 GeV in accordance with the IsoMu24_Eta2p1 trigger
-                                // we are using IsoMu20 triggers so this has been reduced to 20
+    cTrigMuPtMin = 24;
+                                
     cDimuMassMin = 122.5;
     cDimuMassMax = 127.5;
     cutset.cuts = std::vector<CutInfo>(4, CutInfo());
@@ -471,10 +471,10 @@ bool Run1EventSelectionSigCuts::evaluate(VarSet& vars)
     cutset.cuts[3].value = vars.recoCandMassPF;
 
     // Set cuts[1].value correctly
-    if(vars.recoMuons.isHltMatched[0][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
-    else if(vars.recoMuons.isHltMatched[0][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
-    else if(vars.recoMuons.isHltMatched[1][0]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
-    else if(vars.recoMuons.isHltMatched[1][1]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
+    if(vars.recoMuons.isHltMatched[0][4]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[0][5]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
+    else if(vars.recoMuons.isHltMatched[1][4]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
+    else if(vars.recoMuons.isHltMatched[1][5]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[1]);
     else
     {
          cutset.cuts[1].value = -1;
@@ -487,10 +487,10 @@ bool Run1EventSelectionSigCuts::evaluate(VarSet& vars)
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
     if(!cutset.cuts[1].on) ;
-    else if(vars.recoMuons.isHltMatched[0][0] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
-    else if(vars.recoMuons.isHltMatched[0][1] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
-    else if(vars.recoMuons.isHltMatched[1][0] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
-    else if(vars.recoMuons.isHltMatched[1][1] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][4] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[0][5] && TMath::Abs(vars.recoMuons.pt[0]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][4] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
+    else if(vars.recoMuons.isHltMatched[1][5] && TMath::Abs(vars.recoMuons.pt[1]) > cTrigMuPtMin) ;
     else
     {
          return false;
@@ -528,7 +528,7 @@ void Run1EventSelectionSigCuts::makeCutSet()
     cutset.cuts[0].ismin = true;
 
     cutset.cuts[1].name = "trigMatchedRecoMu.pt";
-    cutset.cuts[1].tstring.Form("recoMuons.isHltMatched[0][0||1] && recoMuons.pt[0] > %5.2f", cTrigMuPtMin);
+    cutset.cuts[1].tstring.Form("recoMuons.isHltMatched[0][4||5] && recoMuons.pt[0] > %5.2f", cTrigMuPtMin);
     cutset.cuts[1].bins = 201;
     cutset.cuts[1].min = -1;
     cutset.cuts[1].max = 200;
@@ -719,8 +719,8 @@ Run1EventSelectionCuts80X::Run1EventSelectionCuts80X()
 // Default values for the modified run 1 event selection
 
     isData = 0;
-    cTrigMuPtMin = 20;          // >, originally 24 GeV in accordance with the IsoMu24_Eta2p1 trigger
-                                // we are using IsoMu20 triggers so this has been reduced to 20
+    cTrigMuPtMin = 24; 
+                                
     cDimuMassMin = 60;
     cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
@@ -735,8 +735,8 @@ Run1EventSelectionCuts80X::Run1EventSelectionCuts80X(bool isData)
 // Default values for the modified run 1 event selection
 
     this->isData = isData;;
-    cTrigMuPtMin = 20;          // >, originally 24 GeV in accordance with the IsoMu24_Eta2p1 trigger
-                                // we are using IsoMu20 triggers so this has been reduced to 20
+    cTrigMuPtMin = 24; 
+                                
     cDimuMassMin = 60;
     cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
@@ -792,7 +792,7 @@ bool Run1EventSelectionCuts80X::evaluate(VarSet& vars)
     // Data has HLT triggers
     if(isData)
     {
-        if(!(vars.recoMuons.isHltMatched[0][0] || vars.recoMuons.isHltMatched[0][1] || vars.recoMuons.isHltMatched[1][0] || vars.recoMuons.isHltMatched[1][1]))
+        if(!(vars.recoMuons.isHltMatched[0][4] || vars.recoMuons.isHltMatched[0][5] || vars.recoMuons.isHltMatched[1][4] || vars.recoMuons.isHltMatched[1][5]))
             return false;
     }
     // if the event fails a single cut return false

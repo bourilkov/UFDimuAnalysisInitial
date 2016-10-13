@@ -77,3 +77,74 @@ bool ParticleTools::isValid4Vec(TLorentzVector& v)
     if(v.Pt() == 0 && v.Eta() == 0 && v.Phi() == 0 && v.M() == 0) return false;
     return true;
 }
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+float ParticleTools::dR(float eta1, float phi1, float eta2, float phi2)
+{
+    // it's easiest to use the TLorentzVector class to account for the dPhi > pi problem
+    TLorentzVector v1; 
+    TLorentzVector v2; 
+    v1.SetPtEtaPhiM(10, eta1, phi1, 0); // doesn't matter what pt and mass are we only care about the dR value
+    v2.SetPtEtaPhiM(10, eta2, phi2, 0); // same thing
+    return v1.DeltaR(v2);
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+bool ParticleTools::isMuPairGenMatchedDY(float dRcut, float ptCut, VarSet& vars)
+{
+// See if the candidate reco muon pair matches the pair 
+    std::vector<TLorentzVector> recoMuons;
+    std::vector<TLorentzVector> genMuons;
+
+    TLorentzVector reco0, reco1, gen0, gen1;
+
+    reco0.SetPtEtaPhiM(vars.recoMuons.pt[0],vars.recoMuons.eta[0], vars.recoMuons.phi[0], MASS_MUON);
+    reco1.SetPtEtaPhiM(vars.recoMuons.pt[1],vars.recoMuons.eta[1], vars.recoMuons.phi[1], MASS_MUON);
+    recoMuons.push_back(reco0);
+    recoMuons.push_back(reco1);
+
+   _TrackInfo tgen0 = getGenMuDY(0, 1, vars);
+   _TrackInfo tgen1 = getGenMuDY(1, 1, vars);
+
+   // no dy gen muon in event, obviously no match
+   if(tgen0.pt < 0 || tgen1.pt < 0) return false;
+
+   gen0.SetPtEtaPhiM(tgen0.pt, tgen0.eta, tgen0.phi, MASS_MUON);
+   gen1.SetPtEtaPhiM(tgen1.pt, tgen1.eta, tgen1.phi, MASS_MUON);
+   genMuons.push_back(gen0);
+   genMuons.push_back(gen1);
+
+   // binary number to keep track of the matches
+   unsigned int matchResults = 0;
+   for(unsigned int i=0; i<recoMuons.size(); i++)
+   {
+       for(unsigned int j=0; j<genMuons.size(); j++)
+       {
+           if(recoMuons[i].DeltaR(genMuons[j]) < dRcut && abs(recoMuons[i].Pt()-genMuons[i].Pt())/genMuons[i].Pt() < ptCut)
+           {
+               // 11, 10, 01, 00 -> bit 3, bit 2, bit 1, bit 0
+               // reco1 matches gen1, reco1 matches gen0, reco0 matches gen1, reco0 matches gen0
+               unsigned int bit = (i << 1) | (j << 0);   // figure out which bit should turn on 
+               matchResults = matchResults | (1 << bit); // turn on the bit
+           }
+       }
+   }
+   // match0 = bits 0 and 1, match 1 = bits 2 and 3
+   unsigned int match0 = matchResults & 0x3;
+   unsigned int match1 = (matchResults & 0xC) >> 2;
+
+   // reco0 has a bit on aka matches a gen, so does match1
+   if(match0 && match1)
+   {
+       // if they both match only one and the same gen particle then only one bit is on 
+       // and 10 | 10 = 10, 01 | 01 = 01, everything else gives 11 == 0x3
+       if((match0 | match1) == 0x3) return true; 
+   }
+   return false;
+}

@@ -28,7 +28,7 @@ infilename = ""
 if args.infile:
     infilename = args.infile
 else:
-    infilename = 'fewz/NLO.out_mu13tev_higgs_PI_MRST2004qed_dimi_NLO_WNLO_110-160_cc.txt'
+    infilename = 'fewz_predictions/NLO.out_mu13tev_higgs_PI_MRST2004qed_dimi_NLO_WNLO_110-160_cc.txt'
 
 def parseFile(infilename):
     """ Parse a fewz output file into a dictionary where each key is the histo name and the value is the data. """
