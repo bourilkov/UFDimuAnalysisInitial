@@ -29,7 +29,7 @@ Important scripts, besides the analyzer itself
         + 'source crabstatusall' to check the status of all the crab jobs
 
 
-Stage 2, plotting variables, limits, compare to fewz, etc
+Stage 2, plotting variables, limits, compare to fewz, etc (This repo)
 ------------------------------------------------------------------------    
 Latest version is the more_muons branch
     -> https://github.com/acarnes/UFDimuAnalysis/tree/more_muons
