@@ -29,7 +29,7 @@ Important scripts, besides the analyzer itself
         + 'source crabstatusall' to check the status of all the crab jobs
 
 
-Stage 2, plotting variables, limits, compare to fewz, etc (This repo)
+Stage 2, plotting variables, limits, compare to fewz, etc
 ------------------------------------------------------------------------    
 Latest version is the more_muons branch
     -> https://github.com/acarnes/UFDimuAnalysis/tree/more_muons
@@ -50,19 +50,18 @@ to compile a script edit the makefile and change MAIN to the name of the script 
         - will explain the important scripts later on in this documentation ...
     + lib
         - library of objects that you shouldn't need to edit that help with plotting, sample operations, etc
-        - DataFormats.h needs to be the same DataFormats.h that was used with the analyzer to make the samples you are using
-        - If the analyzer changes we need to update DataFormats.h and maybe VarSet.h, and Sample.cxx
-            + DataFormats.h defines the data structures that we load the infro from the sample ttree into
+        - DataFormats.h needs to be the same DataFormats.h that was used with the analyzer that made the samples you are using
+        - If the analyzer DataFormats.h changes we need to update DataFormats.h and maybe VarSet.h, and Sample.cxx
+            + DataFormats.h defines the data structures that we stored into the ttree, need to read them out the same way
             + VarSet.h is a datastructure that groups the different objects from DataFormats.h into a single collection
                 * Samples.cxx uses VarSet.h like so, to get the recoMuon pt for mu 0 we would do Sample->vars.recoMuons[0].pt
-                * so to access something you may want to plot or explore in your script it's usually like, vars.interesting_quantity
-                * where interesting_quantity is some data structure from DataFormats.h
+                * so to access something you may want to plot or explore in your script it's usually like, Sample->vars.var.field
+                * where var is some data structure from DataFormats.h
             + Sample.cxx allows us to access different variables, keeps track of information about the sample, what root file, xsec, etc
-                * if the analyzer changes and DataFormats.h changes you may need to edit Sample->setBranchAddresses to find 
-                  the new changes to the data structures 
+                * if the analyzer's DataFormats.h changed and there are new samples with the new formats,
+                  you may need to edit Sample->setBranchAddresses to deal with the new changes to the data structures 
                 * sample->getEntry(int i) loads all of the info for that event into sample->vars
                 * getWeight gets the weight for the event depending on the genWeight and the PU reweighting
-                *
     + python
         - any python scripts are in here
         - currently use python to make root files and datacards for limit setting and to make the histograms from FEWZ output
@@ -73,6 +72,7 @@ to compile a script edit the makefile and change MAIN to the name of the script 
             * I have different muon and event selections in SelectionCuts.cxx
             * and CategorySelectionRun1 is defined in CategorySelection.cxx
         - There are also tools to select good jets depending on our selection criteria
+        - See these objects used in bin/categorize.cxx for example
     + tools
         - General tools to help with different things: output event information to files, out event info to terminal,
           help make plots for pileup reweighting, make 4vecs from gen particle info, calculate dR, blah blah
@@ -136,4 +136,20 @@ to compile a script edit the makefile and change MAIN to the name of the script 
             - e.g. './overlayFewz rootfiles/11110_validate_dimu_mass_DY-FEWZ_MC_categories_3990.root 3990 0'
             - images automatically saved in python/fewz/img
             - root files saved in bin/rootfiles
+
+#### Stuff to do ##########################################################
+    * Compare FEWz to Data, not just MC
+	    + edit fewzCompare.cxx and overlayFewz.cxx appropriately
+	* Add taus, electrons, and b-tagging info to Stage 1 
+	    + edit analyzer and DataFormats.h
+	    + propogate changes to stage2 into lib/DataFormats.h, lib/VarSet, and lib/Sample 
+	* Limit settings seems like it's working correctly? But I'm not sure. It would be good to look into this.
+	* Need to make categories for Adrian's newly proposed scheme
+	    + Make new selection and category selection for this
+	    + Add new muon cuts and category selection objects to SelectionCuts.cxx and CategorySelection.cxx
+	    + Simply use new objects for categorization in categorize.cxx and run it
+	* Rochester corrections, jet corrections, scale factors for trigger efficiency in pt and eta, kalman filter corrections for muons
+	* Systematics, optimize categories
+	* Compare Data and MC to FEWz at NNLO (Dimitri is currently running FEWz at NNLO, should be out soon)
+	* Use FEWz for limit setting by using it as template or getting an analytic shape from it
 ```
