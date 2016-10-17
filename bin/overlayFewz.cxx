@@ -28,7 +28,7 @@
 TH1F* getFewzTH1F(TString categoryName)
 {
     std::cout << "getFEWZ looking at category, " << categoryName << std::endl;
-    TString dir = "../python/fewz/";
+    TString dir = "../python/fewz/fewz_predictions/";
     TH1F* fewzHisto = 0;
     TString fewzHistoName = "Q_llInvaria";
 
