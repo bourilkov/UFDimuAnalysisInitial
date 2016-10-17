@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
     
     // Objects to help with the cuts and selections
     JetSelectionTools jetSelectionTools;
-    CategorySelection categorySelection;
+    CategorySelectionRun1 categorySelection;
     Run1MuonSelectionCuts run1MuonSelection;
     Run1EventSelectionCuts80X run1EventSelectionData(true);
     Run1EventSelectionCuts80X run1EventSelectionMC;

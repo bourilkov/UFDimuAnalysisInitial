@@ -15,27 +15,52 @@
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// _______________________CategorySelection______________________________//
+// _______________________CategorySelectionRun1__________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-void CategorySelection::initCategoryMap()
+void CategorySelectionRun1::initCategoryMap()
 {
 // Initialize the categories
     categoryMap["ALL"] = Category("ALL");
-    categoryMap["Preselection"] = Category("Preselection");
+
+    // intermediate category to make things easier, don't plot this one, hence the true
+    categoryMap["Preselection"] = Category("Preselection", true);
+
     categoryMap["VBF_Tight"] = Category("VBF_Tight");
     categoryMap["VBF_Loose"] = Category("VBF_Loose");
     categoryMap["GGF_Tight"] = Category("GGF_Tight");
     categoryMap["01_Jet_Tight"] = Category("01_Jet_Tight");
     categoryMap["01_Jet_Loose"] = Category("01_Jet_Loose");
+
+    // intermediate categories to make things easier, don't plot these, hence the true
+    categoryMap["BB"] = Category("BB", true);
+    categoryMap["BO"] = Category("BO", true);
+    categoryMap["BE"] = Category("BE", true);
+    categoryMap["OO"] = Category("OO", true);
+    categoryMap["OE"] = Category("OE", true);
+    categoryMap["EE"] = Category("EE", true);
+
+    categoryMap["01_Jet_Tight_BB"] = Category("01_Jet_Tight_BB");
+    categoryMap["01_Jet_Tight_BO"] = Category("01_Jet_Tight_BO");
+    categoryMap["01_Jet_Tight_BE"] = Category("01_Jet_Tight_BE");
+    categoryMap["01_Jet_Tight_OO"] = Category("01_Jet_Tight_OO");
+    categoryMap["01_Jet_Tight_OE"] = Category("01_Jet_Tight_OE");
+    categoryMap["01_Jet_Tight_EE"] = Category("01_Jet_Tight_EE");
+
+    categoryMap["01_Jet_Loose_BB"] = Category("01_Jet_Loose_BB");
+    categoryMap["01_Jet_Loose_BO"] = Category("01_Jet_Loose_BO");
+    categoryMap["01_Jet_Loose_BE"] = Category("01_Jet_Loose_BE");
+    categoryMap["01_Jet_Loose_OO"] = Category("01_Jet_Loose_OO");
+    categoryMap["01_Jet_Loose_OE"] = Category("01_Jet_Loose_OE");
+    categoryMap["01_Jet_Loose_EE"] = Category("01_Jet_Loose_EE");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-CategorySelection::CategorySelection()
+CategorySelectionRun1::CategorySelectionRun1()
 {
 // initialize the default cut values in the constructor
 
@@ -67,8 +92,8 @@ CategorySelection::CategorySelection()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-CategorySelection::CategorySelection(float leadPtMin, float subleadPtMin, float METMax, float dijetMassMinVBFT, float dijetDeltaEtaMinVBFT, float dijetMassMinGGFT,
-                                     float dimuPtMinGGFT, float dimuPtMin01T)
+CategorySelectionRun1::CategorySelectionRun1(float leadPtMin, float subleadPtMin, float METMax, float dijetMassMinVBFT, float dijetDeltaEtaMinVBFT, float dijetMassMinGGFT,
+                                        float dimuPtMinGGFT, float dimuPtMin01T)
 {
 // Initialize custom cut values
 
@@ -100,12 +125,41 @@ CategorySelection::CategorySelection(float leadPtMin, float subleadPtMin, float 
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void CategorySelection::evaluate(VarSet& vars)
+void CategorySelectionRun1::evaluate(VarSet& vars)
 {
 // Determine which category the event belongs to
 
     // Inclusive category, all events that passed the selection cuts
     categoryMap["ALL"].inCategory = true;
+
+    // Geometric Categories
+    // Barrel Barrel
+    if(TMath::Abs(vars.recoMuons.eta[0]) < 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 0.8) 
+        categoryMap["BB"].inCategory = true;
+    // Overlap Overlap
+    if(TMath::Abs(vars.recoMuons.eta[0])>=0.8 && TMath::Abs(vars.recoMuons.eta[0])<1.6 && TMath::Abs(vars.recoMuons.eta[1])>=0.8 && TMath::Abs(vars.recoMuons.eta[1])<1.6) 
+        categoryMap["OO"].inCategory = true;
+    // Endcap Endcap
+    if(TMath::Abs(vars.recoMuons.eta[0]) >= 1.6 && TMath::Abs(vars.recoMuons.eta[1]) >= 1.6) 
+        categoryMap["EE"].inCategory = true;
+
+    // Barrel Overlap
+    if(TMath::Abs(vars.recoMuons.eta[0]) < 0.8 && TMath::Abs(vars.recoMuons.eta[1]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 1.6) 
+        categoryMap["BO"].inCategory = true;
+    if(TMath::Abs(vars.recoMuons.eta[1]) < 0.8 && TMath::Abs(vars.recoMuons.eta[0]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[0]) < 1.6) 
+        categoryMap["BO"].inCategory = true;
+
+    // Barrel Endcap
+    if(TMath::Abs(vars.recoMuons.eta[0]) < 0.8 && TMath::Abs(vars.recoMuons.eta[1]) >= 1.6) 
+        categoryMap["BE"].inCategory = true;
+    if(TMath::Abs(vars.recoMuons.eta[1]) < 0.8 && TMath::Abs(vars.recoMuons.eta[0]) >= 1.6) 
+        categoryMap["BE"].inCategory = true;
+
+    // Overlap Endcap
+    if(TMath::Abs(vars.recoMuons.eta[0]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[0]) < 1.6 && TMath::Abs(vars.recoMuons.eta[1]) >= 1.6) 
+        categoryMap["OE"].inCategory = true;
+    if(TMath::Abs(vars.recoMuons.eta[1]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 1.6 && TMath::Abs(vars.recoMuons.eta[0]) >= 1.6) 
+        categoryMap["OE"].inCategory = true;
 
     // preselection
     if(vars.validJets.size() >= 2)
@@ -127,9 +181,27 @@ void CategorySelection::evaluate(VarSet& vars)
     }
     if(!categoryMap["Preselection"].inCategory) // fails 2jet preselection enters 01 categories
     {
-        if(vars.recoCandPtPF > cDimuPtMin01T){ categoryMap["01_Jet_Tight"].inCategory = true; return; }
-        else{ categoryMap["01_Jet_Loose"].inCategory = true; return; }
+        if(vars.recoCandPtPF > cDimuPtMin01T){ categoryMap["01_Jet_Tight"].inCategory = true;}
+        else{ categoryMap["01_Jet_Loose"].inCategory = true; }
+
+        // Geometric categories for 01_Jet categories
+        // tight
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["BB"].inCategory) categoryMap["01_Jet_Tight_BB"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["BO"].inCategory) categoryMap["01_Jet_Tight_BO"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["BE"].inCategory) categoryMap["01_Jet_Tight_BE"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["OO"].inCategory) categoryMap["01_Jet_Tight_OO"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["OE"].inCategory) categoryMap["01_Jet_Tight_OE"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["EE"].inCategory) categoryMap["01_Jet_Tight_EE"].inCategory = true;
+
+        // loose
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["BB"].inCategory) categoryMap["01_Jet_Loose_BB"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["BO"].inCategory) categoryMap["01_Jet_Loose_BO"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["BE"].inCategory) categoryMap["01_Jet_Loose_BE"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["OO"].inCategory) categoryMap["01_Jet_Loose_OO"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["OE"].inCategory) categoryMap["01_Jet_Loose_OE"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["EE"].inCategory) categoryMap["01_Jet_Loose_EE"].inCategory = true;
     }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -143,8 +215,11 @@ void CategorySelectionFEWZ::initCategoryMap()
 // Initialize the categories
     categoryMap["Wide"] = Category("Wide");
     categoryMap["Narrow"] = Category("Narrow");
-    categoryMap["Central_Central"] = Category("Central_Central");
-    categoryMap["Central_Not_Central"] = Category("Central_Not_Central");
+
+    // intermediate categories to make things easier, don't plot these, hence the true
+    categoryMap["Central_Central"] = Category("Central_Central", true);
+    categoryMap["Central_Not_Central"] = Category("Central_Not_Central", true);
+
     categoryMap["1Jet"] = Category("1Jet");
     categoryMap["Central_Central_Wide"] = Category("Central_Central_Wide");
     categoryMap["Central_Not_Central_Wide"] = Category("Central_Not_Central_Wide");

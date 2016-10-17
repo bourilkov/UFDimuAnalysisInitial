@@ -19,11 +19,21 @@ class Category
        Category(TString name)
        {
            this->name = name;
+           this->hide = false;
+       }
+    
+       Category(TString name, bool hide)
+       {
+           this->name = name;
+           this->hide = hide;
        }
     
        // Categorizer.evaluate will determine whether an event falls into this category
        // if an event falls into this category the boolean value will be set to true
        bool inCategory = false; 
+
+       // make a histogram of the category or not
+       bool hide = false;
 
        // Usually we want to make a bunch of histograms for each category, so we keep them here
        std::map<TString, TH1F*> histoMap;   // access histos by name
@@ -66,19 +76,15 @@ class Categorizer
 
             std::cout << std::endl;
         };
-
-        // There will be cut values that determine the categories
-        // e.g. cPtMax would be a pt cut for some category
-        // there will be different sets of these depending on the categorizer
 };
 
-class CategorySelection : public Categorizer
+class CategorySelectionRun1 : public Categorizer
 {
 // This is based off of the run1 H->MuMu category selection
     public:
-        CategorySelection(); 
-        CategorySelection(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, float cDijetDeltaEtaMinVBFT, float cDijetMassMinGGFT,
-                          float cDimuPtMinGGFT, float cDimuPtMin01T); 
+        CategorySelectionRun1(); 
+        CategorySelectionRun1(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, float cDijetDeltaEtaMinVBFT, float cDijetMassMinGGFT,
+                              float cDimuPtMinGGFT, float cDimuPtMin01T); 
 
         // Preselection
         float cLeadPtMin;

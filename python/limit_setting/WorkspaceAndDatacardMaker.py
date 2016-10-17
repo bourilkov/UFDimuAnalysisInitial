@@ -1,9 +1,10 @@
 ##############################################
 # WorkspaceAndDatacardMaker.py               #
 ##############################################
-# make a workspace for a category to use     #
-# with higgs combine                         #
-#                                            #
+# Makes .root file and datacard needed for   #
+# shape and template limit setting.          #
+# output .root and .txt files to be used     #
+# with higgs combine.                        #
 ##############################################
 
 #============================================
@@ -21,6 +22,8 @@ from ROOT import *
 #============================================
 
 class WorkspaceAndDatacardMaker:
+# object to make workspace, root files, and datacards needed for analytic shape or template
+# limit setting via higgs combine.
 
     infilename = ''
     category = ''
@@ -52,6 +55,8 @@ class WorkspaceAndDatacardMaker:
         self.net_hist.SetTitle(self.category+'_Net_MC')
     
     def makeWorkspace(self):
+    # make workspace with signal model and background model for analytic shape fit.
+    # save it to a root file.
         # suppress all messages except those that matter
         RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
         print "="*78
@@ -124,7 +129,8 @@ class WorkspaceAndDatacardMaker:
         wspace.SaveAs(self.category+'_s.root')
 
     def makeShapeDatacard(self):
-        # make whitespace the size of category
+    # analytic shape fit datacard
+        # figure out the size of the column
         width = max(len('smodel_'+self.category), len('process'))
         width+=4
 
@@ -155,6 +161,8 @@ class WorkspaceAndDatacardMaker:
             f.write(n.ljust(pwidth)+'param'.ljust(pwidth)+'0.0'.ljust(pwidth)+'0.1'.ljust(pwidth)+'\n')
 
     def makeTemplateRootFile(self):
+    # make template root file. template limit setting uses histos instead of analytic functions
+    # so save the necessary histos into a root file.
         s = self.signal_hist.Clone()
         b = self.bkg_hist.Clone()
         data = self.net_hist.Clone()
@@ -175,7 +183,8 @@ class WorkspaceAndDatacardMaker:
         self.tfile.cd()
 
     def makeTemplateDatacard(self):
-        # make whitespace the size of category
+    # make the template limit setting datacard
+        # figure out the size of the column
         width = max(len('signal_'+self.category), len('process'))
         width+=4
 
@@ -196,6 +205,8 @@ class WorkspaceAndDatacardMaker:
         f.write('----------------------------------------------------------------------------------------------------------------------------------\n')
 
 print('program is running ...')
+# Needs the file with the dimu_mass plots created by categorize.cxx via running ./categorize 0 1
+# also needs to know the category you want to make the root file and datacard for
 wdm = WorkspaceAndDatacardMaker('/home/acarnes/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_110_160_x69p2_8_0_X_MC_categories_27217.root', 'GGF_Tight') 
 print wdm.infilename, wdm.category
 wdm.makeWorkspace()
