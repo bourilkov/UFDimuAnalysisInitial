@@ -35,6 +35,7 @@ Latest version is the more_muons branch
     -> https://github.com/acarnes/UFDimuAnalysis/tree/more_muons
     -> working at /home/acarnes/h2mumu/UFDimuAnalysis_v2 on the ihepa servers
     -> already made stage1 samples at /cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1
+    -> exact location of different samples given in bin/categorize.cxx script, check it out
     
 If you're not sure what some of the code does, it's usually commented reasonably well so check it out.
 
@@ -76,7 +77,18 @@ to compile a script edit the makefile and change MAIN to the name of the script 
     + tools
         - General tools to help with different things: output event information to files, out event info to terminal,
           help make plots for pileup reweighting, make 4vecs from gen particle info, calculate dR, blah blah
-          
+	  
+#### Pileup Files ######################################################
+    * In order to do pileup reweighting, histograms of the pileup from data and from MC are required
+    * the .cxx scripts like categorize.cxx usually require these histograms
+    
+    * If you try to run the scripts and can't grab the pileup files from my working directory you need to uncomment the line that says //makePUHistos(samples) and change it to PUTools::makePUHistos(samples). This will make the pileup histos for the MC samples, basically this command needs to be run before preprocessing where the lumireweighting tool is initialized. 
+
+    * To get the pileup histo for data you need to use the pileupcalc tool from CMSSW. 
+
+    * pileupCalc.py -i Cert_271036-280385_13TeV_PromptReco_Collisions16_JSON_NoL1T_v2.txt --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt  --calcMode true --minBiasXsec 69200 --maxPileupBin 50 --numPileupBins 50  PU_2016BCDEFG_xsec69p2mb_CMSSW_8_0_X.root
+
+
 #### Workflow ##########################################################
     * Make plots in every category for the run1 categories
         + code in categorize.cxx
