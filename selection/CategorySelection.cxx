@@ -175,13 +175,13 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
         {
             categoryMap["Preselection"].inCategory = true;
             if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["VBF_Tight"].inCategory = true; return; }
-            else if(dijetMass > cDijetMassMinGGFT && vars.recoCandPtPF > cDimuPtMinGGFT){ categoryMap["GGF_Tight"].inCategory = true; return; }
+            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand.recoCandPtPF > cDimuPtMinGGFT){ categoryMap["GGF_Tight"].inCategory = true; return; }
             else{ categoryMap["VBF_Loose"].inCategory = true; return; }
         }
     }
     if(!categoryMap["Preselection"].inCategory) // fails 2jet preselection enters 01 categories
     {
-        if(vars.recoCandPtPF > cDimuPtMin01T){ categoryMap["01_Jet_Tight"].inCategory = true;}
+        if(vars.dimuCand.recoCandPtPF > cDimuPtMin01T){ categoryMap["01_Jet_Tight"].inCategory = true;}
         else{ categoryMap["01_Jet_Loose"].inCategory = true; }
 
         // Geometric categories for 01_Jet categories
@@ -295,7 +295,7 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
 {
 // Determine which category the event belongs to
 
-    float dimu_mass = vars.recoCandMass;
+    float dimu_mass = vars.dimuCand.recoCandMass;
     float eta0 = vars.recoMuons.eta[0];
     float eta1 = vars.recoMuons.eta[1];
     unsigned int njets = vars.validJets.size();
@@ -358,3 +358,243 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
 
     return;
 }
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// _______________________LotsOfCategoriesRun2__________________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+void LotsOfCategoriesRun2::initCategoryMap()
+{
+// Initialize the categories
+
+    ///////////////// INCLUSIVE //////////////////////////////
+    categoryMap["ALL"] = Category("ALL");
+
+    ///////////////// GEOMETRY //////////////////////////////
+    categoryMap["BB"] = Category("BB");
+    categoryMap["BO"] = Category("BO");
+    categoryMap["BE"] = Category("BE");
+    categoryMap["OO"] = Category("OO");
+    categoryMap["OE"] = Category("OE");
+    categoryMap["EE"] = Category("EE");
+
+    ///////////////// PRESELECTION //////////////////////////////
+    categoryMap["Preselection_Pass"] = Category("Preselection_Pass");
+
+      ///////////////// AT LEAST ONE B-JET //////////////////////////////
+      categoryMap["1b"] = Category("1b");
+
+        ///////////////// TTH 2 EXTRA LEPTONS //////////////////////////////
+        categoryMap["1b_TTH"]        = Category("1b_TTH");
+        categoryMap["1b_TTH_2e"]     = Category("1b_TTH_2e");
+        categoryMap["1b_TTH_1e_1mu"] = Category("1b_TTH_1e_1mu");
+        categoryMap["1b_TTH_2mu"]    = Category("1b_TTH_2mu");
+  
+        ///////////////// TTH/BBH 0 EXTRA LEPTONS (HADRONS)///////////////////
+        categoryMap["1b_TTH_BBH"]              = Category("1b_TTH_BBH");
+        categoryMap["1b_TTH_BBH_Tight"]        = Category("1b_TTH_BBH_Tight");
+        categoryMap["1b_TTH_BBH_V_Hadronic_H"] = Category("1b_TTH_BBH_V_Hadronic_H");
+  
+        ///////////////// 1 B-JET EVENTS THAT DONT FIT ELSEWHERE////////////////
+        categoryMap["1b_Leftovers"] = Category("1b_Leftovers");
+  
+      ///////////////// NO B-JETS //////////////////////////////
+      categoryMap["0b"] = Category("0b");
+  
+        ///////////////// NOT V(lept)H (VBF, gF, V(had)H, ZvvH) /////////////////////
+        categoryMap["0b_nonVlH"] = Category("0b_nonVlH");
+
+        ///////////////// 2-jet (VBF, V(had)H, gF) //////////////////////////////
+        categoryMap["0b_nonVlH_2j"]              = Category("0b_nonVlH_2j");
+        categoryMap["0b_nonVlH_2j_VBF_Tight"]    = Category("0b_nonVlH_2j_VBF_Tight");
+        categoryMap["0b_nonVlH_2j_VBF_Loose"]    = Category("0b_nonVlH_2j_VBF_Loose");
+        categoryMap["0b_nonVlH_2j_V_Hadronic_H"] = Category("0b_nonVlH_2j_V_Hadronic_H");
+        categoryMap["0b_nonVlH_2j_gF"]           = Category("0b_nonVlH_2j_gF");
+
+        ///////////////// 01-jet (gF Tight, gF Loose, ZvvH) //////////////////////////////
+        categoryMap["0b_nonVlH_01j"]          = Category("0b_nonVlH_01j");
+
+          // ZvvH
+          categoryMap["0b_nonVlH_01j_ZvvH"]     = Category("0b_nonVlH_01j_ZvvH");
+
+          // gF Tight
+          categoryMap["0b_nonVlH_01j_gF_Tight"] = Category("0b_nonVlH_01j_gF_Tight");
+
+            // gF Tight Geometrized
+            categoryMap["0b_nonVlH_01j_gF_Tight_BB"] = Category("0b_nonVlH_01j_gF_Tight_BB");
+            categoryMap["0b_nonVlH_01j_gF_Tight_BO"] = Category("0b_nonVlH_01j_gF_Tight_BO");
+            categoryMap["0b_nonVlH_01j_gF_Tight_BE"] = Category("0b_nonVlH_01j_gF_Tight_BE");
+            categoryMap["0b_nonVlH_01j_gF_Tight_OO"] = Category("0b_nonVlH_01j_gF_Tight_OO");
+            categoryMap["0b_nonVlH_01j_gF_Tight_OE"] = Category("0b_nonVlH_01j_gF_Tight_OE");
+            categoryMap["0b_nonVlH_01j_gF_Tight_EE"] = Category("0b_nonVlH_01j_gF_Tight_EE");
+
+          // gF Loose
+          categoryMap["0b_nonVlH_01j_gf_Loose"] = Category("0b_nonVlH_01j_gF_Loose");
+
+            // gF Loose Geometrized
+            categoryMap["0b_nonVlH_01j_gF_Loose_BB"] = Category("0b_nonVlH_01j_gF_Loose_BB");
+            categoryMap["0b_nonVlH_01j_gF_Loose_BO"] = Category("0b_nonVlH_01j_gF_Loose_BO");
+            categoryMap["0b_nonVlH_01j_gF_Loose_BE"] = Category("0b_nonVlH_01j_gF_Loose_BE");
+            categoryMap["0b_nonVlH_01j_gF_Loose_OO"] = Category("0b_nonVlH_01j_gF_Loose_OO");
+            categoryMap["0b_nonVlH_01j_gF_Loose_OE"] = Category("0b_nonVlH_01j_gF_Loose_OE");
+            categoryMap["0b_nonVlH_01j_gF_Loose_EE"] = Category("0b_nonVlH_01j_gF_Loose_EE");
+
+        ///////////////// V(lept)H (...) /////////////////////
+        categoryMap["0b_VlH"]    = Category("0b_VlH");
+        // Need to add these ... 
+        // Check out Elizabeth's code
+
+    ///////////////// FAIL PRESELECTION //////////////////////////////
+    categoryMap["Preselection_Fail"] = Category("Preselection_Fail");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+LotsOfCategoriesRun2::LotsOfCategoriesRun2()
+{
+// initialize the default cut values in the constructor
+
+    initCategoryMap();
+
+    // Preselection
+    cLeadPtMin = 40;
+    cSubleadPtMin = 30;
+    cMETMax = 40;
+
+    // VBF Tight
+    cDijetMassMinVBFT = 650;
+    cDijetDeltaEtaMinVBFT = 3.5;
+
+    // VBF Loose
+
+    // GGF Tight
+    cDijetMassMinGGFT = 250;
+    cDimuPtMinGGFT = 50;
+
+    // 01Tight
+    cDimuPtMin01T = 10;
+
+    // 01Loose
+    
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+LotsOfCategoriesRun2::LotsOfCategoriesRun2(float leadPtMin, float subleadPtMin, float METMax, float dijetMassMinVBFT, float dijetDeltaEtaMinVBFT, float dijetMassMinGGFT,
+                                        float dimuPtMinGGFT, float dimuPtMin01T)
+{
+// Initialize custom cut values
+
+    initCategoryMap();
+
+    // Preselection
+    cLeadPtMin = leadPtMin;
+    cSubleadPtMin = subleadPtMin;
+    cMETMax = METMax;
+
+    // VBF Tight
+    cDijetMassMinVBFT = dijetMassMinVBFT;
+    cDijetDeltaEtaMinVBFT = dijetDeltaEtaMinVBFT;
+
+    // VBF Loose
+
+    // GGF Tight
+    cDijetMassMinGGFT = dijetMassMinGGFT;
+    cDimuPtMinGGFT = dimuPtMinGGFT;
+
+    // 01Tight
+    cDimuPtMin01T = dimuPtMin01T;
+
+    // 01Loose
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void LotsOfCategoriesRun2::evaluate(VarSet& vars)
+{
+// Determine which category the event belongs to
+
+    // Inclusive category, all events that passed the selection cuts
+    categoryMap["ALL"].inCategory = true;
+
+    // Geometric Categories
+    // Barrel Barrel
+    if(TMath::Abs(vars.recoMuons.eta[0]) < 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 0.8) 
+        categoryMap["BB"].inCategory = true;
+    // Overlap Overlap
+    if(TMath::Abs(vars.recoMuons.eta[0])>=0.8 && TMath::Abs(vars.recoMuons.eta[0])<1.6 && TMath::Abs(vars.recoMuons.eta[1])>=0.8 && TMath::Abs(vars.recoMuons.eta[1])<1.6) 
+        categoryMap["OO"].inCategory = true;
+    // Endcap Endcap
+    if(TMath::Abs(vars.recoMuons.eta[0]) >= 1.6 && TMath::Abs(vars.recoMuons.eta[1]) >= 1.6) 
+        categoryMap["EE"].inCategory = true;
+
+    // Barrel Overlap
+    if(TMath::Abs(vars.recoMuons.eta[0]) < 0.8 && TMath::Abs(vars.recoMuons.eta[1]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 1.6) 
+        categoryMap["BO"].inCategory = true;
+    if(TMath::Abs(vars.recoMuons.eta[1]) < 0.8 && TMath::Abs(vars.recoMuons.eta[0]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[0]) < 1.6) 
+        categoryMap["BO"].inCategory = true;
+
+    // Barrel Endcap
+    if(TMath::Abs(vars.recoMuons.eta[0]) < 0.8 && TMath::Abs(vars.recoMuons.eta[1]) >= 1.6) 
+        categoryMap["BE"].inCategory = true;
+    if(TMath::Abs(vars.recoMuons.eta[1]) < 0.8 && TMath::Abs(vars.recoMuons.eta[0]) >= 1.6) 
+        categoryMap["BE"].inCategory = true;
+
+    // Overlap Endcap
+    if(TMath::Abs(vars.recoMuons.eta[0]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[0]) < 1.6 && TMath::Abs(vars.recoMuons.eta[1]) >= 1.6) 
+        categoryMap["OE"].inCategory = true;
+    if(TMath::Abs(vars.recoMuons.eta[1]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 1.6 && TMath::Abs(vars.recoMuons.eta[0]) >= 1.6) 
+        categoryMap["OE"].inCategory = true;
+
+    // preselection
+    if(vars.validJets.size() >= 2)
+    {
+        TLorentzVector leadJet = vars.validJets[0];
+        TLorentzVector subleadJet = vars.validJets[1];
+        TLorentzVector dijet = leadJet + subleadJet;
+
+        float dEta = leadJet.Eta() - subleadJet.Eta();
+        float dijetMass = dijet.M();
+
+        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.met.pt < cMETMax)
+        {
+            categoryMap["Preselection"].inCategory = true;
+            if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["VBF_Tight"].inCategory = true; return; }
+            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand.recoCandPtPF > cDimuPtMinGGFT){ categoryMap["GGF_Tight"].inCategory = true; return; }
+            else{ categoryMap["VBF_Loose"].inCategory = true; return; }
+        }
+    }
+    if(!categoryMap["Preselection"].inCategory) // fails 2jet preselection enters 01 categories
+    {
+        if(vars.dimuCand.recoCandPtPF > cDimuPtMin01T){ categoryMap["01_Jet_Tight"].inCategory = true;}
+        else{ categoryMap["01_Jet_Loose"].inCategory = true; }
+
+        // Geometric categories for 01_Jet categories
+        // tight
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["BB"].inCategory) categoryMap["01_Jet_Tight_BB"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["BO"].inCategory) categoryMap["01_Jet_Tight_BO"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["BE"].inCategory) categoryMap["01_Jet_Tight_BE"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["OO"].inCategory) categoryMap["01_Jet_Tight_OO"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["OE"].inCategory) categoryMap["01_Jet_Tight_OE"].inCategory = true;
+        if(categoryMap["01_Jet_Tight"].inCategory && categoryMap["EE"].inCategory) categoryMap["01_Jet_Tight_EE"].inCategory = true;
+
+        // loose
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["BB"].inCategory) categoryMap["01_Jet_Loose_BB"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["BO"].inCategory) categoryMap["01_Jet_Loose_BO"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["BE"].inCategory) categoryMap["01_Jet_Loose_BE"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["OO"].inCategory) categoryMap["01_Jet_Loose_OO"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["OE"].inCategory) categoryMap["01_Jet_Loose_OE"].inCategory = true;
+        if(categoryMap["01_Jet_Loose"].inCategory && categoryMap["EE"].inCategory) categoryMap["01_Jet_Loose_EE"].inCategory = true;
+    }
+
+}
+

@@ -7,8 +7,6 @@
 #include "TLorentzVector.h"
 #include "VarSet.h"
 
-double static constexpr MASS_MUON = 0.105658367;
-
 class ParticleTools
 {
     public: 

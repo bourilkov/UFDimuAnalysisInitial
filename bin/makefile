@@ -32,8 +32,8 @@ MAIN = categorize
 #MAIN = exploreDY
 
 # link all of the objects to the main program
-${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h
-	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
+${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h
+	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
 
 ${MAIN}.o: ${MAIN}.cxx SignificanceMetrics.cxx ${LIBDIR}DataFormats.h 
 	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
@@ -55,6 +55,15 @@ ${SDIR}CategorySelection.o: ${SDIR}CategorySelection.cxx ${SDIR}CategorySelectio
 
 ${SDIR}JetSelectionTools.o: ${SDIR}JetSelectionTools.cxx ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
 	$(CC) $(CFLAGS) ${SDIR}JetSelectionTools.cxx -o ${SDIR}JetSelectionTools.o
+
+${SDIR}MuSelectionTools.o: ${SDIR}MuSelectionTools.cxx ${SDIR}MuSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
+	$(CC) $(CFLAGS) ${SDIR}MuSelectionTools.cxx -o ${SDIR}MuSelectionTools.o
+
+${SDIR}ElectronSelectionTools.o: ${SDIR}ElectronSelectionTools.cxx ${SDIR}ElectronSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
+	$(CC) $(CFLAGS) ${SDIR}ElectronSelectionTools.cxx -o ${SDIR}ElectronSelectionTools.o
+
+${SDIR}TauSelectionTools.o: ${SDIR}TauSelectionTools.cxx ${SDIR}TauSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
+	$(CC) $(CFLAGS) ${SDIR}TauSelectionTools.cxx -o ${SDIR}TauSelectionTools.o
 
 ${LIBDIR}Sample.o: ${LIBDIR}Sample.cxx ${LIBDIR}Sample.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
 	$(CC) $(CFLAGS) ${LIBDIR}Sample.cxx -o ${LIBDIR}Sample.o

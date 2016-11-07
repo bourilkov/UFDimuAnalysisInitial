@@ -91,18 +91,15 @@ void Sample::setBranchAddresses()
 {
     // reco info
     tree->SetBranchAddress("recoMuons", &vars.recoMuons);
-    tree->SetBranchAddress("recoCandPt", &vars.recoCandPt);
-    tree->SetBranchAddress("recoCandMass", &vars.recoCandMass);
-    tree->SetBranchAddress("recoCandMassPF", &vars.recoCandMassPF);
-    tree->SetBranchAddress("recoCandPtPF", &vars.recoCandPtPF);
+    tree->SetBranchAddress("recoElectrons", &vars.recoElectrons);
+    tree->SetBranchAddress("recoTaus", &vars.recoTaus);
+    tree->SetBranchAddress("dimuCand", &vars.dimuCand);           // reco dimu candidate
 
     tree->SetBranchAddress("pfJets", &vars.jets);
     tree->SetBranchAddress("met", &vars.met);
 
-    tree->SetBranchAddress("nPU", &vars.nPU);
     tree->SetBranchAddress("vertexInfo", &vars.vertices);
     tree->SetBranchAddress("eventInfo", &vars.eventInfo);
-    tree->SetBranchAddress("rho", &vars.rho);
 
     // gen info
     tree->SetBranchAddress("genJets", &vars.genJets);
@@ -125,7 +122,9 @@ void Sample::setBranchAddresses()
     tree->SetBranchAddress("genM2ZpreFSR", &vars.genM2ZpreFSR);
     tree->SetBranchAddress("genM2ZpostFSR", &vars.genM2ZpostFSR);
 
+    // other gen info
     tree->SetBranchAddress("genWeight", &vars.genWeight);
+    tree->SetBranchAddress("nPU", &vars.nPU);
 }
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------

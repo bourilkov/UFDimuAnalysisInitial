@@ -130,4 +130,69 @@ class CategorySelectionFEWZ : public Categorizer
         void evaluate(VarSet& vars);
         void initCategoryMap();
 };
+
+class LotsOfCategoriesRun2 : public Categorizer
+{
+// Adrian's new categories for Run2
+    public:
+        LotsOfCategoriesRun2(); 
+        //LotsOfCategoriesRun2(); 
+
+        // Preselection
+        float c_pre_numExtraLeptons;
+        bool  c_pre_useTau;
+        float c_pre_numBJets;
+
+        // b-jet categories
+        
+        // left side of b-jet test, more b-jets
+        // tth (2 extra leptons), tth/bbh (0 extra leptons)
+        // catch_all_bucket (1 extra lepton or doesn't fall into other categories some other way)
+        int c_bHi_numExtraLeptons; 
+
+            // ttH categories
+            int c_tth_numExtraElectrons;
+
+            // tth-bbh categories
+            float c_tth_bbh_mbb;
+            float c_tth_bbh_mt_bMET;
+            float c_tth_bbh_MET;
+
+        // right side of b-jet test, fewer b-jets
+        // 0 extra leptons, 1 or 2 extra leptons
+        int c_bLo_numExtraLeptons; 
+
+            // nonVlH (0 extra leptons)
+            int c_nonVlH_njets;
+            
+                // >= c_nonVlH_njets
+                float c_nonVlH_jetHi_mjj_vbfTight;
+                float c_nonVlH_jetHi_dEtajj_vbfTight;
+
+                float c_nonVlH_jetHi_mjj_vbfLoose;
+                float c_nonVlH_jetHi_dEtajj_vbfLoose;
+
+                float c_nonVlH_jetHi_mjj_min_VhH;
+                float c_nonVlH_jetHi_mjj_max_VhH;
+                float c_nonVlH_jetHi_dEtajjMuMu_vbfLoose;
+            
+                // < c_nonVlH_njets
+                float c_nonVlH_jetLo_MET;              
+                float c_nonVlH_jetLo_dimuPt;
+
+                // muon geometry categorization for gf categories
+                float c_nonVlH_jetLo_gf_geo_bmax;
+                float c_nonVlH_jetLo_gf_geo_omax;
+                float c_nonVlH_jetLo_gf_geo_emax;
+
+            // VlH (1 or 2 extra leptons)
+            int   c_VlH_numExraMuons;
+            int   c_VlH_numExraElectrons;
+            float c_VlH_MET;
+
+        // Determine which category the event belongs to
+        void evaluate(VarSet& vars);
+        void initCategoryMap();
+};
+
 #endif

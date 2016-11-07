@@ -68,7 +68,7 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
 
     // keep track of the values that were cut on
     cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
-    cutset.cuts[1].value = vars.recoCandMassPF;
+    cutset.cuts[1].value = vars.dimuCand.recoCandMassPF;
     cutset.cuts[2].value = 1;
     cutset.cuts[3].value = 1;
     cutset.cuts[4].value = vars.validJets.size();
@@ -78,7 +78,7 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     if(!(vars.recoMuons.charge[0] != vars.recoMuons.charge[1]) && cutset.cuts[0].on){ cutset.cuts[0].passed = false; return false;}
 
     // Look at a certain mass range for synchronization purposes
-    if(!(vars.recoCandMassPF > cDimuMassMin && vars.recoCandMassPF < cDimuMassMax) && cutset.cuts[1].on){ cutset.cuts[1].passed = false; return false;}
+    if(!(vars.dimuCand.recoCandMassPF > cDimuMassMin && vars.dimuCand.recoCandMassPF < cDimuMassMax) && cutset.cuts[1].on){ cutset.cuts[1].passed = false; return false;}
 
     // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
     // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
@@ -154,8 +154,8 @@ void SynchEventSelectionCuts::makeCutSet()
     cutset.cuts[0].min = 0;
     cutset.cuts[0].max = 2;
 
-    cutset.cuts[1].name = "recoCandMassPF";
-    cutset.cuts[1].tstring.Form("recoCandMassPF > %f && recoCandMassPF < %f", cDimuMassMin, cDimuMassMax);
+    cutset.cuts[1].name = "dimuCand.recoCandMassPF";
+    cutset.cuts[1].tstring.Form("dimuCand.recoCandMassPF > %f && dimuCand.recoCandMassPF < %f", cDimuMassMin, cDimuMassMax);
     cutset.cuts[1].bins = 140;
     cutset.cuts[1].min = 60;
     cutset.cuts[1].max = 200;
@@ -351,7 +351,7 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
 
     cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = -1;
-    cutset.cuts[2].value = vars.recoCandMassPF;
+    cutset.cuts[2].value = vars.dimuCand.recoCandMassPF;
 
     // Set cuts[1].value correctly
     if(vars.recoMuons.isHltMatched[0][4]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
@@ -379,7 +379,7 @@ bool Run1EventSelectionCuts::evaluate(VarSet& vars)
          return false;
     }
 
-    if(!(vars.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
+    if(!(vars.dimuCand.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
 
     return true;
 }
@@ -414,8 +414,8 @@ void Run1EventSelectionCuts::makeCutSet()
     cutset.cuts[1].cutvalue = &cTrigMuPtMin;
     cutset.cuts[1].ismin = true;
 
-    cutset.cuts[2].name = "recoCandMassPF_Min";
-    cutset.cuts[2].tstring.Form("recoCandMassPF > %5.2f", cDimuMassMin);
+    cutset.cuts[2].name = "dimuCand.recoCandMassPF_Min";
+    cutset.cuts[2].tstring.Form("dimuCand.recoCandMassPF > %5.2f", cDimuMassMin);
     cutset.cuts[2].bins = 150;
     cutset.cuts[2].min = 50;
     cutset.cuts[2].max = 200;
@@ -467,8 +467,8 @@ bool Run1EventSelectionSigCuts::evaluate(VarSet& vars)
 
     cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = -1;
-    cutset.cuts[2].value = vars.recoCandMassPF;
-    cutset.cuts[3].value = vars.recoCandMassPF;
+    cutset.cuts[2].value = vars.dimuCand.recoCandMassPF;
+    cutset.cuts[3].value = vars.dimuCand.recoCandMassPF;
 
     // Set cuts[1].value correctly
     if(vars.recoMuons.isHltMatched[0][4]) cutset.cuts[1].value = TMath::Abs(vars.recoMuons.pt[0]);
@@ -496,8 +496,8 @@ bool Run1EventSelectionSigCuts::evaluate(VarSet& vars)
          return false;
     }
 
-    if(!(vars.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
-    if(!(vars.recoCandMassPF < cDimuMassMax) && cutset.cuts[3].on) return false;
+    if(!(vars.dimuCand.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
+    if(!(vars.dimuCand.recoCandMassPF < cDimuMassMax) && cutset.cuts[3].on) return false;
 
     return true;
 }
@@ -535,16 +535,16 @@ void Run1EventSelectionSigCuts::makeCutSet()
     cutset.cuts[1].cutvalue = &cTrigMuPtMin;
     cutset.cuts[1].ismin = true;
 
-    cutset.cuts[2].name = "recoCandMassPF_Min";
-    cutset.cuts[2].tstring.Form("recoCandMassPF > %5.2f", cDimuMassMin);
+    cutset.cuts[2].name = "dimuCand.recoCandMassPF_Min";
+    cutset.cuts[2].tstring.Form("dimuCand.recoCandMassPF > %5.2f", cDimuMassMin);
     cutset.cuts[2].bins = 150;
     cutset.cuts[2].min = 50;
     cutset.cuts[2].max = 200;
     cutset.cuts[2].cutvalue = &cDimuMassMin;
     cutset.cuts[2].ismin = true;
 
-    cutset.cuts[3].name = "recoCandMassPF_Max";
-    cutset.cuts[3].tstring.Form("recoCandMassPF < %5.2f", cDimuMassMax);
+    cutset.cuts[3].name = "dimuCand.recoCandMassPF_Max";
+    cutset.cuts[3].tstring.Form("dimuCand.recoCandMassPF < %5.2f", cDimuMassMax);
     cutset.cuts[3].bins = 150;
     cutset.cuts[3].min = 50;
     cutset.cuts[3].max = 200;
@@ -783,7 +783,7 @@ bool Run1EventSelectionCuts80X::evaluate(VarSet& vars)
 
     cutset.cuts[0].value = vars.recoMuons.charge[0] != vars.recoMuons.charge[1];
     cutset.cuts[1].value = -1;
-    cutset.cuts[2].value = vars.recoCandMassPF;
+    cutset.cuts[2].value = vars.dimuCand.recoCandMassPF;
 
     // Set cuts[1].value correctly
     if(vars.recoMuons.pt[0] >= vars.recoMuons.pt[1]) cutset.cuts[1].value = vars.recoMuons.pt[0];
@@ -808,7 +808,7 @@ bool Run1EventSelectionCuts80X::evaluate(VarSet& vars)
          return false;
     }
 
-    if(!(vars.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
+    if(!(vars.dimuCand.recoCandMassPF > cDimuMassMin) && cutset.cuts[2].on) return false;
 
     return true;
 }
@@ -843,8 +843,8 @@ void Run1EventSelectionCuts80X::makeCutSet()
     cutset.cuts[1].cutvalue = &cTrigMuPtMin;
     cutset.cuts[1].ismin = true;
 
-    cutset.cuts[2].name = "recoCandMassPF_Min";
-    cutset.cuts[2].tstring.Form("recoCandMassPF > %5.2f", cDimuMassMin);
+    cutset.cuts[2].name = "dimuCand.recoCandMassPF_Min";
+    cutset.cuts[2].tstring.Form("dimuCand.recoCandMassPF > %5.2f", cDimuMassMin);
     cutset.cuts[2].bins = 150;
     cutset.cuts[2].min = 50;
     cutset.cuts[2].max = 200;
@@ -932,7 +932,7 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
         subleadPt = TMath::Min(TMath::Abs(vars.recoMuons.pt[0]), TMath::Abs(vars.recoMuons.pt[1]));
         eta0 = vars.recoMuons.eta[0];
         eta1 = vars.recoMuons.eta[1];
-        dimu_mass = vars.recoCandMass;
+        dimu_mass = vars.dimuCand.recoCandMass;
         charge0 = vars.recoMuons.charge[0];
         charge1 = vars.recoMuons.charge[1];
     }
@@ -1078,16 +1078,16 @@ void FEWZCompareCuts::makeCutSet()
     cutset.cuts[3].cutvalue = &cMaxEta;
     cutset.cuts[3].ismin = false;
 
-    cutset.cuts[4].name = "recoCandMass_Min";
-    cutset.cuts[4].tstring.Form("recoCandMass < %5.2f", cDimuMassMin);
+    cutset.cuts[4].name = "dimuCand.recoCandMass_Min";
+    cutset.cuts[4].tstring.Form("dimuCand.recoCandMass < %5.2f", cDimuMassMin);
     cutset.cuts[4].bins = 100;
     cutset.cuts[4].min = 110;
     cutset.cuts[4].max = 310;
     cutset.cuts[4].cutvalue = &cDimuMassMin;
     cutset.cuts[4].ismin = true;
 
-    cutset.cuts[5].name = "recoCandMass_Max";
-    cutset.cuts[5].tstring.Form("recoCandMass < %5.2f", cDimuMassMax);
+    cutset.cuts[5].name = "dimuCand.recoCandMass_Max";
+    cutset.cuts[5].tstring.Form("dimuCand.recoCandMass < %5.2f", cDimuMassMax);
     cutset.cuts[5].bins = 100;
     cutset.cuts[5].min = 110;
     cutset.cuts[5].max = 310;

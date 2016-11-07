@@ -434,10 +434,10 @@ int main(int argc, char* argv[])
         // Look at each category
         for(auto &c : categorySelection.categoryMap)
         {
-            // recoCandMass
+            // dimuCand.recoCandMass
             if(varname.Contains("dimu_mass")) 
             {
-                float varvalue = useRecoToPlotMu?s->vars.recoCandMassPF:gen_dimu.M();
+                float varvalue = useRecoToPlotMu?s->vars.dimuCand.recoCandMassPF:gen_dimu.M();
                 // blind the signal region for data but not for MC
                 if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140))
                     // if the event is in the current category then fill the category's histogram for the given sample and variable
@@ -448,7 +448,7 @@ int main(int argc, char* argv[])
             if(varname.Contains("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoCandPtPF:gen_dimu.Pt(), s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.dimuCand.recoCandPtPF:gen_dimu.Pt(), s->getWeight());
             }
 
             if(varname.Contains("mu_pt"))

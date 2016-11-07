@@ -83,9 +83,9 @@ void EventTools::outputEvent(VarSet& vars)
          JetSelectionTools js;
          std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
          std::cout << std::endl;
-         std::cout << "  recoCandMass: " << vars.recoCandMass << std::endl;
-         std::cout << "  recoCandMassPF: " << vars.recoCandMassPF << std::endl;
-         std::cout << "  recoCandPt: " << vars.recoCandPt << std::endl;
+         std::cout << "  dimuCand.recoCandMass: " << vars.dimuCand.recoCandMass << std::endl;
+         std::cout << "  dimuCand.recoCandMassPF: " << vars.dimuCand.recoCandMassPF << std::endl;
+         std::cout << "  dimuCand.recoCandPt: " << vars.dimuCand.recoCandPt << std::endl;
          std::cout << std::endl;
          std::cout << "  recoMuons.pt[0]: " << vars.recoMuons.pt[0] << std::endl;
          std::cout << "  recoMuons.phi[0]: " << vars.recoMuons.phi[0] << std::endl;
@@ -105,7 +105,7 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << "  nValidGenJets: " << vars.validGenJets.size() << std::endl;
          std::cout << std::endl;
 
-         for(unsigned int j=0; j<vars.jets.nJets && j<N_JET_INFO; j++)
+         for(unsigned int j=0; j<vars.jets.nJets && j<vars.jets.arraySize; j++)
          {
              std::cout << "  jet" << j << " pt: " <<  vars.jets.pt[j] << std::endl;
              std::cout << "  jet" << j << " phi: " << vars.jets.phi[j] << std::endl;
@@ -130,7 +130,7 @@ void EventTools::outputEvent(VarSet& vars)
          }
          std::cout << std::endl;
 
-         for(unsigned int j=0; j<vars.genJets.nJets && j<N_JET_INFO; j++)
+         for(unsigned int j=0; j<vars.genJets.nJets && j<vars.genJets.arraySize; j++)
          {
              std::cout << "  genJet" << j << " pt: " <<  vars.genJets.pt[j] << std::endl;
              std::cout << "  genJet" << j << " phi: " << vars.genJets.phi[j] << std::endl;
@@ -165,4 +165,23 @@ void EventTools::outputEvent(VarSet& vars, Categorizer& categorizer)
          // output standard information about the event
          outputEvent(vars);
          categorizer.outputResults();
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+void EventTools::cleanByDR(std::vector<TLorentzVector>& v1, std::vector<TLorentzVector>& v2, float dRmin)
+{
+// clean 4vecs in v1 by dR based upon 4vecs in v2
+
+    for(unsigned int i=0; i<v1.size(); i++)
+    {
+        for(unsigned int j=0; j<v2.size(); j++)
+        {
+            if(!(v1[i].DeltaR(v2[j]) > dRmin)) v1.erase(v1.begin()+i); 
+            i--;
+        }
+    }
+
 }

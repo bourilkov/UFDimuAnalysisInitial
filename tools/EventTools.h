@@ -26,5 +26,6 @@ class EventTools
         static bool eventInVector(std::pair<int,long long int> e, std::vector<std::pair<int,long long int>> events);
         static void outputEvent(VarSet& vars);
         static void outputEvent(VarSet& vars, Categorizer& categorizer);
+        static void cleanByDR(std::vector<TLorentzVector>& v1, std::vector<TLorentzVector>& v2, float dRmin);
 };
 #endif

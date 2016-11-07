@@ -24,18 +24,18 @@ JetSelectionTools::JetSelectionTools()
 {
     cJetSelectionPtMin = 30;
     cJetSelectionEtaMax = 4.7;
-    cJetSelectiondRMax = 0.3;
+    cJetSelectiondRMin = 0.3;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-JetSelectionTools::JetSelectionTools(float jetSelectionPtMin, float jetSelectionEtaMax, float jetSelectiondRMax)
+JetSelectionTools::JetSelectionTools(float jetSelectionPtMin, float jetSelectionEtaMax, float jetSelectiondRMin)
 {
     cJetSelectionPtMin = jetSelectionPtMin;
     cJetSelectionEtaMax = jetSelectionEtaMax;
-    cJetSelectiondRMax = jetSelectiondRMax;
+    cJetSelectiondRMin = jetSelectiondRMin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,14 +62,14 @@ void JetSelectionTools::getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
-    for(unsigned int j=0; j < vars.jets.nJets && j < 10; ++j)
+    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
     {
         // Pt and Eta selections
         if(vars.jets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionEtaMax)
         {
             // dR vs muons selection
-            if(!(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) < cJetSelectiondRMax) 
-                 && !(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) < cJetSelectiondRMax))
+            if(!(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) < cJetSelectiondRMin) 
+                 && !(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) < cJetSelectiondRMin))
             {
                 TLorentzVector jet4vec; 
                 jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
@@ -84,10 +84,36 @@ void JetSelectionTools::getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
+void JetSelectionTools::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+{
+// Determine the number of valid jets using the given cuts
+// Cut jets by dR here instead of in CMSSW
+    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
+    {
+        // Pt and Eta selections
+        if(vars.jets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionEtaMax)
+        {
+            // dR vs muons selection
+            if(!(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) < cJetSelectiondRMin) 
+                 && !(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) < cJetSelectiondRMin))
+            {
+                TLorentzVector jet4vec; 
+                jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
+                // if it is a b-jet, add to valid b-jets
+                if(vars.jets.isB[j] > cJetSelectionBTagMin) jetvec.push_back(jet4vec);
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
 void JetSelectionTools::getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
-    for(unsigned int j=0; j < vars.jets.nJets && j < 10; ++j)
+    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
     {
         // Pt and Eta selections
         if(vars.jets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionEtaMax)
@@ -104,11 +130,31 @@ void JetSelectionTools::getValidJets(VarSet& vars, std::vector<TLorentzVector>& 
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
+void JetSelectionTools::getValidBJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+{
+// Determine the number of valid jets using the given cuts
+    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
+    {
+        // Pt and Eta selections
+        if(vars.jets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionEtaMax)
+        {
+           TLorentzVector jet4vec; 
+           jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
+           // if it is a b-jet, add to valid b-jets
+           if(vars.jets.isB[j] > cJetSelectionBTagMin) jetvec.push_back(jet4vec);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
 void JetSelectionTools::getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
-    for(unsigned int j=0; j < vars.genJets.nJets && j < 10; ++j)
+    for(unsigned int j=0; j < vars.genJets.nJets && j < vars.genJets.arraySize; ++j)
     {
         // Pt and Eta selections
         if(vars.genJets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.genJets.eta[j]) < cJetSelectionEtaMax)

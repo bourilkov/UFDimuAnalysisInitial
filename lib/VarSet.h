@@ -18,14 +18,16 @@ class VarSet
         _EventInfo eventInfo;
         _VertexInfo vertices;
         _MuonInfo recoMuons;
+        _DimuCandInfo dimuCand;
+        _ElectronInfo recoElectrons;
+        _TauInfo recoTaus;
         _MetInfo met;
         _PFJetInfo jets;
-        std::vector<TLorentzVector> validJets;
 
-        float recoCandMass, recoCandMassPF;
-        float recoCandPt, recoCandPtPF;
-        float rho;
-        int nPU;
+        std::vector<TLorentzVector> validMuons;
+        std::vector<TLorentzVector> validElectrons;
+        std::vector<TLorentzVector> validTaus;
+        std::vector<TLorentzVector> validJets;
 
         // gen info
         _GenJetInfo  genJets;
@@ -35,6 +37,7 @@ class VarSet
         _TrackInfo genM1ZpreFSR, genM1ZpostFSR, genM2ZpreFSR, genM2ZpostFSR; // muons from Z
 
         int genWeight;
+        int nPU;
  
 };
 

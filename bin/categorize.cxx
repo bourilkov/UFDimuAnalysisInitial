@@ -8,6 +8,9 @@
 #include "SelectionCuts.h"
 #include "CategorySelection.h"
 #include "JetSelectionTools.h"
+#include "MuSelectionTools.h"
+#include "ElectronSelectionTools.h"
+#include "TauSelectionTools.h"
 
 #include "EventTools.h"
 #include "PUTools.h"
@@ -28,6 +31,7 @@ int main(int argc, char* argv[])
 {
     int input = 0;
     int binning = 0;
+
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
@@ -52,7 +56,8 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     //float luminosity = 3990;     // pb-1
-    float luminosity = 27217;      // pb-1
+    float luminosity = 33598;      // pb-1
+    //float luminosity = 27217;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
 
@@ -62,12 +67,12 @@ int main(int argc, char* argv[])
  
 
     TString datafilename = 
-    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDEFG_ALL.root");
+    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDEFGH_ALL_etm.root");
 
     Sample* datasample = new Sample(datafilename, "Data", "data");
     datasample->lumi = luminosity;
     datasample->xsec = 9999;
-    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDEFG_xsec69p2mb_CMSSW_8_0_X.root";
+    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDEFGH_xsec69p2mb_CMSSW_8_0_X.root";
     //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69mb_CMSSW_8_0_X.root";
     //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCD_ICHEP_xsec69p2mb_CMSSW_8_0_X.root";
     //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDE_xsec69p2mb_CMSSW_8_0_X.root";
@@ -77,7 +82,7 @@ int main(int argc, char* argv[])
     // DYJetsToLL -----------------------------------------------------
     // ================================================================
 
-    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_ALL.root");
+    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_ALL_etm.root");
     samples["DYJetsToLL"] = new Sample(dyfilename, "DYJetsToLL", "background");
     samples["DYJetsToLL"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_DYJetsToLL.root"; //nPU
     samples["DYJetsToLL"]->xsec = 6025.2; // pb
@@ -86,7 +91,7 @@ int main(int argc, char* argv[])
     // TTJets ---------------------------------------------------------
     // ================================================================
 
-    TString ttbarfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/ttbar/CMSSW_8_0_X/stage_1_ttJets_ALL.root");
+    TString ttbarfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/ttbar/CMSSW_8_0_X/stage_1_ttJets_ALL_etm.root");
     samples["TTJets"] = new Sample(ttbarfilename, "TTJets", "background");
     samples["TTJets"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_TTJets.root"; //nPU
     samples["TTJets"]->xsec = 831.76; // pb
@@ -95,7 +100,7 @@ int main(int argc, char* argv[])
     // VBF ---------------------------------------------------------
     // ================================================================
 
-    TString vbffilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_vbf_HToMuMu_ALL.root");
+    TString vbffilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_vbf_HToMuMu_ALL_etm.root");
     samples["VBF"] = new Sample(vbffilename, "VBF", "signal");
     samples["VBF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_VBF.root"; //nPU
     samples["VBF"]->xsec = 3.727*0.00022; // pb
@@ -104,7 +109,7 @@ int main(int argc, char* argv[])
     // GGF ---------------------------------------------------------
     // ================================================================
 
-    TString ggfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_gg_HToMuMu_ALL.root");
+    TString ggfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_gg_HToMuMu_ALL_etm.root");
     samples["GGF"] = new Sample(ggfilename, "GGF", "signal");
     samples["GGF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_GGF.root"; //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
@@ -372,10 +377,10 @@ int main(int argc, char* argv[])
         // Look at each category
         for(auto &c : categorySelection.categoryMap)
         {
-            // recoCandMass
+            // dimuCand.recoCandMass
             if(varname.Contains("dimu_mass")) 
             {
-                float varvalue = s->vars.recoCandMassPF;
+                float varvalue = s->vars.dimuCand.recoCandMassPF;
                 // blind the signal region for data but not for MC
                 if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140))
                     // if the event is in the current category then fill the category's histogram for the given sample and variable
@@ -386,7 +391,7 @@ int main(int argc, char* argv[])
             if(varname.Contains("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoCandPtPF, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.dimuCand.recoCandPtPF, s->getWeight());
             }
 
             if(varname.Contains("mu_pt"))

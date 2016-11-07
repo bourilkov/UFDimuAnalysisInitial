@@ -1,5 +1,14 @@
 // event info
 
+#ifndef DATAFORMATS
+#define DATAFORMATS
+
+#include "TString.h"
+
+double static constexpr MASS_MUON     = 0.105658367;     //GeV/c2
+double static constexpr MASS_ELECTRON = 0.0005109989461; //GeV/c2
+double static constexpr MASS_TAU      = 1.77682;         //GeV/c2
+
 struct _EventInfo{
 
   // data fields
@@ -697,3 +706,4 @@ struct _genPartInfo{
   };
 
 };
+#endif
