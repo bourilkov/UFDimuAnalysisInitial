@@ -10,12 +10,13 @@ class JetSelectionTools
 {
     public:
         JetSelectionTools();
-        JetSelectionTools(float cJetSelectionPtMin, float cJetSelectionEtaMax, float cJetSelectiondRMin);
+        JetSelectionTools(float cJetSelectionPtMin, float cJetSelectionEtaMax, float cJetSelectiondRMin, float cJetSelectionBTagMin, float cJetSelectionBJetEtaMax);
 
         float cJetSelectionPtMin; 
         float cJetSelectionEtaMax;       
         float cJetSelectiondRMin;
-        float cJetSelectionBTagMin = 0.8;
+        float cJetSelectionBTagMin;
+        float cJetSelectionBJetEtaMax;
  
         static float dR(float eta1, float phi1, float eta2, float phi2);
 
@@ -27,6 +28,7 @@ class JetSelectionTools
 
         void getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
 
+        bool jetID(VarSet& vars, unsigned int jet, int id);
 };
 
 #endif

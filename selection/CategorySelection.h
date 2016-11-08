@@ -139,16 +139,17 @@ class LotsOfCategoriesRun2 : public Categorizer
         //LotsOfCategoriesRun2(); 
 
         // Preselection
-        float c_pre_numExtraLeptons;
-        bool  c_pre_useTau;
-        float c_pre_numBJets;
+        int  c_pre_numExtraLeptonsMax;
+        bool c_pre_useTau;
+        int  c_pre_numBJetsMin;
 
         // b-jet categories
         
         // left side of b-jet test, more b-jets
         // tth (2 extra leptons), tth/bbh (0 extra leptons)
         // catch_all_bucket (1 extra lepton or doesn't fall into other categories some other way)
-        int c_bHi_numExtraLeptons; 
+        int c_1b_numExtraLeptons_tth; 
+        int c_1b_numExtraLeptons_tth_bbh; 
 
             // ttH categories
             int c_tth_numExtraElectrons;
@@ -160,38 +161,39 @@ class LotsOfCategoriesRun2 : public Categorizer
 
         // right side of b-jet test, fewer b-jets
         // 0 extra leptons, 1 or 2 extra leptons
-        int c_bLo_numExtraLeptons; 
+        int c_0b_numExtraLeptonsMin; 
 
             // nonVlH (0 extra leptons)
-            int c_nonVlH_njets;
+            int c_0b_nonVlH_njetsMin;
             
-                // >= c_nonVlH_njets
-                float c_nonVlH_jetHi_mjj_vbfTight;
-                float c_nonVlH_jetHi_dEtajj_vbfTight;
+                // >= c_0b_nonVlH_njets
+                float c_0b_nonVlH_2j_mjj_min_vbfTight;
+                float c_0b_nonVlH_2j_dEtajj_min_vbfTight;
 
-                float c_nonVlH_jetHi_mjj_vbfLoose;
-                float c_nonVlH_jetHi_dEtajj_vbfLoose;
+                float c_0b_nonVlH_2j_mjj_min_vbfLoose;
+                float c_0b_nonVlH_2j_dEtajj_min_vbfLoose;
 
-                float c_nonVlH_jetHi_mjj_min_VhH;
-                float c_nonVlH_jetHi_mjj_max_VhH;
-                float c_nonVlH_jetHi_dEtajjMuMu_vbfLoose;
+                float c_0b_nonVlH_2j_mjj_min_VhH;
+                float c_0b_nonVlH_2j_mjj_max_VhH;
+                float c_0b_nonVlH_2j_dEtajjMuMu_min_vbfLoose;
             
-                // < c_nonVlH_njets
-                float c_nonVlH_jetLo_MET;              
-                float c_nonVlH_jetLo_dimuPt;
+                // < c_0b_nonVlH_njets
+                float c_0b_nonVlH_01j_MET_min_ZvvH;              
+                float c_0b_nonVlH_01j_dimuPt_min_gfTight;
 
                 // muon geometry categorization for gf categories
-                float c_nonVlH_jetLo_gf_geo_bmax;
-                float c_nonVlH_jetLo_gf_geo_omax;
-                float c_nonVlH_jetLo_gf_geo_emax;
+                float c_geo_bmax;
+                float c_geo_omax;
+                float c_geo_emax;
 
             // VlH (1 or 2 extra leptons)
-            int   c_VlH_numExraMuons;
-            int   c_VlH_numExraElectrons;
-            float c_VlH_MET;
+            int   c_0b_VlH_numExraMuons;
+            int   c_0b_VlH_numExraElectrons;
+            float c_0b_VlH_MET_min;
 
         // Determine which category the event belongs to
         void evaluate(VarSet& vars);
+        void evaluateMuonGeometry(VarSet& vars);
         void initCategoryMap();
 };
 

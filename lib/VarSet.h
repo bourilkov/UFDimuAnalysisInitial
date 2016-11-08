@@ -25,9 +25,11 @@ class VarSet
         _PFJetInfo jets;
 
         std::vector<TLorentzVector> validMuons;
+        std::vector<TLorentzVector> validExtraMuons;
         std::vector<TLorentzVector> validElectrons;
         std::vector<TLorentzVector> validTaus;
         std::vector<TLorentzVector> validJets;
+        std::vector<TLorentzVector> validBJets;
 
         // gen info
         _GenJetInfo  genJets;
