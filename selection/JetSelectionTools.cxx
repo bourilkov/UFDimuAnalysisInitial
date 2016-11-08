@@ -182,15 +182,15 @@ bool JetSelectionTools::jetID(VarSet& vars, unsigned int jet, int id)
 
     float eta = TMath::Abs(vars.jets.eta[jet]);
 
-    float NHF = vars.jets.nhf[jet];
-    float NEMF = vars.jets.nef[jet];
-    float NumConst = 2;
+    int NHF = vars.jets.nhf[jet];
+    int NEMF = vars.jets.nef[jet];
+    int NumConst = 2;
     // NumConst = vars.jets.cm[jet]+vars.jets.nm[jet];
-    float MUF = vars.jets.muf[jet];
-    float CHF = vars.jets.chf[jet];
-    float CHM = vars.jets.cm[jet];
-    float CEMF = vars.jets.cef[jet];
-    float NumNeutralParticle = 11;
+    int MUF = vars.jets.muf[jet];
+    int CHF = vars.jets.chf[jet];
+    int CHM = vars.jets.cm[jet];
+    int CEMF = vars.jets.cef[jet];
+    int NumNeutralParticle = 11;
     // NumNeutralParticle = vars.jets.nm[jet];
 
     if(eta <= 2.7)
