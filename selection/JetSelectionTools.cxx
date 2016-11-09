@@ -185,13 +185,13 @@ bool JetSelectionTools::jetID(VarSet& vars, unsigned int jet, int id)
     int NHF = vars.jets.nhf[jet];
     int NEMF = vars.jets.nef[jet];
     int NumConst = 2;
-    // NumConst = vars.jets.cm[jet]+vars.jets.nm[jet];
+    //int NumConst = vars.jets.cm[jet]+vars.jets.nm[jet];
     int MUF = vars.jets.muf[jet];
     int CHF = vars.jets.chf[jet];
     int CHM = vars.jets.cm[jet];
     int CEMF = vars.jets.cef[jet];
     int NumNeutralParticle = 11;
-    // NumNeutralParticle = vars.jets.nm[jet];
+    //int NumNeutralParticle = vars.jets.nm[jet];
 
     if(eta <= 2.7)
     {

@@ -360,11 +360,111 @@ TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name, TString title)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, bool fit, TString ratiotitle,
-                                                       bool log, bool stats, int legend)
+float DiMuPlottingSystem::ratioError2(float numerator, float numeratorError2, float denominator, float denominatorError2)
 {
-    // Define two gaussian histograms. Note the X and Y title are defined
-    // at booking time using the convention "Hist_title ; X_title ; Y_title"
+// Propogation of errors for N_numerator/N_denominator
+// Returns error squared, takes in numerator error squared and denom err squared as well as N_num and N_denom
+  if (numerator   <= 0) return 0;
+  if (denominator <= 0) return 0;
+
+  const float ratio = numerator/denominator;
+
+  return  ratio*ratio*( numeratorError2/numerator/numerator + denominatorError2/denominator/denominator );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, std::vector<Double_t>& newBins, float maxPercentError)
+{
+// The ratio plots are a bit crazy with huge errors sometimes, so we want to rebin with variable binning
+// such that the error is always low in each of the ratio plot bins
+
+
+    // check if the two histos are binned the same way
+    bool compatible = numerator->GetNbinsX() == denominator->GetNbinsX() && numerator->GetBinLowEdge(1) == denominator->GetBinLowEdge(1)
+                      && numerator->GetBinLowEdge(numerator->GetNbinsX()) == denominator->GetBinLowEdge(denominator->GetNbinsX());
+    if(!compatible)
+    {
+        std::cout << "!!! ERROR: DiMuPlottingSystem::getBinningForRatio numerator and denominator histograms are not binned the same!" << std::endl;
+        return;
+    }
+
+    // first low edge is the lowest edge by default
+    newBins.push_back(numerator->GetBinLowEdge(1));
+    double sumNum = 0;
+    double sumDenom = 0;
+
+    // Collect bins together until the error is low enough for the corresponding ratio plot bin.
+    // Once the error is low enough call that the new bin, move on and repeat.
+    for(unsigned int i=1; i<=numerator->GetNbinsX(); i++)
+    {
+        sumNum += numerator->GetBinContent(i);
+        sumDenom += denominator->GetBinContent(i);
+
+        // squared ratio plot error
+        float ratioErr2 = ratioError2(sumNum, TMath::Sqrt(sumNum), sumDenom, TMath::Sqrt(sumDenom)); 
+
+        float percentError = TMath::Sqrt(ratioErr2)/(sumNum/sumDenom);
+
+        // we have the minimum error necessary create the bin in the vector
+        if(percentError !=0 && percentError <= maxPercentError)
+        {
+            newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
+            sumNum = 0;
+            sumDenom = 0;
+        }
+        // we got to the end of the histogram and the last bins can't add up
+        // to get the error low enough, so we merge these last bins with the 
+        // last bin set up in the vector
+        if(i==numerator->GetNbinsX() && (percentError > maxPercentError || percentError == 0))
+        {
+            // get rid of the last bin added
+            newBins.pop_back(); 
+            // replace with the end bin value in the numerator histo
+            newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
+        }
+    }
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin, 
+                                                       bool fit, TString ratiotitle, bool log, bool stats, int legend)
+{
+  
+    TList* rebinnedList = new TList();
+    std::vector<Double_t> newBins = std::vector<Double_t>();
+    // rebin the histograms by combining bins so that the error in the ratio plot bins is low enough
+    if(rebin)
+    {
+        // data usually
+        TH1F* numerator = (TH1F*) ilist->Last();
+        // The rest of the list is usually the MC used to make the stack to compare to data
+        TList* denomlist = (TList*) ilist->Clone("blah");
+        // get rid of the data histogram from the list
+        denomlist->RemoveLast();
+        // Add up the MC histograms
+        TH1F* denominator = addHists(denomlist, "denominator", "denominator");
+        // now put the variable binning into newBins
+        getBinningForRatio(numerator, denominator, newBins, 0.20);
+
+        // now rebin all of them according to the new scheme
+        TIter next(ilist);
+        TObject* object = 0;
+
+        while ((object = next()))
+        {
+            TH1F* h = (TH1F*) object;
+            rebinnedList->Add(h->Rebin(newBins.size()-1, h->GetName()+TString("_"), &newBins[0]));
+        }
+        // use the rebinnedList for the stack and ratio plot
+        ilist = rebinnedList;
+    }
 
     // Define the Canvas
     TCanvas *c = new TCanvas(name);
