@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
     std::cout << "bins        : " << bins << std::endl;
     std::cout << std::endl;
 
-    // Not sure how to deal with the scaling correctly when using a subset of events
+    // reduce the number of events you run over in case you want to debug or some such thing
     float reductionFactor = 1;
 
     for(auto &s : samplevec)
