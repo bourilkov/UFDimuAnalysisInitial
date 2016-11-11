@@ -29,14 +29,20 @@
 
 int main(int argc, char* argv[])
 {
-    int input = 0;
-    int binning = 0;
+    // save the errors for the histogram correctly so they depend upon 
+    // the number used to fill originally rather than the scaling
+    TH1::SetDefaultSumw2();
+
+    int input = 0;       // the variable to plot, 0 is dimu_mass for instance
+    bool rebin = false;  // rebin the histograms so that the ratio plots have small errors
+    int binning = 0;     // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
 
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
         if(i==1) ss >> input;
+        if(i==2) ss >> rebin;
         if(i==2) ss >> binning;
     }   
 
@@ -307,7 +313,8 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
 
       // Fewer bins for lowstats categories
-      int lowstatsbins = bins/5;
+      //int lowstatsbins = bins/5;
+      int lowstatsbins = bins;
 
       // If we are dealing with NPV or N_valid_jets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
@@ -490,7 +497,9 @@ int main(int argc, char* argv[])
     {
         // Create the stack and ratio plot    
         TString cname = c.first+"_"+varname+"_stack";
-        TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries");
+        //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
+                                  //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
+        TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries", rebin);
         varstacklist->Add(stack);
         histolist->Add(c.second.histoList);
        
@@ -514,7 +523,7 @@ int main(int argc, char* argv[])
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
     TFile* savefile = new TFile("rootfiles/validate_"+varname+Form("_%d_%d", (int)min, (int)max)+
-                                "_x69p2_8_0_X_MC_categories_"+Form("%d",(int)luminosity)+".root", "RECREATE");
+                                "_x69p2_8_0_X_MC_categories_"+Form("%d",(int)luminosity)+Form("_rebin%d.root", (int)rebin), "RECREATE");
     TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* histos = savefile->mkdir("histos");
     TDirectory* net_histos = savefile->mkdir("net_histos");

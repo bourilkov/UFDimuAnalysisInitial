@@ -381,6 +381,9 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
 // The ratio plots are a bit crazy with huge errors sometimes, so we want to rebin with variable binning
 // such that the error is always low in each of the ratio plot bins
 
+    TString numName = numerator->GetName();
+    bool isMass = false;
+    if(numName.Contains("dimu_mass")) isMass = true;
 
     // check if the two histos are binned the same way
     bool compatible = numerator->GetNbinsX() == denominator->GetNbinsX() && numerator->GetBinLowEdge(1) == denominator->GetBinLowEdge(1)
@@ -391,29 +394,42 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
         return;
     }
 
+    std::vector<double> errVec = std::vector<double>();
+
     // first low edge is the lowest edge by default
     newBins.push_back(numerator->GetBinLowEdge(1));
     double sumNum = 0;
+    double sumErr2Num = 0;
     double sumDenom = 0;
+    double sumErr2Denom = 0;
 
     // Collect bins together until the error is low enough for the corresponding ratio plot bin.
     // Once the error is low enough call that the new bin, move on and repeat.
     for(unsigned int i=1; i<=numerator->GetNbinsX(); i++)
     {
         sumNum += numerator->GetBinContent(i);
+        sumErr2Num += numerator->GetBinError(i)*numerator->GetBinError(i);
+
         sumDenom += denominator->GetBinContent(i);
+        sumErr2Denom += denominator->GetBinError(i)*denominator->GetBinError(i);
 
         // squared ratio plot error
-        float ratioErr2 = ratioError2(sumNum, TMath::Sqrt(sumNum), sumDenom, TMath::Sqrt(sumDenom)); 
+        float ratioErr2 = ratioError2(sumNum, sumErr2Num, sumDenom, sumErr2Denom); 
 
         float percentError = TMath::Sqrt(ratioErr2)/(sumNum/sumDenom);
 
         // we have the minimum error necessary create the bin in the vector
-        if(percentError !=0 && percentError <= maxPercentError)
+        // or just make a bin if we are in the blinded region of the mass spectrum
+        if(percentError !=0 && percentError <= maxPercentError || (isMass && numerator->GetBinLowEdge(i) >= 110 && numerator->GetBinLowEdge(i) < 140))
         {
             newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
+            errVec.push_back(percentError);
+
             sumNum = 0;
+            sumErr2Num = 0;
+
             sumDenom = 0;
+            sumErr2Denom = 0;
         }
         // we got to the end of the histogram and the last bins can't add up
         // to get the error low enough, so we merge these last bins with the 
@@ -426,7 +442,6 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
             newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
         }
     }
-
 }
 
 //////////////////////////////////////////////////////////////////////////
