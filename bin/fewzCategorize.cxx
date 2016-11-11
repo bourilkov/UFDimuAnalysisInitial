@@ -1,5 +1,4 @@
-// Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
-// We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
+// Make DY_MC or Data plots to compare DY_MC/Data to FEWZ
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"
@@ -46,8 +45,7 @@ int main(int argc, char* argv[])
         if(i==6) ss >> cutNoGens;
     }   
 
-    // Not sure that we need a map if we have a vector
-    // Should use this as the main database and choose from it to make the vector
+    // map of samples
     std::map<std::string, Sample*> samples;
 
     // Second container so that we can have a copy sorted by cross section.
@@ -65,7 +63,7 @@ int main(int argc, char* argv[])
     //float luminosity = 12900;      // pb-1 (ICHEP)
     //float luminosity = 15900;      // pb-1   (2016-08-03)
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
-    float signalSF = 100;
+    float signalSF = 100;          // not using this at the moment
 
     // ================================================================
     // Data -----------------------------------------------------------
@@ -115,6 +113,8 @@ int main(int argc, char* argv[])
         std::cout << "    N:                 " << i.second->N << std::endl;
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
+
+// no pileup reweighting for this study. commenting this out.
 /*
         if(!i.second->sampleType.Contains("data"))
         {

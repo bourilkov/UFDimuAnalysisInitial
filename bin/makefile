@@ -19,17 +19,8 @@ TDIR = ../tools/
 CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = zcorr80X
-#MAIN = nm1
-#MAIN = make80XMCHist
-#MAIN = synch
-#MAIN = compareDataMC80X
-#MAIN = compareDataMC80XCat
-#MAIN = fewzCompare
-#MAIN = overlayFewz
-#MAIN = fewzGenSmearing
-MAIN = categorize
-#MAIN = exploreDY
+MAIN = categorizeRun1
+#MAIN = categorizeRun2
 
 # link all of the objects to the main program
 ${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h

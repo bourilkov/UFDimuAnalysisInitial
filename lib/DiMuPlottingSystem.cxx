@@ -383,7 +383,7 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
 
     TString numName = numerator->GetName();
     bool isMass = false;
-    if(numName.Contains("dimu_mass")) isMass = true;
+    if(numName.Contains("dimu_mass") && numName.Contains("Data")) isMassData = true;
 
     // check if the two histos are binned the same way
     bool compatible = numerator->GetNbinsX() == denominator->GetNbinsX() && numerator->GetBinLowEdge(1) == denominator->GetBinLowEdge(1)
@@ -420,7 +420,7 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
 
         // we have the minimum error necessary create the bin in the vector
         // or just make a bin if we are in the blinded region of the mass spectrum
-        if(percentError !=0 && percentError <= maxPercentError || (isMass && numerator->GetBinLowEdge(i) >= 110 && numerator->GetBinLowEdge(i) < 140))
+        if(percentError !=0 && percentError <= maxPercentError || (isMassData && numerator->GetBinLowEdge(i) >= 110 && numerator->GetBinLowEdge(i) < 140))
         {
             newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
             errVec.push_back(percentError);

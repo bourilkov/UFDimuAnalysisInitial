@@ -1,3 +1,9 @@
+// plot different variables in the run 2 categories.
+// may be used to look for discrepancies between data and mc or to make dimu_mass plots for limit setting.
+// outputs mc stacks with data overlayed and a ratio plot underneath.
+// also saves the histos needed to make the mc stack, data.
+// Also saves net BKG histo and net signal histo for limit setting.
+
 // Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
 // We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
 
@@ -312,9 +318,9 @@ int main(int argc, char* argv[])
       // HISTOGRAMS TO FILL ---------------------------------------------
       ///////////////////////////////////////////////////////////////////
 
-      // Fewer bins for lowstats categories
-      //int lowstatsbins = bins/5;
+      // Fewer bins for lowstats categories if necessary
       int lowstatsbins = bins;
+      if(!rebin)  lowstatsbins = bins/5;
 
       // If we are dealing with NPV or N_valid_jets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
