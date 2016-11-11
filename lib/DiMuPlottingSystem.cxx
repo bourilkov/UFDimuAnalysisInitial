@@ -382,7 +382,7 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
 // such that the error is always low in each of the ratio plot bins
 
     TString numName = numerator->GetName();
-    bool isMass = false;
+    bool isMassData = false;
     if(numName.Contains("dimu_mass") && numName.Contains("Data")) isMassData = true;
 
     // check if the two histos are binned the same way
