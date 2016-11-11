@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
         for(auto &c : categorySelection.categoryMap)
         {
             // dimuCand.recoCandMass
-            if(varname.Contains("dimu_mass")) 
+            if(varname.EqualTo("dimu_mass")) 
             {
                 float varvalue = s->vars.dimuCand.recoCandMassPF;
                 // blind the signal region for data but not for MC
@@ -388,13 +388,13 @@ int main(int argc, char* argv[])
                     //std::cout << "    " << c.first << ": " << varvalue;
             }
 
-            if(varname.Contains("dimu_pt"))
+            if(varname.EqualTo("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.dimuCand.recoCandPtPF, s->getWeight());
             }
 
-            if(varname.Contains("mu_pt"))
+            if(varname.EqualTo("mu_pt"))
             {
                 if(c.second.inCategory)
                 {
@@ -404,20 +404,20 @@ int main(int argc, char* argv[])
             }
 
             // recoMu_Eta
-            if(varname.Contains("mu_eta"))
+            if(varname.EqualTo("mu_eta"))
             {
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[0], s->getWeight());
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[1], s->getWeight());
             }
 
             // NPV
-            if(varname.Contains("NPV"))
+            if(varname.EqualTo("NPV"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.vertices.nVertices, s->getWeight());
             }
 
             // jet_pt
-            if(varname.Contains("jet_pt"))
+            if(varname.EqualTo("jet_pt"))
             {
                 if(c.second.inCategory) 
                 {
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
             }
 
             // jet_eta
-            if(varname.Contains("jet_Eta"))
+            if(varname.EqualTo("jet_eta"))
             {
                 if(c.second.inCategory) 
                 {
@@ -437,13 +437,13 @@ int main(int argc, char* argv[])
             }
 
             // N_valid_jets
-            if(varname.Contains("N_valid_jets"))
+            if(varname.EqualTo("N_valid_jets"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
             }
 
             // m_jj
-            if(varname.Contains("m_jj"))
+            if(varname.EqualTo("m_jj"))
             {
                  if(s->vars.validJets.size() >= 2)
                  {
@@ -453,7 +453,7 @@ int main(int argc, char* argv[])
             }
 
             // dEta_jj
-            if(varname.Contains("dEta_jj"))
+            if(varname.EqualTo("dEta_jj"))
             {
                  if(s->vars.validJets.size() >= 2)
                  {

@@ -435,7 +435,7 @@ int main(int argc, char* argv[])
         for(auto &c : categorySelection.categoryMap)
         {
             // dimuCand.recoCandMass
-            if(varname.Contains("dimu_mass")) 
+            if(varname.EqualTo("dimu_mass")) 
             {
                 float varvalue = useRecoToPlotMu?s->vars.dimuCand.recoCandMassPF:gen_dimu.M();
                 // blind the signal region for data but not for MC
@@ -445,13 +445,13 @@ int main(int argc, char* argv[])
                     //std::cout << "    " << c.first << ": " << varvalue;
             }
 
-            if(varname.Contains("dimu_pt"))
+            if(varname.EqualTo("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.dimuCand.recoCandPtPF:gen_dimu.Pt(), s->getWeight());
             }
 
-            if(varname.Contains("mu_pt"))
+            if(varname.EqualTo("mu_pt"))
             {
                 if(c.second.inCategory)
                 {
@@ -461,20 +461,20 @@ int main(int argc, char* argv[])
             }
 
             // recoMu_Eta
-            if(varname.Contains("mu_eta"))
+            if(varname.EqualTo("mu_eta"))
             {
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.eta[0]:gen_mu0.eta, s->getWeight());
                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.eta[1]:gen_mu1.eta, s->getWeight());
             }
 
             // NPV
-            if(varname.Contains("NPV"))
+            if(varname.EqualTo("NPV"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.vertices.nVertices:s->vars.nPU, s->getWeight());
             }
 
             // jet_pt all valid
-            if(varname.Contains("jet_pt"))
+            if(varname.EqualTo("jet_pt"))
             {
                 if(c.second.inCategory && useRecoToPlotJets) 
                 {
@@ -491,7 +491,7 @@ int main(int argc, char* argv[])
             }
 
             // jet_eta all valid
-            if(varname.Contains("jet_eta"))
+            if(varname.EqualTo("jet_eta"))
             {
                 if(c.second.inCategory && useRecoToPlotJets) 
                 {
@@ -506,14 +506,14 @@ int main(int argc, char* argv[])
             }
 
             // N_valid_jets
-            if(varname.Contains("N_valid_jets"))
+            if(varname.EqualTo("N_valid_jets"))
             {
                  if(c.second.inCategory && useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
                  if(c.second.inCategory && !useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validGenJets.size(), s->getWeight());
             }
 
             // m_jj leading two
-            if(varname.Contains("m_jj"))
+            if(varname.EqualTo("m_jj"))
             {
                  if(s->vars.validJets.size() >= 2 && useRecoToPlotJets)
                  {
@@ -528,7 +528,7 @@ int main(int argc, char* argv[])
             }
 
             // dEta_jj leading two
-            if(varname.Contains("dEta_jj"))
+            if(varname.EqualTo("dEta_jj"))
             {
                  if(s->vars.validJets.size() >= 2 && useRecoToPlotJets)
                  {
@@ -543,7 +543,7 @@ int main(int argc, char* argv[])
             }
 
             // dR_jj
-            if(varname.Contains("dR_jj"))
+            if(varname.EqualTo("dR_jj"))
             {
                  if(s->vars.validJets.size() >= 2 && useRecoToPlotJets)
                  {
