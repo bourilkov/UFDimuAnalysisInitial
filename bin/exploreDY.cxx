@@ -1,5 +1,11 @@
-// Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
-// We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
+// Used to debug some stuff in DY_MC since there were discrepancies between
+// DY_MC and fewz in the 1jet category during initial comparisons.
+// Check out gen muons from Z/gamma*, plot variables and output info to terminal
+// for all of the objects when plotting jet_pt or jet_eta.
+// Wanted to debug the jet discrepancies hence the printouts for those.
+// Turns out that that fewz emulates antikt jets so we need to compare fewz jets to
+// DY_MC reco jets.
+
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"
@@ -378,7 +384,7 @@ int main(int argc, char* argv[])
         categorySelection.evaluate(s->vars);
 
         // recoCandMass
-        if(varname.Contains("dimu_mass")) 
+        if(varname.EqualTo("dimu_mass")) 
         {
             float varvalue = useReco?s->vars.recoCandMassPF:gen_dimu.M();
             // blind the signal region for data but not for MC
@@ -387,33 +393,33 @@ int main(int argc, char* argv[])
                 hist->Fill(varvalue, s->getWeight());
         }
 
-        if(varname.Contains("dimu_pt"))
+        if(varname.EqualTo("dimu_pt"))
         {
             // if the event is in the current category then fill the category's histogram for the given sample and variable
             hist->Fill(useReco?s->vars.recoCandPtPF:gen_dimu.Pt(), s->getWeight());
         }
 
-        if(varname.Contains("mu_pt"))
+        if(varname.EqualTo("mu_pt"))
         {
            hist->Fill(useReco?s->vars.recoMuons.pt[0]:gen_mu0.pt, s->getWeight());
            hist->Fill(useReco?s->vars.recoMuons.pt[1]:gen_mu1.pt, s->getWeight());
         }
 
         // recoMu_Eta
-        if(varname.Contains("mu_eta"))
+        if(varname.EqualTo("mu_eta"))
         {
             hist->Fill(useReco?s->vars.recoMuons.eta[0]:gen_mu0.eta, s->getWeight());
             hist->Fill(useReco?s->vars.recoMuons.eta[1]:gen_mu1.eta, s->getWeight());
         }
 
         // NPV
-        if(varname.Contains("NPV"))
+        if(varname.EqualTo("NPV"))
         {
              hist->Fill(useReco?s->vars.vertices.nVertices:s->vars.nPU, s->getWeight());
         }
 
         // jet_pt
-        if(varname.Contains("jet_pt"))
+        if(varname.EqualTo("jet_pt"))
         {
             if(useReco) 
             {
@@ -430,7 +436,7 @@ int main(int argc, char* argv[])
         }
 
         // jet_eta
-        if(varname.Contains("jet_eta"))
+        if(varname.EqualTo("jet_eta"))
         {
             if(useReco) 
             {
@@ -447,14 +453,14 @@ int main(int argc, char* argv[])
         }
 
         // N_jets
-        if(varname.Contains("N_jets"))
+        if(varname.EqualTo("N_jets"))
         {
              if(useReco)  hist->Fill(s->vars.jets.nJets, s->getWeight());
              if(!useReco) hist->Fill(s->vars.genJets.nJets, s->getWeight());
         }
 
         // m_jj
-        if(varname.Contains("m_jj"))
+        if(varname.EqualTo("m_jj"))
         {
              if(s->vars.validJets.size() >= 2 && useReco)
              {
@@ -469,7 +475,7 @@ int main(int argc, char* argv[])
         }
 
         // dEta_jj
-        if(varname.Contains("dEta_jj"))
+        if(varname.EqualTo("dEta_jj"))
         {
              if(s->vars.validJets.size() >= 2 && useReco)
              {
