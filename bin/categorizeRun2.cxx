@@ -14,7 +14,7 @@
 #include "SelectionCuts.h"
 #include "CategorySelection.h"
 #include "JetSelectionTools.h"
-#include "MuSelectionTools.h"
+#include "MuonSelectionTools.h"
 #include "ElectronSelectionTools.h"
 #include "TauSelectionTools.h"
 
@@ -172,9 +172,13 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
     
     // Objects to help with the cuts and selections
-    JetSelectionTools jetSelectionTools;
-    CategorySelectionRun1 categorySelection;
-    Run1MuonSelectionCuts run1MuonSelection;
+    JetSelectionTools      jetSelectionTools;
+    MuonSelectionTools     muonSelectionTools;
+    ElectronSelectionTools electronSelectionTools;
+    TauSelectionTools      tauSelectionTools;
+
+    LotsOfCategoriesRun2      categorySelection;
+    Run1MuonSelectionCuts     run1MuonSelection;
     Run1EventSelectionCuts80X run1EventSelectionData(true);
     Run1EventSelectionCuts80X run1EventSelectionMC;
 
@@ -297,6 +301,132 @@ int main(int argc, char* argv[])
         varname = "dEta_jj";
     }   
 
+    // N_valid_muons
+    if(input == 10)
+    {   
+        bins = 10;
+        min = 0; 
+        max = 10;
+        varname = "N_valid_muons";
+    }   
+
+    // N_valid_extra_muons
+    if(input == 11)
+    {   
+        bins = 10;
+        min = 0; 
+        max = 10;
+        varname = "N_valid_extra_muons";
+    }   
+
+    // extra_muon_pt
+    if(input == 12)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "extra_muon_pt";
+    }
+ 
+    // extra_muon_eta
+    if(input == 13)
+    {
+        bins = 100;
+        min = -3;
+        max = 3;
+        varname = "extra_muon_eta";
+    }
+
+    // N_valid_electrons
+    if(input == 14)
+    {   
+        bins = 10;
+        min = 0; 
+        max = 10;
+        varname = "N_valid_electrons";
+    }   
+
+    // electron_pt
+    if(input == 15)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "electron_pt";
+    }
+ 
+    // electron_eta
+    if(input == 16)
+    {
+        bins = 100;
+        min = -3;
+        max = 3;
+        varname = "electron_eta";
+    }
+
+    // N_valid_extra_leptons
+    if(input == 17)
+    {   
+        bins = 10;
+        min = 0; 
+        max = 10;
+        varname = "N_valid_extra_leptons";
+    }   
+
+    // N_valid_bjets
+    if(input == 18)
+    {   
+        bins = 10;
+        min = 0; 
+        max = 10;
+        varname = "N_valid_bjets";
+    }   
+
+    // bjet_pt
+    if(input == 19)
+    {   
+        bins = 200;
+        min = 0;
+        max = 200;
+        varname = "bjet_pt";
+    }   
+
+    // bjet_eta 
+    if(input == 20)
+    {   
+        bins = 100;
+        min = -5; 
+        max = 5;
+        varname = "bjet_eta";
+    }   
+
+    // m_bb
+    if(input == 21)
+    {   
+        bins = 200;
+        min = 0; 
+        max = 2000;
+        varname = "m_bb";
+    }   
+
+    // mT_b_MET
+    if(input == 22)
+    {   
+        bins = 200;
+        min = 0; 
+        max = 2000;
+        varname = "mT_b_MET";
+    }   
+
+    // MET
+    if(input == 23)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "MET";
+    }
+ 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
     std::cout << "var         : " << varname << std::endl;
@@ -306,7 +436,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
 
     // reduce the number of events you run over in case you want to debug or some such thing
-    float reductionFactor = 1;
+    float reductionFactor = 20;
 
     for(auto &s : samplevec)
     {
@@ -332,16 +462,15 @@ int main(int argc, char* argv[])
       for(auto &c : categorySelection.categoryMap)
       {
           //number of bins for the histogram
-          int hbins;
+          int hbins = bins;
 
           // c.second is the category object, c.first is the category name
           TString hname = varname+"_"+c.first+"_"+s->name;
           hkey = varname+"_"+s->name;
 
-          // The VBF categories have low stats so we use fewer bins
-          // Same goes for 01jet categories with dijet variables
-          if(c.first.Contains("VBF") || c.first.Contains("GGF") || (c.first.Contains("01_Jet") && varname.Contains("jj"))) hbins = lowstatsbins; 
-          else hbins = bins;
+          // Not sure what the low stats categories are for run2 yet
+          //if(c.first.Contains("VBF") || c.first.Contains("GGF") || (c.first.Contains("01_Jet") && varname.Contains("jj"))) hbins = lowstatsbins; 
+          //else hbins = bins;
 
           // Set up the histogram for the category and variable to plot
           c.second.histoMap[hkey] = new TH1F(hname, hname, hbins, min, max);
@@ -358,19 +487,75 @@ int main(int argc, char* argv[])
         // GET INFORMATION ------------------------------------------------
         ///////////////////////////////////////////////////////////////////
 
+        //if(i>5) break;
+
+        //std::cout << "s->getEntry..." << std::endl;
         s->getEntry(i); 
-        s->vars.validJets = std::vector<TLorentzVector>();
-        jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
+
+        // initialize vectors for the good jets, bjets, muons, electrons, and taus
+        //std::cout << "Set up valid object vectors..." << std::endl;
+        //std::cout << "Set up muon vec..." << std::endl;
+        s->vars.validMuons.clear();
+        //std::cout << s->vars.validMuons.size() << std::endl;
+        //std::cout << "Set up decoy muon vec..." << std::endl;
+        //s->vars.validMuons.clear();
+        //std::cout << s->vars.validMuonsDecoy.size() << std::endl;
+        //std::cout << "Set up extra-muon vec..." << std::endl;
+        s->vars.validExtraMuons.clear();
+        //std::cout << s->vars.validExtraMuons.size() << std::endl;
+        //std::cout << "Set up electron vec..." << std::endl;
+        s->vars.validElectrons.clear();
+        //std::cout << s->vars.validElectrons.size() << std::endl;
+        //std::cout << "Set up tau vec..." << std::endl;
+        s->vars.validTaus.clear();
+        //std::cout << s->vars.validTaus.size() << std::endl;
+        //std::cout << "Set up jet vec..." << std::endl;
+        s->vars.validJets.clear();
+        //std::cout << s->vars.validJets.size() << std::endl;
+        //std::cout << "Set up b-jet vec..." << std::endl;
+        s->vars.validBJets.clear();
+        //std::cout << s->vars.validBJets.size() << std::endl;
+
+        // filter the good objects from the larger set
+        // Need to clean collections by dR later
+        //std::cout << "Get jets..." << std::endl;
+        jetSelectionTools.getValidJets(s->vars, s->vars.validJets);
+        //std::cout << "Get b-jets..." << std::endl;
+        jetSelectionTools.getValidBJets(s->vars, s->vars.validBJets);
+        //std::cout << "Get muons..." << std::endl;
+        muonSelectionTools.getValidMuons(s->vars, s->vars.validMuons);
+        //std::cout << "Get electrons..." << std::endl;
+        electronSelectionTools.getValidElectrons(s->vars, s->vars.validElectrons);
+        //std::cout << "Get taus..." << std::endl;
+        tauSelectionTools.getValidTaus(s->vars, s->vars.validTaus);
+
+        // segfaults at the moment, fix this
+        // clean collections by dR
+        // clean 4vecs in v1 by dR based upon 4vecs in v2
+        // EventTools::cleanByDR(v1, v2, dRmin);
+        //EventTools::cleanByDR(s->vars.validJets, s->vars.validMuons,      0.3);
+        //EventTools::cleanByDR(s->vars.validJets, s->vars.validElectrons,  0.3);
+        //EventTools::cleanByDR(s->vars.validBJets, s->vars.validMuons,     0.3);
+        //EventTools::cleanByDR(s->vars.validBJets, s->vars.validElectrons, 0.3);
+
+        // Store the valid muons besides the main dimuon candidate
+        // AKA initialize validExtraMuons
+        //std::cout << "Get extra muons..." << std::endl;
+        for(unsigned int m=2; m<s->vars.validMuons.size(); m++)
+            s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
+
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
         ///////////////////////////////////////////////////////////////////
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
 
+        //std::cout << "Apply tight mu..." << std::endl;
         if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
         { 
             continue; 
         }
+        //std::cout << "Apply run1 event selection..." << std::endl;
         if(!run1EventSelectionData.evaluate(s->vars) && s->sampleType.Contains("data"))
         { 
             continue; 
@@ -379,26 +564,33 @@ int main(int argc, char* argv[])
         { 
             continue; 
         }
+        //std::cout << "Apply run1 muon selection..." << std::endl;
         if(!run1MuonSelection.evaluate(s->vars)) 
         {
             continue; 
         }
 
         // Figure out which category the event belongs to
+        std::cout << "Evaluate categories..." << std::endl;
         categorySelection.evaluate(s->vars);
 
         // Look at each category
+        std::cout << "Fill each category histo..." << std::endl;
         for(auto &c : categorySelection.categoryMap)
         {
+            //std::cout << "in category loop..." << std::endl;
             // dimuCand.recoCandMass
             if(varname.EqualTo("dimu_mass")) 
             {
+                //std::cout << "in dimu_mass fill..." << std::endl;
                 float varvalue = s->vars.dimuCand.recoCandMassPF;
                 // blind the signal region for data but not for MC
+                if(c.second.inCategory) std::cout << "    " << c.first << ": " << varvalue << std::endl;
                 if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140))
+                {
                     // if the event is in the current category then fill the category's histogram for the given sample and variable
                     if(c.second.inCategory) c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
-                    //std::cout << "    " << c.first << ": " << varvalue;
+                }
             }
 
             if(varname.EqualTo("dimu_pt"))
@@ -474,6 +666,125 @@ int main(int argc, char* argv[])
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
                  }
             }
+            // N_valid_muons
+            if(varname.EqualTo("N_valid_muons"))
+            {
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validMuons.size(), s->getWeight());
+            }
+
+            // N_valid_extra_muons
+            if(varname.EqualTo("N_valid_muons"))
+            {
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
+            }
+            
+            // extra_muon_pt
+            if(varname.EqualTo("extra_muon_pt"))
+            {
+                if(c.second.inCategory) 
+                {
+                    for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Pt(), s->getWeight());
+                }
+            }
+ 
+            // extra_muon_eta
+            if(varname.EqualTo("extra_muon_eta"))
+            {
+                if(c.second.inCategory) 
+                {
+                    for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Eta(), s->getWeight());
+                }
+            }
+ 
+            // N_valid_electrons
+            if(varname.EqualTo("N_valid_electrons"))
+            {
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
+            }
+            
+            // electron_pt
+            if(varname.EqualTo("electron_pt"))
+            {
+                if(c.second.inCategory) 
+                {
+                    for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Pt(), s->getWeight());
+                }
+            }
+ 
+            // electron_eta
+            if(varname.EqualTo("electron_eta"))
+            {
+                if(c.second.inCategory) 
+                {
+                    for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Eta(), s->getWeight());
+                }
+            }
+
+            // N_valid_extra_leptons
+            if(varname.EqualTo("N_valid_extra_leptons"))
+            {
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
+            }
+
+            // N_valid_bjets
+            if(varname.EqualTo("N_valid_bjets"))
+            {
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
+            }
+
+            // bjet_pt
+            if(varname.EqualTo("bjet_pt"))
+            {
+                if(c.second.inCategory) 
+                {
+                    for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Pt(), s->getWeight());
+                }
+            }
+            
+            // bjet_eta 
+            if(varname.EqualTo("bjet_eta"))
+            {
+                if(c.second.inCategory) 
+                {
+                    for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Eta(), s->getWeight());
+                }
+            }
+
+            // m_bb
+            if(varname.EqualTo("m_bb"))
+            {
+                 if(s->vars.validBJets.size() >= 2)
+                 {
+                     TLorentzVector dijet = s->vars.validBJets[0] + s->vars.validBJets[1];
+                     if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
+                 }
+            }
+
+            // mT_b_MET
+            if(varname.EqualTo("mT_b_MET"))
+            {
+                 if(s->vars.validBJets.size() > 0)
+                 {
+                     TLorentzVector met(s->vars.met.px, s->vars.met.py, 0, s->vars.met.sumEt);
+                     TLorentzVector bjet = s->vars.validBJets[0];
+                     TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
+                     TLorentzVector bmet_t = met + bjet_t;
+                     
+                     if(c.second.inCategory) c.second.histoMap[hkey]->Fill(bmet_t.M(), s->getWeight());
+                 }
+            }
+
+            // MET
+            if(varname.EqualTo("MET"))
+            {
+                 if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.met.pt, s->getWeight());
+            }
 
         } // end category loop
 
@@ -501,6 +812,9 @@ int main(int argc, char* argv[])
 
     for(auto &c : categorySelection.categoryMap)
     {
+        // some categories are intermediate and we don't want to save the plots for those
+        if(c.second.hide) continue;
+
         // Create the stack and ratio plot    
         TString cname = c.first+"_"+varname+"_stack";
         //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
@@ -529,7 +843,7 @@ int main(int argc, char* argv[])
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
     TFile* savefile = new TFile("rootfiles/validate_"+varname+Form("_%d_%d", (int)min, (int)max)+
-                                "_x69p2_8_0_X_MC_categories_"+Form("%d",(int)luminosity)+Form("_rebin%d.root", (int)rebin), "RECREATE");
+                                "_x69p2_8_0_X_MC_lotsOfCategoriesRun2_"+Form("%d",(int)luminosity)+Form("_rebin%d.root", (int)rebin), "RECREATE");
     TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* histos = savefile->mkdir("histos");
     TDirectory* net_histos = savefile->mkdir("net_histos");

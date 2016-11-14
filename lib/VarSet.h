@@ -24,6 +24,7 @@ class VarSet
         _MetInfo met;
         _PFJetInfo jets;
 
+        std::vector<TLorentzVector> validMuonsDecoy;
         std::vector<TLorentzVector> validMuons;
         std::vector<TLorentzVector> validExtraMuons;
         std::vector<TLorentzVector> validElectrons;

@@ -1,5 +1,3 @@
-// event info
-
 #ifndef DATAFORMATS
 #define DATAFORMATS
 
@@ -485,7 +483,7 @@ struct _PFJetInfo{
   int cm[arraySize];
   //Charged Hadron Mult
   int chm[arraySize];
-  //Neutra Mult
+  //Total Neutral Mult
   int nm[arraySize];
   //NeutralHadron Mult
   int nhm[arraySize];
@@ -533,7 +531,7 @@ struct _PFJetInfo{
                    TString("cm[N]/I:chm[N]/I:nm[N]/I:nhm[N]/I:cem[N]/I:nem[N]/I:mum[N]/I:hfhm[N]/I:")+
                    TString("hfem[N]/I:jecFactor[N]/F:jecUnc[N]/F:genMatched[N]/I:genPx[N]/F:genPy[N]/F:")+
                    TString("genPz[N]/F:genPt[N]/F:genEta[N]/F:genPhi[N]/F:genMass[N]/F:genEMF[N]/F:")+
-                   TString("genHadF[N]/F:genInvF[N]/F:genAux[N]/F:puid[N]:F");
+                   TString("genHadF[N]/F:genInvF[N]/F:genAux[N]/F:puid[N]/F");
 
       r.ReplaceAll("[N]",Form("[%d]", arraySize));
       return r;
@@ -576,6 +574,8 @@ struct _PFJetInfo{
           cm[i] = -999;
           //Charged Hadron Mult
           chm[i] = -999;
+          //Total Neutral Mult
+          nm[i] = -999;
           //NeutralHadron Mult
           nhm[i] = -999;
           //Charged EM Mult

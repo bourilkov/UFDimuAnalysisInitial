@@ -14,7 +14,7 @@
 #include "SelectionCuts.h"
 #include "CategorySelection.h"
 #include "JetSelectionTools.h"
-#include "MuSelectionTools.h"
+#include "MuonSelectionTools.h"
 #include "ElectronSelectionTools.h"
 #include "TauSelectionTools.h"
 
@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
 
     // reduce the number of events you run over in case you want to debug or some such thing
-    float reductionFactor = 1;
+    float reductionFactor = 20;
 
     for(auto &s : samplevec)
     {
