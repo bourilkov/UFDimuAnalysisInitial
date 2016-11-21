@@ -54,7 +54,7 @@ class WorkspaceAndDatacardMaker:
         self.net_hist.SetName(self.category+'_Net_MC')
         self.net_hist.SetTitle(self.category+'_Net_MC')
     
-    def makeWorkspace(self):
+    def makeShapeWorkspace(self):
     # make workspace with signal model and background model for analytic shape fit.
     # save it to a root file.
         # suppress all messages except those that matter
@@ -105,7 +105,7 @@ class WorkspaceAndDatacardMaker:
         wspace.factory('expr::f("-(a1*(x/100)+a2*(x/100)^2)",a1,a2,x)')
         # exp(c*x), c = 1 and x = f
         wspace.factory('Exponential::bmodel_'+self.category+'(f, 1)')
-        bmodel  = wspace.pdf('bmodel')
+        bmodel  = wspace.pdf('bmodel_'+self.category)
     
         #----------------------------------------
         # create signal model
@@ -121,6 +121,7 @@ class WorkspaceAndDatacardMaker:
         wspace.var('mass').setConstant()                   # just set the mass to 125 for now
         self.nuisance_params.append('w')
         self.nuisance_params.append('mass')
+        smodel = wspace.pdf('smodel_'+self.category)
     
         #----------------------------------------
         # save data and signal & bg models for use
@@ -209,7 +210,7 @@ print('program is running ...')
 # also needs to know the category you want to make the root file and datacard for
 wdm = WorkspaceAndDatacardMaker('/home/acarnes/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_110_160_x69p2_8_0_X_MC_categories_27217.root', 'GGF_Tight') 
 print wdm.infilename, wdm.category
-wdm.makeWorkspace()
+wdm.makeShapeWorkspace()
 wdm.makeShapeDatacard()
 wdm.makeTemplateRootFile()
 wdm.makeTemplateDatacard()

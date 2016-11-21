@@ -42,6 +42,8 @@ int main(int argc, char* argv[])
     int input = 0;       // the variable to plot, 0 is dimu_mass for instance
     bool rebin = false;  // rebin the histograms so that the ratio plots have small errors
     int binning = 0;     // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
+    int nPartitions = 1; // break the samples up into nPartitions to run in parallel
+    int partition = 0;   // which partition to make the plots for
 
     for(int i=1; i<argc; i++)
     {   
@@ -49,7 +51,9 @@ int main(int argc, char* argv[])
         ss << argv[i];
         if(i==1) ss >> input;
         if(i==2) ss >> rebin;
-        if(i==2) ss >> binning;
+        if(i==3) ss >> binning;
+        if(i==4) ss >> nPartitions;
+        if(i==5) ss >> partition;
     }   
 
     // Not sure that we need a map if we have a vector
@@ -304,18 +308,18 @@ int main(int argc, char* argv[])
     // N_valid_muons
     if(input == 10)
     {   
-        bins = 10;
+        bins = 11;
         min = 0; 
-        max = 10;
+        max = 11;
         varname = "N_valid_muons";
     }   
 
     // N_valid_extra_muons
     if(input == 11)
     {   
-        bins = 10;
+        bins = 11;
         min = 0; 
-        max = 10;
+        max = 11;
         varname = "N_valid_extra_muons";
     }   
 
@@ -340,9 +344,9 @@ int main(int argc, char* argv[])
     // N_valid_electrons
     if(input == 14)
     {   
-        bins = 10;
+        bins = 11;
         min = 0; 
-        max = 10;
+        max = 11;
         varname = "N_valid_electrons";
     }   
 
@@ -367,18 +371,18 @@ int main(int argc, char* argv[])
     // N_valid_extra_leptons
     if(input == 17)
     {   
-        bins = 10;
+        bins = 11;
         min = 0; 
-        max = 10;
+        max = 11;
         varname = "N_valid_extra_leptons";
     }   
 
     // N_valid_bjets
     if(input == 18)
     {   
-        bins = 10;
+        bins = 11;
         min = 0; 
-        max = 10;
+        max = 11;
         varname = "N_valid_bjets";
     }   
 
@@ -430,13 +434,15 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
     std::cout << "var         : " << varname << std::endl;
+    std::cout << "rebin       : " << rebin << std::endl;
+    std::cout << "binning     : " << binning << std::endl;
+    std::cout << "nPartitions : " << nPartitions << std::endl;
+    std::cout << "partition   : " << partition << std::endl;
+    std::cout << std::endl;
     std::cout << "min         : " << min << std::endl;
     std::cout << "max         : " << max << std::endl;
     std::cout << "bins        : " << bins << std::endl;
     std::cout << std::endl;
-
-    // reduce the number of events you run over in case you want to debug or some such thing
-    float reductionFactor = 20;
 
     for(auto &s : samplevec)
     {
@@ -480,7 +486,7 @@ int main(int argc, char* argv[])
           if(s->sampleType.Contains("background")) c.second.bkgList->Add(c.second.histoMap[hkey]); // bkg histos
       }
 
-      for(unsigned int i=0; i<s->N/reductionFactor; i++)
+      for(unsigned int i=partition/nPartitions*s->N; i<(partition+1)/nPartitions*s->N; i++)
       {
 
         ///////////////////////////////////////////////////////////////////
@@ -571,11 +577,11 @@ int main(int argc, char* argv[])
         }
 
         // Figure out which category the event belongs to
-        std::cout << "Evaluate categories..." << std::endl;
+        //std::cout << "Evaluate categories..." << std::endl;
         categorySelection.evaluate(s->vars);
 
         // Look at each category
-        std::cout << "Fill each category histo..." << std::endl;
+        //std::cout << "Fill each category histo..." << std::endl;
         for(auto &c : categorySelection.categoryMap)
         {
             //std::cout << "in category loop..." << std::endl;
@@ -585,7 +591,7 @@ int main(int argc, char* argv[])
                 //std::cout << "in dimu_mass fill..." << std::endl;
                 float varvalue = s->vars.dimuCand.recoCandMassPF;
                 // blind the signal region for data but not for MC
-                if(c.second.inCategory) std::cout << "    " << c.first << ": " << varvalue << std::endl;
+                //if(c.second.inCategory) std::cout << "    " << c.first << ": " << varvalue << std::endl;
                 if(!(s->sampleType.Contains("data") && varvalue >= 110 && varvalue < 140))
                 {
                     // if the event is in the current category then fill the category's histogram for the given sample and variable
@@ -673,7 +679,7 @@ int main(int argc, char* argv[])
             }
 
             // N_valid_extra_muons
-            if(varname.EqualTo("N_valid_muons"))
+            if(varname.EqualTo("N_valid_extra_muons"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
             }
@@ -789,9 +795,8 @@ int main(int argc, char* argv[])
         } // end category loop
 
         if(false)
-          // ouput pt, mass info etc for the event
           EventTools::outputEvent(s->vars, categorySelection);
-
+        
         // Reset the flags in preparation for the next event
         categorySelection.reset();
 
@@ -836,14 +841,18 @@ int main(int argc, char* argv[])
             netlist->Add(hNetData);
         }
 
+        // fails here with seg-fault if the TCanvas 'stack' was created with bad info, aka 0 integral histograms for numerator or denominator
         stack->SaveAs("imgs/"+cname+".png");
+        std::cout << std::endl;
     }
     std::cout << std::endl;
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
     TFile* savefile = new TFile("rootfiles/validate_"+varname+Form("_%d_%d", (int)min, (int)max)+
-                                "_x69p2_8_0_X_MC_lotsOfCategoriesRun2_"+Form("%d",(int)luminosity)+Form("_rebin%d.root", (int)rebin), "RECREATE");
+                                "_x69p2_8_0_X_MC_lotsOfCategoriesRun2_"+Form("%d",(int)luminosity)+
+                                Form("_rebin%d_partition%d-%d.root", (int)rebin, partition, nPartitions), "RECREATE");
+
     TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* histos = savefile->mkdir("histos");
     TDirectory* net_histos = savefile->mkdir("net_histos");

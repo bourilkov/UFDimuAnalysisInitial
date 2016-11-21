@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     // DYJetsToLL -----------------------------------------------------
     // ================================================================
 
-    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_bonusMuons_ALL.root");
+    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_ALL_etm.root");
     samples["DYJetsToLL"] = new Sample(dyfilename, "DYJetsToLL", "background");
     samples["DYJetsToLL"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_DYJetsToLL.root"; //nPU
     samples["DYJetsToLL"]->xsec = 6025.2; // pb

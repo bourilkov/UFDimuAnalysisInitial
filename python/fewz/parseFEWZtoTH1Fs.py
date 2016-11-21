@@ -93,8 +93,9 @@ def saveHistograms(histodict, savefilename):
 
         # fill the histogram
         for datapoint in histodata:
-            # AddBinContent(bin corresponding to xvalue, fillvalue)
-            h.AddBinContent(h.FindBin(datapoint[0]), datapoint[1])
+            # SetBinContent(bin corresponding to xvalue, fillvalue)
+            h.SetBinContent(h.FindBin(datapoint[0]), datapoint[1])
+            h.SetBinError(h.FindBin(datapoint[0]), datapoint[2])
 
         # save the histogram
         h.SetStats(kFALSE)

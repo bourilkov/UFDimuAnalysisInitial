@@ -394,6 +394,12 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
         return;
     }
 
+    if(numerator->Integral() <= 0 || denominator->Integral() <=0)
+    {
+        std::cout << "!!! ERROR: DiMuPlottingSystem::getBinningForRatio numerator or denominator integral <= 0" << std::endl;
+        return;
+    }
+
     std::vector<double> errVec = std::vector<double>();
 
     // first low edge is the lowest edge by default
@@ -402,6 +408,7 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
     double sumErr2Num = 0;
     double sumDenom = 0;
     double sumErr2Denom = 0;
+    bool lastBinIsCutBin = 0;
 
     // Collect bins together until the error is low enough for the corresponding ratio plot bin.
     // Once the error is low enough call that the new bin, move on and repeat.
@@ -414,13 +421,16 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
         sumErr2Denom += denominator->GetBinError(i)*denominator->GetBinError(i);
 
         // squared ratio plot error
+        // 0 if sumNum or sumDenom is 0
         float ratioErr2 = ratioError2(sumNum, sumErr2Num, sumDenom, sumErr2Denom); 
 
-        float percentError = TMath::Sqrt(ratioErr2)/(sumNum/sumDenom);
+        float percentError = (ratioErr2>0)?TMath::Sqrt(ratioErr2)/(sumNum/sumDenom):0;
 
-        // we have the minimum error necessary create the bin in the vector
-        // or just make a bin if we are in the blinded region of the mass spectrum
-        if(percentError !=0 && percentError <= maxPercentError || (isMassData && numerator->GetBinLowEdge(i) >= 110 && numerator->GetBinLowEdge(i) < 140))
+        // If the bins suddenly drop to zero or go up from zero then this is probably due to some cut that was applied
+        // and we dont' want to combine the 0 bins on one side of the cut with the bins after the cut. It messes up the comparison plots.
+        // it's better to see exactly where the cut caused everything to drop to zero.
+        if(i!=numerator->GetNbinsX() && TMath::Abs(numerator->GetBinContent(i)-numerator->GetBinContent(i+1)) > 10 
+          && (numerator->GetBinContent(i) == 0 || numerator->GetBinContent(i+1) == 0))
         {
             newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
             errVec.push_back(percentError);
@@ -430,14 +440,32 @@ void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, 
 
             sumDenom = 0;
             sumErr2Denom = 0;
+ 
+            lastBinIsCutBin = true;
+        }
+        // we have the minimum error necessary create the bin in the vector
+        // or just make a bin if we are in the blinded region of the mass spectrum
+        else if(percentError !=0 && percentError <= maxPercentError || (isMassData && numerator->GetBinLowEdge(i) >= 110 && numerator->GetBinLowEdge(i) < 140))
+        {
+            newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
+            errVec.push_back(percentError);
+
+            sumNum = 0;
+            sumErr2Num = 0;
+
+            sumDenom = 0;
+            sumErr2Denom = 0;
+
+            lastBinIsCutBin = false;
         }
         // we got to the end of the histogram and the last bins can't add up
         // to get the error low enough, so we merge these last bins with the 
-        // last bin set up in the vector
+        // last bin set up in the new variable binning scheme.
         if(i==numerator->GetNbinsX() && (percentError > maxPercentError || percentError == 0))
         {
-            // get rid of the last bin added
-            newBins.pop_back(); 
+            // get rid of the last bin added, but make sure there is at least one bin. Don't remove the low edge of the zero-th bin.
+            // la la we need at least a value for the beginning and end, size 1 vector doesn't make sense and rebinning will fail.
+            if(newBins.size() > 1 && !lastBinIsCutBin) newBins.pop_back(); 
             // replace with the end bin value in the numerator histo
             newBins.push_back(numerator->GetBinLowEdge(i)+numerator->GetBinWidth(i));
         }
@@ -452,49 +480,82 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
                                                        bool fit, TString ratiotitle, bool log, bool stats, int legend)
 {
   
-    TList* rebinnedList = new TList();
-    std::vector<Double_t> newBins = std::vector<Double_t>();
-    // rebin the histograms by combining bins so that the error in the ratio plot bins is low enough
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // first let's see if the numerator and denom are valid to see if this will work out
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // data usually
+    TH1F* numerator = (TH1F*) ilist->Last();
+    // The rest of the list is usually the MC used to make the stack to compare to data
+    TList* denomlist = (TList*) ilist->Clone("blah");
+    // get rid of the data histogram from the list
+    denomlist->RemoveLast();
+    // Add up the MC histograms
+    TH1F* denominator = addHists(denomlist, name+"_add", name+"_add");
+
+    // Don't worry about drawing the stack. Just return a reasonable TCanvas.
+    // If we were to return the canvas after creating the stack and ratio with bad info then TCanvas::SaveAs() gives a seg fault
+    if(numerator->Integral() <= 0 || denominator->Integral() <= 0)
+    {
+        std::cout << "!!! " << std::endl;
+        std::cout << "!!! ERROR: DiMuPlottingSystem::stackedHistogramsAndRatio numerator or denominator for stack has <= 0 integral." << std::endl;
+        std::cout << "!!! Returning canvas with only the numerator drawn for "<< name << "." << std::endl;
+        std::cout << "!!! " << std::endl;
+        std::cout << std::endl;
+
+        TCanvas* c = new TCanvas(name);
+        c->SetTitle(title);
+        numerator->Draw();
+        return c;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // OK the numerator and denominator are fine, let's move on to making the stack and ratio plot
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    // rebin the histograms by combining bins so that the error in each ratio plot bin is low enough
+    // Leave the histograms from the input list alone, and make the stack the same way
+    // but make the ratio plot with the rebinned numerator and denominator. 
+    std::vector<Double_t> newBins;
     if(rebin)
     {
-        // data usually
-        TH1F* numerator = (TH1F*) ilist->Last();
-        // The rest of the list is usually the MC used to make the stack to compare to data
-        TList* denomlist = (TList*) ilist->Clone("blah");
-        // get rid of the data histogram from the list
-        denomlist->RemoveLast();
-        // Add up the MC histograms
-        TH1F* denominator = addHists(denomlist, "denominator", "denominator");
         // now put the variable binning into newBins
         getBinningForRatio(numerator, denominator, newBins, 0.20);
 
-        // now rebin all of them according to the new scheme
-        TIter next(ilist);
-        TObject* object = 0;
-
-        while ((object = next()))
-        {
-            TH1F* h = (TH1F*) object;
-            rebinnedList->Add(h->Rebin(newBins.size()-1, h->GetName()+TString("_"), &newBins[0]));
-        }
         // use the rebinnedList for the stack and ratio plot
-        ilist = rebinnedList;
+        if(newBins.size() > 2)
+        {
+            numerator = (TH1F*) numerator->Rebin(newBins.size()-1, numerator->GetName()+TString("_"), &newBins[0]);
+            denominator = (TH1F*) denominator->Rebin(newBins.size()-1, numerator->GetName()+TString("_"), &newBins[0]);
+        }
+        else
+        {
+            std::cout << "!!! " << std::endl;
+            std::cout << "!!! ERROR: DiMuPlottingSystem::stackedHistogramsAndRatio rebinning vector has <=2 entries. Cannot rebin. Using original binning." << std::endl;
+            std::cout << "!!! " << std::endl;
+        }
+        std::cout << "newBins for " << name << std::endl;
+        for(unsigned int i=0; i< newBins.size(); i++)
+        {
+            std::cout << newBins[i] << ", ";
+        }
+        std::cout << std::endl << std::endl;
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Put the stack in the upper pad of the canvas
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     // Define the Canvas
     TCanvas *c = new TCanvas(name);
     c->SetTitle(title);
     c->SetCanvasSize(800,800);
 
+    // Need access to this to set the axes and titles and whatnot
+    // also need access to the last one, but we already have numerator = ilist->last
     TH1F* first = (TH1F*) ilist->At(0);
-    TH1F* last = (TH1F*) ilist->Last();
 
-    // force the histograms to match
-    // Right now this only scales the data to match the major player DYJetsToLL assumed to be in the first location
-    Double_t scale = last->Integral()/first->Integral();
-    std::cout << "########## Scale factor for " << first->GetName() << ": " << scale << std::endl;
-    // Uncomment the next line to implement the hard scaling
-    //first->Scale(scale);
+    Double_t scale = 1;
 
      // Upper pad
     TPad *pad1 = new TPad(TString("pad1")+first->GetName(), "pad1", 0, 0.3, 1, 1.0);
@@ -517,9 +578,13 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     //axis->SetLabelSize(15);
     //axis->Draw();
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Put the ratio plot in the lower pad of the canvas
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     // Lower pad
     c->cd();          // Go back to the main canvas before defining pad2
-    TPad *pad2 = new TPad(TString("pad2")+first->GetName(), "pad2", 0, 0.05, 1, 0.3);
+    TPad *pad2 = new TPad(TString("pad2_")+name, "pad2", 0, 0.05, 1, 0.3);
     pad2->SetTopMargin(0);
     pad2->SetBottomMargin(0.2);
     pad2->SetGridy(); // horizontal grid
@@ -529,13 +594,13 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     // Define the ratio plot
     // Clone the data histogram from the last location in the vector
     // The remainder of the vector consits of MC samples
-    TH1F* hratio = (TH1F*)last->Clone("hratio");
-    
-    // Create the ratio plot an easier way using THStack::GetStack()->Last()
-    TH1F* hadd = (TH1F*)stack->GetStack()->Last();
+    TH1F* hratio = (TH1F*)numerator->Clone("hratio");
 
     // Output the overall scale discrepancy between the stack and the hist of interest
-    scale = hratio->Integral()/hadd->Integral();
+    scale = hratio->Integral()/denominator->Integral();
+    std::cout << std::endl;
+    std::cout << "########## Numerator integral for " << numerator->GetName() << "  : " << numerator->Integral() << std::endl;
+    std::cout << "########## Denominator integral for " << denominator->GetName() << ": " << denominator->Integral() << std::endl;
     std::cout << "########## Scale factor for MC stack: " << scale << std::endl;
     //hadd->Scale(scale);
 
@@ -544,14 +609,18 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->SetMaximum(1.42); // .. range
     hratio->Sumw2();
     hratio->SetStats(1);
-    hratio->Divide(hadd);
+
+    // make the ratio plot
+    hratio->Divide(denominator);
+
+    // continue setting up the plot to draw
     hratio->SetMarkerStyle(20);
     hratio->Draw("ep");       // Draw the ratio plot
 
-    // Y axis v[v.size()-1] plot settings
-    last->GetYaxis()->SetTitleSize(20);
-    last->SetTitleFont(43);
-    last->GetYaxis()->SetTitleOffset(1.55);
+    // I don't know what this is doing ...
+    //last->GetYaxis()->SetTitleSize(20);
+    //last->SetTitleFont(43);
+    //last->GetYaxis()->SetTitleOffset(1.55);
 
     // Ratio plot (hratio) settings
     hratio->SetTitle(""); // Remove the ratio title
@@ -573,7 +642,11 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
     hratio->GetXaxis()->SetLabelSize(15);
 
-    if(fit)
+    std::cout << std::endl;
+    std::cout << "########## ratio integral for " << name << ": " << hratio->Integral() << std::endl; 
+    std::cout << std::endl;
+
+    if(fit && hratio->Integral() != 0)
     {
         // Display fit info on canvas, mess with stat box styles.
         //gStyle->SetStatStyle(0);

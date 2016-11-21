@@ -99,10 +99,17 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << std::endl;
          std::cout << "  nJets: " << vars.jets.nJets << std::endl;
          std::cout << "  nValidJets: " << vars.validJets.size() << std::endl;
-         std::cout << "  MET: " << vars.met.pt << std::endl;
+         std::cout << "  nValidBJets: " << vars.validBJets.size() << std::endl;
          std::cout << std::endl;
          std::cout << "  nGenJets: " << vars.genJets.nJets << std::endl;
          std::cout << "  nValidGenJets: " << vars.validGenJets.size() << std::endl;
+         std::cout << std::endl;
+         std::cout << "  nValidMuons: " << vars.validMuons.size() << std::endl;
+         std::cout << "  nValidExtraMuons: " << vars.validExtraMuons.size() << std::endl;
+         std::cout << "  nValidElectrons: " << vars.validElectrons.size() << std::endl;
+         std::cout << "  nValidExtraLeptons: " << vars.validElectrons.size() + vars.validExtraMuons.size() << std::endl;
+         std::cout << std::endl;
+         std::cout << "  MET: " << vars.met.pt << std::endl;
          std::cout << std::endl;
 
          for(unsigned int j=0; j<vars.jets.nJets && j<vars.jets.arraySize; j++)
@@ -110,6 +117,7 @@ void EventTools::outputEvent(VarSet& vars)
              std::cout << "  jet" << j << " pt: " <<  vars.jets.pt[j] << std::endl;
              std::cout << "  jet" << j << " phi: " << vars.jets.phi[j] << std::endl;
              std::cout << "  jet" << j << " eta: " << vars.jets.eta[j] << std::endl;
+             std::cout << "  jet" << j << " isB: " << vars.jets.isB[j] << std::endl;
              std::cout << "  jet" << j << " dR1: " << js.dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
              std::cout << "  jet" << j << " dR2: " << js.dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
              std::cout << std::endl;
@@ -130,30 +138,72 @@ void EventTools::outputEvent(VarSet& vars)
          }
          std::cout << std::endl;
 
-         for(unsigned int j=0; j<vars.genJets.nJets && j<vars.genJets.arraySize; j++)
+         for(unsigned int j=0; j<vars.validBJets.size(); j++)
          {
-             std::cout << "  genJet" << j << " pt: " <<  vars.genJets.pt[j] << std::endl;
-             std::cout << "  genJet" << j << " phi: " << vars.genJets.phi[j] << std::endl;
-             std::cout << "  genJet" << j << " eta: " << vars.genJets.eta[j] << std::endl;
-             std::cout << "  genJet" << j << " dR1: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-             std::cout << "  genJet" << j << " dR2: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
-             std::cout << std::endl;
-
-         }
-
-         std::cout << std::endl;
-
-         for(unsigned int j=0; j<vars.validGenJets.size(); j++)
-         {
-             std::cout << "  validGenJet" << j << " pt: " <<  vars.validGenJets[j].Pt() << std::endl;
-             std::cout << "  validGenJet" << j << " phi: " << vars.validGenJets[j].Phi() << std::endl;
-             std::cout << "  validGenJet" << j << " eta: " << vars.validGenJets[j].Eta() << std::endl;
-             std::cout << "  validGenJet" << j << " dR1: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-             std::cout << "  validGenJet" << j << " dR2: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+             std::cout << "  validBjet" << j << " pt: " <<  vars.validBJets[j].Pt() << std::endl;
+             std::cout << "  validBjet" << j << " phi: " << vars.validBJets[j].Phi() << std::endl;
+             std::cout << "  validBjet" << j << " eta: " << vars.validBJets[j].Eta() << std::endl;
+             std::cout << "  validBjet" << j << " dR1: " << js.dR(vars.validBJets[j].Eta(), vars.validBJets[j].Phi(), vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
+             std::cout << "  validBjet" << j << " dR2: " << js.dR(vars.validBJets[j].Eta(), vars.validBJets[j].Phi(), vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
              std::cout << std::endl;
 
          }
          std::cout << std::endl;
+
+         //for(unsigned int j=0; j<vars.genJets.nJets && j<vars.genJets.arraySize; j++)
+         //{
+         //    std::cout << "  genJet" << j << " pt: " <<  vars.genJets.pt[j] << std::endl;
+         //    std::cout << "  genJet" << j << " phi: " << vars.genJets.phi[j] << std::endl;
+         //    std::cout << "  genJet" << j << " eta: " << vars.genJets.eta[j] << std::endl;
+         //    std::cout << "  genJet" << j << " dR1: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
+         //    std::cout << "  genJet" << j << " dR2: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+         //    std::cout << std::endl;
+
+         //}
+
+         std::cout << std::endl;
+
+         //for(unsigned int j=0; j<vars.validGenJets.size(); j++)
+         //{
+         //    std::cout << "  validGenJet" << j << " pt: " <<  vars.validGenJets[j].Pt() << std::endl;
+         //    std::cout << "  validGenJet" << j << " phi: " << vars.validGenJets[j].Phi() << std::endl;
+         //    std::cout << "  validGenJet" << j << " eta: " << vars.validGenJets[j].Eta() << std::endl;
+         //    std::cout << "  validGenJet" << j << " dR1: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
+         //    std::cout << "  validGenJet" << j << " dR2: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+         //    std::cout << std::endl;
+
+         //}
+         //std::cout << std::endl;
+
+         for(unsigned int j=0; j<vars.validMuons.size(); j++)
+         {
+             std::cout << "  validMuon" << j << " pt: " <<  vars.validMuons[j].Pt() << std::endl;
+             std::cout << "  validMuon" << j << " phi: " << vars.validMuons[j].Phi() << std::endl;
+             std::cout << "  validMuon" << j << " eta: " << vars.validMuons[j].Eta() << std::endl;
+             std::cout << std::endl;
+
+         }
+         std::cout << std::endl;
+         for(unsigned int j=0; j<vars.validExtraMuons.size(); j++)
+         {
+             std::cout << "  validExtraMuon" << j << " pt: " <<  vars.validExtraMuons[j].Pt() << std::endl;
+             std::cout << "  validExtraMuon" << j << " phi: " << vars.validExtraMuons[j].Phi() << std::endl;
+             std::cout << "  validExtraMuon" << j << " eta: " << vars.validExtraMuons[j].Eta() << std::endl;
+             std::cout << std::endl;
+
+         }
+         std::cout << std::endl;
+         for(unsigned int j=0; j<vars.validElectrons.size(); j++)
+         {
+             std::cout << "  validElectron" << j << " pt: " <<  vars.validElectrons[j].Pt() << std::endl;
+             std::cout << "  validElectron" << j << " phi: " << vars.validElectrons[j].Phi() << std::endl;
+             std::cout << "  validElectron" << j << " eta: " << vars.validElectrons[j].Eta() << std::endl;
+             std::cout << std::endl;
+
+         }
+         std::cout << std::endl;
+
+
 }
 
 //////////////////////////////////////////////////////////////////

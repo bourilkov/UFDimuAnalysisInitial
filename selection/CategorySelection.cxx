@@ -434,12 +434,12 @@ void LotsOfCategoriesRun2::initCategoryMap()
           categoryMap["0b_nonVlH_01j_gF_Loose"] = Category("0b_nonVlH_01j_gF_Loose");
 
             // gF Loose Geometrized
-            categoryMap["0b_nonVlH_01j_gF_Loose_BB"] = Category("0b_nonVlH_01j_gF_Loose_BB");
-            categoryMap["0b_nonVlH_01j_gF_Loose_BO"] = Category("0b_nonVlH_01j_gF_Loose_BO");
-            categoryMap["0b_nonVlH_01j_gF_Loose_BE"] = Category("0b_nonVlH_01j_gF_Loose_BE");
-            categoryMap["0b_nonVlH_01j_gF_Loose_OO"] = Category("0b_nonVlH_01j_gF_Loose_OO");
-            categoryMap["0b_nonVlH_01j_gF_Loose_OE"] = Category("0b_nonVlH_01j_gF_Loose_OE");
-            categoryMap["0b_nonVlH_01j_gF_Loose_EE"] = Category("0b_nonVlH_01j_gF_Loose_EE");
+            categoryMap["0b_nonVlH_01j_gF_Loose_BB"] = Category("0b_nonVlH_01j_gF_Loose_BB", true);
+            categoryMap["0b_nonVlH_01j_gF_Loose_BO"] = Category("0b_nonVlH_01j_gF_Loose_BO", true);
+            categoryMap["0b_nonVlH_01j_gF_Loose_BE"] = Category("0b_nonVlH_01j_gF_Loose_BE", true);
+            categoryMap["0b_nonVlH_01j_gF_Loose_OO"] = Category("0b_nonVlH_01j_gF_Loose_OO", true);
+            categoryMap["0b_nonVlH_01j_gF_Loose_OE"] = Category("0b_nonVlH_01j_gF_Loose_OE", true);
+            categoryMap["0b_nonVlH_01j_gF_Loose_EE"] = Category("0b_nonVlH_01j_gF_Loose_EE", true);
 
         ///////////////// V(lept)H (...) /////////////////////
         categoryMap["0b_VlH"]    = Category("0b_VlH");
@@ -565,7 +565,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
    // Determine whether we are in the at least 1b-jet categories or 0b-jet categories
    if(categoryMap["Preselection_Pass"].inCategory)
    {
-       std::cout << "    pass preselection..." << std::endl;
+       //std::cout << "    pass preselection..." << std::endl;
        if(vars.validBJets.size() >= c_pre_numBJetsMin) 
            categoryMap["1b"].inCategory = true;
        else
@@ -575,7 +575,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
        ///////////////// 1b CATEGORIES //////////////////////////////
        if(categoryMap["1b"].inCategory)
        {
-           std::cout << "    pass 1b..." << std::endl;
+           //std::cout << "    pass 1b..." << std::endl;
            if(vars.validExtraMuons.size() + vars.validElectrons.size() == c_1b_numExtraLeptons_tth)
                categoryMap["1b_TTH"].inCategory = true;
            else if(vars.validExtraMuons.size() + vars.validElectrons.size() == c_1b_numExtraLeptons_tth_bbh)
@@ -586,18 +586,19 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
            ///////////////// 1b-TTH (2 extra lept) CATEGORIES //////////////////////////////
            if(categoryMap["1b_TTH"].inCategory)
            {
-               std::cout << "    pass 1b TTH..." << std::endl;
+               //std::cout << "    pass 1b TTH..." << std::endl;
            }
            ///////////////// 1b_TTH_BBH (0 extra lept) CATEGORIES //////////////////////////////
            if(categoryMap["1b_TTH_BBH"].inCategory)
            {
-               std::cout << "    pass 1b TTH_BBH..." << std::endl;
+               //std::cout << "    pass 1b TTH_BBH..." << std::endl;
            }
 
        ///////////////// 0b CATEGORIES //////////////////////////////
        if(categoryMap["0b"].inCategory)
        {
-           std::cout << "    pass 0b..." << std::endl;
+           //std::cout << "    pass 0b..." << std::endl;
+           // output event information  here to debug... we have 70% in this category for N_valid_whatevers in data
            if(vars.validExtraMuons.size() + vars.validElectrons.size() >= c_0b_numExtraLeptonsMin)
                categoryMap["0b_VlH"].inCategory = true;
            else
@@ -606,12 +607,12 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
            ///////////////// 0b-VlH    (1,2 extra lept) CATEGORIES //////////////////////////////
            if(categoryMap["0b_VlH"].inCategory)
            {
-               std::cout << "    pass 0b_VlH..." << std::endl;
+               //std::cout << "    pass 0b_VlH..." << std::endl;
            }
            ///////////////// 0b-nonVlH (0 extra lept) CATEGORIES //////////////////////////////
            if(categoryMap["0b_nonVlH"].inCategory)
            {
-               std::cout << "    pass 0b_non_VlH..." << std::endl;
+               //std::cout << "    pass 0b_non_VlH..." << std::endl;
                if(vars.validJets.size() >= c_0b_nonVlH_njetsMin)
                    categoryMap["0b_nonVlH_2j"].inCategory = true;
                else
@@ -620,7 +621,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
                ///////////////// 0b-nonVlH_2j (0 extra lept) CATEGORIES //////////////////////////////
                if(categoryMap["0b_nonVlH_2j"].inCategory)
                {
-                   std::cout << "    pass 0b_non_VlHi_2j..." << std::endl;
+                   //std::cout << "    pass 0b_non_VlHi_2j..." << std::endl;
                    TLorentzVector leadJet    = vars.validJets[0];
                    TLorentzVector subleadJet = vars.validJets[1];
                    TLorentzVector dijet      = leadJet + subleadJet;
@@ -645,7 +646,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
                ///////////////// 0b-nonVlH_01j (0 extra lept) CATEGORIES //////////////////////////////
                if(categoryMap["0b_nonVlH_01j"].inCategory)
                {
-                   std::cout << "    pass 0b_nonVlH_01j..." << std::endl;
+                   //std::cout << "    pass 0b_nonVlH_01j..." << std::endl;
                    if(vars.met.pt > c_0b_nonVlH_01j_MET_min_ZvvH)
                        categoryMap["0b_nonVlH_01j_ZvvH"].inCategory = true; 
 

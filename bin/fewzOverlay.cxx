@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     TH1::AddDirectory(kFALSE);
 
     // The filename with the DY_MC histos. Filenames for fewz histos are given in getFewzTH1F.
-    TString filename = "rootfiles/11110_validate_dimu_mass_DY-FEWZ_MC_categories_3990.root";
+    TString filename = "rootfiles/00111_validate_dimu_mass_DY-FEWZ_MC_categories_3990.root";
     bool log = false;
     double luminosity = 3990;
 
