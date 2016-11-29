@@ -7,7 +7,7 @@
 #include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TH2F.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TGraph.h"
 #include "TGraphAsymmErrors.h"
 #include "TFile.h"
@@ -76,7 +76,7 @@ class ZCalibration
         Float_t fitsig;
 
         std::vector<Float_t> binning;
-        std::vector<TH1F*> histos;
+        std::vector<TH1D*> histos;
         std::vector<VoigtFitInfo> vfis;
         TGraphErrors* massvsx;
 
@@ -86,8 +86,8 @@ class ZCalibration
 
         void init();
         void fill(Float_t xvalue, Float_t massvalue);
-        int whichTH1F(Float_t xvalue);
-        VoigtFitInfo fit(TH1F* inhist, Float_t x, Float_t x_err);
+        int whichTH1D(Float_t xvalue);
+        VoigtFitInfo fit(TH1D* inhist, Float_t x, Float_t x_err);
         void fit();
         TGraphErrors* plot();
 };
@@ -114,11 +114,11 @@ class DiMuPlottingSystem
         TCanvas* overlay(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
 
         float ratioError2(float numerator, float numeratorError2, float denominator, float denominatorError2);
-        void  getBinningForRatio(TH1F* numerator, TH1F* denominator, std::vector<Double_t>& newBins, float maxPercentError);
+        void  getBinningForRatio(TH1D* numerator, TH1D* denominator, std::vector<Double_t>& newBins, float maxPercentError);
 
         TCanvas* stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true, 
                                            TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        TH1F* addHists(TList* list, TString name, TString title);
+        TH1D* addHists(TList* list, TString name, TString title);
 
         void arrangeStatBox(TCanvas* c, int i);
         void arrangeLegend(TCanvas* c, int i);

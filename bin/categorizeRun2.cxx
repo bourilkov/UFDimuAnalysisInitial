@@ -42,8 +42,8 @@ int main(int argc, char* argv[])
     int input = 0;       // the variable to plot, 0 is dimu_mass for instance
     bool rebin = false;  // rebin the histograms so that the ratio plots have small errors
     int binning = 0;     // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
-    int nPartitions = 1; // break the samples up into nPartitions to run in parallel
-    int partition = 0;   // which partition to make the plots for
+    unsigned int nPartitions = 1; // break the samples up into nPartitions to run in parallel
+    unsigned int partition = 0;   // which partition to make the plots for
 
     for(int i=1; i<argc; i++)
     {   
@@ -447,8 +447,12 @@ int main(int argc, char* argv[])
     for(auto &s : samplevec)
     {
       // Output some info about the current file
+      unsigned int start = ((float)partition/(float)nPartitions)*s->N;
+      unsigned int end   = ((float)(partition+1))/((float)nPartitions)*s->N;
       std::cout << std::endl;
       std::cout << "  /// Looping over " << s->name << std::endl;
+      std::cout << "  ///    start       : " << start << std::endl;
+      std::cout << "  ///    end         : " << end << std::endl;
 
       ///////////////////////////////////////////////////////////////////
       // HISTOGRAMS TO FILL ---------------------------------------------
@@ -479,60 +483,54 @@ int main(int argc, char* argv[])
           //else hbins = bins;
 
           // Set up the histogram for the category and variable to plot
-          c.second.histoMap[hkey] = new TH1F(hname, hname, hbins, min, max);
+          c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, min, max);
           c.second.histoList->Add(c.second.histoMap[hkey]); // need them ordered by xsec for the stack and ratio plot
           if(s->sampleType.Contains("data")) c.second.dataList->Add(c.second.histoMap[hkey]);      // data histo
           if(s->sampleType.Contains("signal")) c.second.signalList->Add(c.second.histoMap[hkey]);  // signal histos
           if(s->sampleType.Contains("background")) c.second.bkgList->Add(c.second.histoMap[hkey]); // bkg histos
       }
 
-      for(unsigned int i=partition/nPartitions*s->N; i<(partition+1)/nPartitions*s->N; i++)
+      for(unsigned int i=start; i<end; i++)
       {
 
         ///////////////////////////////////////////////////////////////////
         // GET INFORMATION ------------------------------------------------
         ///////////////////////////////////////////////////////////////////
 
-        //if(i>5) break;
-
         //std::cout << "s->getEntry..." << std::endl;
         s->getEntry(i); 
 
         // initialize vectors for the good jets, bjets, muons, electrons, and taus
-        //std::cout << "Set up valid object vectors..." << std::endl;
-        //std::cout << "Set up muon vec..." << std::endl;
         s->vars.validMuons.clear();
-        //std::cout << s->vars.validMuons.size() << std::endl;
-        //std::cout << "Set up decoy muon vec..." << std::endl;
-        //s->vars.validMuons.clear();
-        //std::cout << s->vars.validMuonsDecoy.size() << std::endl;
-        //std::cout << "Set up extra-muon vec..." << std::endl;
+        s->vars.validMuonsDecoy.clear();
         s->vars.validExtraMuons.clear();
-        //std::cout << s->vars.validExtraMuons.size() << std::endl;
-        //std::cout << "Set up electron vec..." << std::endl;
         s->vars.validElectrons.clear();
-        //std::cout << s->vars.validElectrons.size() << std::endl;
-        //std::cout << "Set up tau vec..." << std::endl;
         s->vars.validTaus.clear();
-        //std::cout << s->vars.validTaus.size() << std::endl;
-        //std::cout << "Set up jet vec..." << std::endl;
         s->vars.validJets.clear();
-        //std::cout << s->vars.validJets.size() << std::endl;
-        //std::cout << "Set up b-jet vec..." << std::endl;
         s->vars.validBJets.clear();
-        //std::cout << s->vars.validBJets.size() << std::endl;
 
+        // try to catch errors in initializing the valid object vectors
+        if(s->vars.validMuons.size() != 0 || s->vars.validMuonsDecoy.size() !=0 || s->vars.validExtraMuons.size() !=0 
+          || s->vars.validElectrons.size() !=0 ||  s->vars.validTaus.size() !=0 || s->vars.validBJets.size() !=0 
+          || s->vars.validJets.size() !=0)
+        {
+            std::cout << "!!! ERROR: clear valid object vectors should be zero..." << std::endl;
+            std::cout << "mu size      : " << s->vars.validMuons.size() << std::endl;
+            std::cout << "mu decoy size: " << s->vars.validMuonsDecoy.size() << std::endl;
+            std::cout << "xmu size     : " << s->vars.validExtraMuons.size() << std::endl;
+            std::cout << "e size       : " << s->vars.validElectrons.size() << std::endl;
+            std::cout << "t size       : " << s->vars.validTaus.size() << std::endl;
+            std::cout << "bjet size    : " << s->vars.validBJets.size() << std::endl;
+            std::cout << "jet size     : " << s->vars.validJets.size() << std::endl;
+            return 0;
+        }
         // filter the good objects from the larger set
         // Need to clean collections by dR later
-        //std::cout << "Get jets..." << std::endl;
+
         jetSelectionTools.getValidJets(s->vars, s->vars.validJets);
-        //std::cout << "Get b-jets..." << std::endl;
         jetSelectionTools.getValidBJets(s->vars, s->vars.validBJets);
-        //std::cout << "Get muons..." << std::endl;
         muonSelectionTools.getValidMuons(s->vars, s->vars.validMuons);
-        //std::cout << "Get electrons..." << std::endl;
         electronSelectionTools.getValidElectrons(s->vars, s->vars.validElectrons);
-        //std::cout << "Get taus..." << std::endl;
         tauSelectionTools.getValidTaus(s->vars, s->vars.validTaus);
 
         // segfaults at the moment, fix this
@@ -550,6 +548,35 @@ int main(int argc, char* argv[])
         for(unsigned int m=2; m<s->vars.validMuons.size(); m++)
             s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
 
+        // catch errors in loading the valid object vectors
+        if(s->vars.validMuons.size() <0 || s->vars.validMuonsDecoy.size() <0 || s->vars.validExtraMuons.size() <0
+          || s->vars.validElectrons.size() <0 ||  s->vars.validTaus.size() <0 || s->vars.validBJets.size() <0
+          || s->vars.validJets.size() < 0)
+        {
+            std::cout << "!!! ERROR: after loading vectors size < 0..." << std::endl;
+            std::cout << "mu size      : " << s->vars.validMuons.size() << std::endl;
+            std::cout << "mu decoy size: " << s->vars.validMuonsDecoy.size() << std::endl;
+            std::cout << "xmu size     : " << s->vars.validExtraMuons.size() << std::endl;
+            std::cout << "e size       : " << s->vars.validElectrons.size() << std::endl;
+            std::cout << "t size       : " << s->vars.validTaus.size() << std::endl;
+            std::cout << "bjet size    : " << s->vars.validBJets.size() << std::endl;
+            std::cout << "jet size     : " << s->vars.validJets.size() << std::endl;
+            return 0;
+        }
+        if(s->vars.validMuons.size() >=11 || s->vars.validMuonsDecoy.size() >=11 || s->vars.validExtraMuons.size() >=11
+          || s->vars.validElectrons.size() >=11 ||  s->vars.validTaus.size() >=11 || s->vars.validBJets.size() >=11
+          || s->vars.validJets.size() >=11)
+        {
+            std::cout << "!!! ERROR: after loading vectors size >= 11..." << std::endl;
+            std::cout << "mu size      : " << s->vars.validMuons.size() << std::endl;
+            std::cout << "mu decoy size: " << s->vars.validMuonsDecoy.size() << std::endl;
+            std::cout << "xmu size     : " << s->vars.validExtraMuons.size() << std::endl;
+            std::cout << "e size       : " << s->vars.validElectrons.size() << std::endl;
+            std::cout << "t size       : " << s->vars.validTaus.size() << std::endl;
+            std::cout << "bjet size    : " << s->vars.validBJets.size() << std::endl;
+            std::cout << "jet size     : " << s->vars.validJets.size() << std::endl;
+            return 0;
+        }
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
         ///////////////////////////////////////////////////////////////////
@@ -832,9 +859,9 @@ int main(int argc, char* argv[])
         // so we make these histos if we are plotting the dimu_mass spectrum
         if(varname.Contains("dimu_mass"))
         {
-            TH1F* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"Net_Signal");
-            TH1F* hNetBkg    = dps->addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
-            TH1F* hNetData   = dps->addHists(c.second.dataList, c.first+"_Net_Data", c.first+"_Net_Data");
+            TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"Net_Signal");
+            TH1D* hNetBkg    = dps->addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
+            TH1D* hNetData   = dps->addHists(c.second.dataList, c.first+"_Net_Data", c.first+"_Net_Data");
 
             netlist->Add(hNetSignal);
             netlist->Add(hNetBkg);

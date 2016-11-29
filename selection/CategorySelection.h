@@ -5,7 +5,7 @@
 
 #include "VarSet.h"
 #include "JetSelectionTools.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TList.h"
 #include <map>
 #include <iostream>
@@ -36,7 +36,7 @@ class Category
        bool hide = false;
 
        // Usually we want to make a bunch of histograms for each category, so we keep them here
-       std::map<TString, TH1F*> histoMap;   // access histos by name
+       std::map<TString, TH1D*> histoMap;   // access histos by name
        TList* histoList = new TList();      // histos ordered by xsec so that we can create the ratio and stack plot
        TList* signalList = new TList();     // signal histos
        TList* bkgList = new TList();        // bkg histos

@@ -15,7 +15,7 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "TString.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TH2F.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -142,13 +142,13 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
 
   while ((object = next()))
   {
-      //TH1F* hist = (TH1F*) object;
+      //TH1D* hist = (TH1D*) object;
       TGraph* graph = 0;
-      TH1F* hist = 0;
+      TH1D* hist = 0;
 
-      if(object->InheritsFrom("TH1F"))
+      if(object->InheritsFrom("TH1D"))
       {
-          hist = (TH1F*) object;
+          hist = (TH1D*) object;
           hist->SetLineColor(colors[i]);
           hist->SetLineWidth(2);
           //hist->SetFillColor(colors[i]);
@@ -261,7 +261,7 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
 
   while ((object = next()))
   {
-      TH1F* hist = (TH1F*) object;
+      TH1D* hist = (TH1D*) object;
       hist->SetStats(0);
       hist->SetFillColor(colors[i]);
       hist->SetLineColor(colors[i]);
@@ -339,18 +339,18 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TH1F* DiMuPlottingSystem::addHists(TList* ilist, TString name, TString title)
+TH1D* DiMuPlottingSystem::addHists(TList* ilist, TString name, TString title)
 {
 // Add all of the histograms in the list into a single histogram
 
-    TH1F* htotal = (TH1F*)ilist->First()->Clone(name);
+    TH1D* htotal = (TH1D*)ilist->First()->Clone(name);
 
     TIter next(ilist);
     TObject* object = 0;
 
     while ((object = next()))
     {
-        TH1F* h = (TH1F*) object;
+        TH1D* h = (TH1D*) object;
         if(object != ilist->First()) htotal->Add(h);
     }
     return htotal;
@@ -376,7 +376,7 @@ float DiMuPlottingSystem::ratioError2(float numerator, float numeratorError2, fl
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void DiMuPlottingSystem::getBinningForRatio(TH1F* numerator, TH1F* denominator, std::vector<Double_t>& newBins, float maxPercentError)
+void DiMuPlottingSystem::getBinningForRatio(TH1D* numerator, TH1D* denominator, std::vector<Double_t>& newBins, float maxPercentError)
 {
 // The ratio plots are a bit crazy with huge errors sometimes, so we want to rebin with variable binning
 // such that the error is always low in each of the ratio plot bins
@@ -485,13 +485,13 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     ///////////////////////////////////////////////////////////////////////////////////////////////
     
     // data usually
-    TH1F* numerator = (TH1F*) ilist->Last();
+    TH1D* numerator = (TH1D*) ilist->Last();
     // The rest of the list is usually the MC used to make the stack to compare to data
     TList* denomlist = (TList*) ilist->Clone("blah");
     // get rid of the data histogram from the list
     denomlist->RemoveLast();
     // Add up the MC histograms
-    TH1F* denominator = addHists(denomlist, name+"_add", name+"_add");
+    TH1D* denominator = addHists(denomlist, name+"_add", name+"_add");
 
     // Don't worry about drawing the stack. Just return a reasonable TCanvas.
     // If we were to return the canvas after creating the stack and ratio with bad info then TCanvas::SaveAs() gives a seg fault
@@ -525,8 +525,8 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
         // use the rebinnedList for the stack and ratio plot
         if(newBins.size() > 2)
         {
-            numerator = (TH1F*) numerator->Rebin(newBins.size()-1, numerator->GetName()+TString("_"), &newBins[0]);
-            denominator = (TH1F*) denominator->Rebin(newBins.size()-1, numerator->GetName()+TString("_"), &newBins[0]);
+            numerator = (TH1D*) numerator->Rebin(newBins.size()-1, numerator->GetName()+TString("_"), &newBins[0]);
+            denominator = (TH1D*) denominator->Rebin(newBins.size()-1, numerator->GetName()+TString("_"), &newBins[0]);
         }
         else
         {
@@ -553,7 +553,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
 
     // Need access to this to set the axes and titles and whatnot
     // also need access to the last one, but we already have numerator = ilist->last
-    TH1F* first = (TH1F*) ilist->At(0);
+    TH1D* first = (TH1D*) ilist->At(0);
 
     Double_t scale = 1;
 
@@ -594,7 +594,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     // Define the ratio plot
     // Clone the data histogram from the last location in the vector
     // The remainder of the vector consits of MC samples
-    TH1F* hratio = (TH1F*)numerator->Clone("hratio");
+    TH1D* hratio = (TH1D*)numerator->Clone("hratio");
 
     // Output the overall scale discrepancy between the stack and the hist of interest
     scale = hratio->Integral()/denominator->Integral();
@@ -742,7 +742,7 @@ ZCalibration::ZCalibration()
     xbins = 25;
     fitsig = 1;
 
-    histos = std::vector<TH1F*>();
+    histos = std::vector<TH1D*>();
     binning = std::vector<Float_t>();
     vfis = std::vector<VoigtFitInfo>();
     init();
@@ -764,7 +764,7 @@ ZCalibration::ZCalibration(TString xname, Float_t fitsig, Float_t massmin, Float
  
     this->fitsig = fitsig;
 
-    histos = std::vector<TH1F*>();
+    histos = std::vector<TH1D*>();
     binning = std::vector<Float_t>();
     vfis = std::vector<VoigtFitInfo>();
     init();
@@ -796,12 +796,12 @@ void ZCalibration::init()
     //    std::cout << binning[i] << std::endl;
     //}
 
-    // Set up the TH1Fs
+    // Set up the TH1Ds
     for(unsigned int i=0; i<binning.size()-1; i++)
     {
         TString range = Form("_%5.2f_to_%5.2f", binning[i], binning[i+1]);
         TString title = basename+range;
-        histos.push_back(new TH1F(title, title, massbins, massmin, massmax));
+        histos.push_back(new TH1D(title, title, massbins, massmin, massmax));
         histos[i]->GetXaxis()->SetTitle("Dimuon Mass (GeV)");
     }
 }
@@ -810,7 +810,7 @@ void ZCalibration::init()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-int ZCalibration::whichTH1F(Float_t xvalue)
+int ZCalibration::whichTH1D(Float_t xvalue)
 {
     Float_t interval = (xmax - xmin)/xbins;
     int bin = (xvalue-xmin)/interval;
@@ -829,7 +829,7 @@ int ZCalibration::whichTH1F(Float_t xvalue)
 
 void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
 {
-    int h = whichTH1F(xvalue);
+    int h = whichTH1D(xvalue);
     if(h>=0) 
         histos[h]->Fill(massvalue);
 }
@@ -838,7 +838,7 @@ void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-VoigtFitInfo ZCalibration::fit(TH1F* inhist, Float_t x, Float_t x_err)
+VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
 {
     VoigtFitInfo vfi;
     vfi.x = x;
