@@ -443,8 +443,14 @@ void LotsOfCategoriesRun2::initCategoryMap()
 
         ///////////////// V(lept)H (...) /////////////////////
         categoryMap["0b_VlH"]    = Category("0b_VlH");
-        // Need to add these ... 
-        // Check out Elizabeth's code
+
+            // VlH according to the V decays
+            categoryMap["0b_VlH_We"]         = Category("0b_VlH_We");
+            categoryMap["0b_VlH_Wmu"]        = Category("0b_VlH_Wmu");
+            categoryMap["0b_VlH_Ztautau"]        = Category("0b_VlH_Ztautau");
+            categoryMap["0b_VlH_Zmumu"]      = Category("0b_VlH_Zmumu");
+            categoryMap["0b_VlH_Zee"]        = Category("0b_VlH_Zee");
+            categoryMap["0b_VlH_Leftovers"]  = Category("0b_VlH_Leftovers");
 
     ///////////////// FAIL PRESELECTION //////////////////////////////
     categoryMap["Preselection_Fail"] = Category("Preselection_Fail");
@@ -505,9 +511,24 @@ LotsOfCategoriesRun2::LotsOfCategoriesRun2()
                 c_geo_emax = 2.4;
 
             // VlH (1 or 2 extra leptons)
-            c_0b_VlH_numExraMuons = -999;
-            c_0b_VlH_numExraElectrons = -999;
             c_0b_VlH_MET_min = 40;
+
+                // VlH according to the V decays
+                c_0b_VlH_We_num_e   = 1;         
+                c_0b_VlH_We_num_mu  = 0;         
+
+                c_0b_VlH_Wmu_num_e  = 0;        
+                c_0b_VlH_Wmu_num_mu = 1;        
+
+                c_0b_VlH_Ztautau_num_e  = 1;        
+                c_0b_VlH_Ztautau_num_mu = 1;        
+
+                c_0b_VlH_Zmumu_num_e  = 0;
+                c_0b_VlH_Zmumu_num_mu = 2;
+
+                c_0b_VlH_Zee_num_e  = 2; 
+                c_0b_VlH_Zee_num_mu = 0; 
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -608,7 +629,33 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
            if(categoryMap["0b_VlH"].inCategory)
            {
                //std::cout << "    pass 0b_VlH..." << std::endl;
+               if(vars.met.pt >= c_0b_VlH_MET_min)
+               {
+                    if(vars.validElectrons.size() == c_0b_VlH_We_num_e && vars.validExtraMuons.size() == c_0b_VlH_We_num_mu)    
+                        categoryMap["0b_VlH_We"].inCategory = true;
+
+                    else if(vars.validElectrons.size() == c_0b_VlH_Wmu_num_e && vars.validExtraMuons.size() == c_0b_VlH_Wmu_num_mu)    
+                        categoryMap["0b_VlH_Wmu"].inCategory = true;
+
+                    else if(vars.validElectrons.size() == c_0b_VlH_Ztautau_num_e && vars.validExtraMuons.size() == c_0b_VlH_Ztautau_num_mu)    
+                        categoryMap["0b_VlH_Ztautau"].inCategory = true;
+
+                    else    
+                        categoryMap["0b_VlH_Leftovers"].inCategory = true;
+               }
+               else
+               {
+                    if(vars.validElectrons.size() == c_0b_VlH_Zmumu_num_e && vars.validExtraMuons.size() == c_0b_VlH_Zmumu_num_mu)    
+                        categoryMap["0b_VlH_Zmumu"].inCategory = true;
+
+                    else if(vars.validElectrons.size() == c_0b_VlH_Zee_num_e && vars.validExtraMuons.size() == c_0b_VlH_Zee_num_mu)    
+                        categoryMap["0b_VlH_Zee"].inCategory = true;
+
+                    else    
+                        categoryMap["0b_VlH_Leftovers"].inCategory = true;
+               }
            }
+
            ///////////////// 0b-nonVlH (0 extra lept) CATEGORIES //////////////////////////////
            if(categoryMap["0b_nonVlH"].inCategory)
            {

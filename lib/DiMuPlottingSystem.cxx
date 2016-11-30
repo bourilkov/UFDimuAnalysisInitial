@@ -344,6 +344,7 @@ TH1D* DiMuPlottingSystem::addHists(TList* ilist, TString name, TString title)
 // Add all of the histograms in the list into a single histogram
 
     TH1D* htotal = (TH1D*)ilist->First()->Clone(name);
+    htotal->SetTitle(title);
 
     TIter next(ilist);
     TObject* object = 0;

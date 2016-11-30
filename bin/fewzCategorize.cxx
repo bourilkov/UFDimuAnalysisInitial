@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
     bool useRecoJetCuts = 1;
     bool useRecoToPlotJets = 1;
     bool cutNoGens = 1;
+    bool plotData = 0;
 
     for(int i=1; i<argc; i++)
     {   
@@ -43,6 +44,7 @@ int main(int argc, char* argv[])
         if(i==4) ss >> useRecoJetCuts;
         if(i==5) ss >> useRecoToPlotJets;
         if(i==6) ss >> cutNoGens;
+        if(i==7) ss >> plotData;
     }   
 
     // map of samples
@@ -59,7 +61,8 @@ int main(int argc, char* argv[])
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    float luminosity = 3990;       // pb-1
+    //float luminosity = 3990;       // pb-1
+    float luminosity = 33598;      // pb-1
     //float luminosity = 12900;      // pb-1 (ICHEP)
     //float luminosity = 15900;      // pb-1   (2016-08-03)
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
@@ -68,21 +71,19 @@ int main(int argc, char* argv[])
     // ================================================================
     // Data -----------------------------------------------------------
     // ================================================================
-/* 
 
-    TString datafilename = 
-    TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/old/stage_1_singleMuon_Run2016B_ALL.root");
-    //TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCD_ICHEP_ALL.root");
-    //TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDE_ALL.root");
+    if(plotData)
+    {
+        TString datafilename = 
+        TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/data/25ns/golden/CMSSW_8_0_X/stage_1_singleMuon_Run2016BCDEFGH_ALL_etm.root");
 
-    Sample* datasample = new Sample(datafilename, "Data", "data");
-    datasample->lumi = luminosity;
-    datasample->xsec = 9999;
-    datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016B_xsec69mb_CMSSW_8_0_X.root";
-    //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCD_ICHEP_xsec69p2mb_CMSSW_8_0_X.root";
-    //datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDE_xsec69p2mb_CMSSW_8_0_X.root";
-    samples["Data"] = datasample;
-*/
+        Sample* datasample = new Sample(datafilename, "Data", "data");
+        datasample->lumi = luminosity;
+        datasample->xsec = 9999;
+        datasample->pileupfile = "pu_reweight_trees/8_0_X/PU_2016BCDEFGH_xsec69p2mb_CMSSW_8_0_X.root";
+        samples["Data"] = datasample;
+    }
+
     // ================================================================
     // DYJetsToLL -----------------------------------------------------
     // ================================================================
@@ -138,11 +139,6 @@ int main(int argc, char* argv[])
     // Cut and Categorize ---------------------------------------------
     ///////////////////////////////////////////////////////////////////
     
-    // Objects to help with the cuts and selections
-    JetSelectionTools jetSelectionTools;
-    FEWZCompareCuts FEWZselection(useRecoMuCuts);
-    CategorySelectionFEWZ categorySelection(useRecoMuCuts, useRecoJetCuts);
-
     TString varname;
     int nbins, wbins;
     float nmin, wmin;
@@ -320,8 +316,12 @@ int main(int argc, char* argv[])
     std::cout << "wbins        : " << wbins << std::endl;
     std::cout << std::endl;
 
-    // Not sure how to deal with the scaling correctly when using a subset of events
     float reductionFactor = 1;
+
+    // Objects to help with the cuts and selections
+    JetSelectionTools jetSelectionTools;
+    FEWZCompareCuts FEWZselection(useRecoMuCuts);
+    CategorySelectionFEWZ categorySelection(useRecoMuCuts, useRecoJetCuts);
 
     for(auto &s : samplevec)
     {
@@ -347,8 +347,8 @@ int main(int argc, char* argv[])
           double hmax = nmax;
 
           // c.second is the category object, c.first is the category name
-          TString hname = varname+"_"+c.first+"_"+s->name;
-          hkey = varname+"_"+s->name;
+          TString hname = c.first+"_"+s->name;
+          hkey = s->name;
 
           // The VBF categories have low stats so we use fewer bins
           // Same goes for 01jet categories with dijet variables
@@ -360,7 +360,8 @@ int main(int argc, char* argv[])
           }
 
           // Set up the histogram for the category and variable to plot
-          c.second.histoMap[hkey] = new TH1F(hname, hname, hbins, hmin, hmax);
+          c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, hmin, hmax);
+          c.second.histoMap[hkey]->GetXaxis()->SetTitle(varname);
           c.second.histoList->Add(c.second.histoMap[hkey]); // need them ordered by xsec for the stack and ratio plot
       }
 
@@ -377,42 +378,45 @@ int main(int argc, char* argv[])
         s->vars.validGenJets = std::vector<TLorentzVector>();
 
         jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
-        jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+
+        // Can't get the MC info until we know the sample is MC
+        _TrackInfo gen_mu0;
+        _TrackInfo gen_mu1;
+        TLorentzVector gen_dimu;
 
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
-        // get first postFSR DY gen muon
-        _TrackInfo gen_mu0 = ParticleTools::getGenMuDY(0, 1, s->vars);
-        // get second postFSR DY gen muon
-        _TrackInfo gen_mu1 = ParticleTools::getGenMuDY(1, 1, s->vars);
-        // get dimuon candidate from DY gen muons
-        TLorentzVector gen_dimu = ParticleTools::getMotherPtEtaPhiM(gen_mu0.pt, gen_mu0.eta, gen_mu0.phi, MASS_MUON, gen_mu1.pt, gen_mu1.eta, gen_mu1.phi, MASS_MUON);
-
-        // If cutNoGens is true, we don't want to plot events where there are no gen muons from a Z or gamma*
-        if(gen_mu0.pt < 0 || gen_mu1.pt < 0 && cutNoGens)
+        if(s->sampleType.Contains("data"))
         {
-            continue;
-            // was printing this for debugging, don't want to print it right now, but leaving it here in case I do later
-            std::cout << "run, lumi, event" << std::endl;
-            std::cout << s->vars.eventInfo.run << ", " << s->vars.eventInfo.lumi << ", " << s->vars.eventInfo.event << std::endl;
-            std::cout << "gen muons gathered" << std::endl;
-            std::cout << gen_mu0.pt << "," << gen_mu0.eta << "," << gen_mu0.phi << std::endl;
-            std::cout << gen_mu1.pt << "," << gen_mu1.eta << "," << gen_mu1.phi << std::endl;
-            std::cout << "gen muons from Z" << std::endl;
-            std::cout << s->vars.genM1ZpostFSR.pt << "," << s->vars.genM1ZpostFSR.eta << "," << s->vars.genM1ZpostFSR.phi << std::endl;
-            std::cout << s->vars.genM2ZpostFSR.pt << "," << s->vars.genM2ZpostFSR.eta << "," << s->vars.genM2ZpostFSR.phi << std::endl;
-            std::cout << "gen muons from gamma*" << std::endl;
-            std::cout << s->vars.genM1GpostFSR.pt << "," << s->vars.genM1GpostFSR.eta << "," << s->vars.genM1GpostFSR.phi << std::endl;
-            std::cout << s->vars.genM2GpostFSR.pt << "," << s->vars.genM2GpostFSR.eta << "," << s->vars.genM2GpostFSR.phi << std::endl;
-            std::cout << "Dimuon gen mother" << std::endl;
-            std::cout << s->vars.genZpostFSR.pt << "," << s->vars.genZpostFSR.eta << "," << s->vars.genZpostFSR.phi << std::endl;
-            std::cout << s->vars.genGpostFSR.pt << "," << s->vars.genGpostFSR.eta << "," << s->vars.genGpostFSR.phi << std::endl;
-            std::cout << std::endl;
+            // must use reco information for data
+            // data is last so we can overwrite these and it won't affect the drell yan sample
+            useRecoMuCuts = 1;
+            useRecoToPlotMu = 1;
+            useRecoJetCuts = 1;
+            useRecoToPlotJets = 1;
+            cutNoGens = 0;
+
+            categorySelection.useRecoMu   = useRecoMuCuts;
+            categorySelection.useRecoJets = useRecoJetCuts;
+            FEWZselection.useReco = useRecoMuCuts; 
+        }
+        // can get the gen info since we have a MC sample
+        else
+        {
+            jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+            // get first postFSR DY gen muon
+            gen_mu0 = ParticleTools::getGenMuDY(0, 1, s->vars);
+            // get second postFSR DY gen muon
+            gen_mu1 = ParticleTools::getGenMuDY(1, 1, s->vars);
+            // get dimuon candidate from DY gen muons
+            gen_dimu = ParticleTools::getMotherPtEtaPhiM(gen_mu0.pt, gen_mu0.eta, gen_mu0.phi, MASS_MUON, gen_mu1.pt, gen_mu1.eta, gen_mu1.phi, MASS_MUON);
+
         }
 
         ///////////////////////////////////////////////////////////////////
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
+        
         
         // don't apply iso cuts when using reco, already turned off for gen
         //FEWZselection.cutset.cuts[7].on = false;
@@ -478,13 +482,11 @@ int main(int argc, char* argv[])
             {
                 if(c.second.inCategory && useRecoToPlotJets) 
                 {
-                    if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
                     for(unsigned int j=0; j<s->vars.validJets.size(); j++)
                         c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Pt(), s->getWeight());
                 }
                 if(c.second.inCategory && !useRecoToPlotJets) 
                 {
-                    if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
                     for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
                         c.second.histoMap[hkey]->Fill(s->vars.validGenJets[j].Pt(), s->getWeight());
                 }
@@ -584,40 +586,31 @@ int main(int argc, char* argv[])
 
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection.categoryMap)
+      {
           c.second.histoMap[hkey]->Scale(s->getScaleFactor(luminosity));
+      }
 
     } // end sample loop
 
-    //TList* varstacklist = new TList();  // list to save all of the stacks
     TList* histolist = new TList();     // list to save all of the histos
 
-    // Not ready for stack & ratio yet, need to make those plots with corresponding FEWZ plots instead of the usual
-    // Get the histos from each category and add to net histo list for saving
-    // For each category we want to compare the dimu_mass for DY with the dimu mass for FEWZ
+    // For each category we want to compare the dimu_mass for DY/Data with the dimu mass for FEWZ
     for(auto &c : categorySelection.categoryMap)
     {
-    //    // Name the canvas 
-    //    TString cname = c.first+"_"+varname+"_stack";
-    //    // Get the dy histogram that we just made earlier
-    //    TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries", "FEWZ/DY_MC");
-    //    varstacklist->Add(stack);
         histolist->Add(c.second.histoList);
-    //    stack->SaveAs("../python/fewz/img/"+cname+".png");
     }
    
     //std::cout << std::endl;
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile(TString("rootfiles/")+Form("%d%d%d%d%d_", (int)useRecoMuCuts, (int)useRecoToPlotMu, (int)useRecoJetCuts, 
-                                (int)useRecoToPlotJets, (int)cutNoGens)+ "validate_"+varname+"_DY-FEWZ_MC_categories_"+
+    TFile* savefile = new TFile(TString("rootfiles/")+Form("%d%d%d%d%d%d_", (int)useRecoMuCuts, (int)useRecoToPlotMu, (int)useRecoJetCuts, 
+                                (int)useRecoToPlotJets, (int)cutNoGens, (int)plotData)+ "validate_"+varname+"_DY-FEWZ_MC_categories_"+
                                 Form("%d",(int)luminosity)+".root", "RECREATE");
-    //TDirectory* stacks = savefile->mkdir("stacks");
+
     TDirectory* histos = savefile->mkdir("histos");
 
     // save the different histos and stacks in the appropriate directories in the tfile
-    //stacks->cd();
-    //varstacklist->Write();
     histos->cd();
     histolist->Write();
     savefile->Close();

@@ -187,9 +187,23 @@ class LotsOfCategoriesRun2 : public Categorizer
                 float c_geo_emax;
 
             // VlH (1 or 2 extra leptons)
-            int   c_0b_VlH_numExraMuons;
-            int   c_0b_VlH_numExraElectrons;
             float c_0b_VlH_MET_min;
+
+                // VlH according to the V decays
+                int c_0b_VlH_We_num_e;    
+                int c_0b_VlH_We_num_mu;    
+
+                int c_0b_VlH_Wmu_num_e;    
+                int c_0b_VlH_Wmu_num_mu;    
+
+                int c_0b_VlH_Ztautau_num_e;    
+                int c_0b_VlH_Ztautau_num_mu;    
+
+                int c_0b_VlH_Zmumu_num_e;
+                int c_0b_VlH_Zmumu_num_mu;
+
+                int c_0b_VlH_Zee_num_e;  
+                int c_0b_VlH_Zee_num_mu;  
 
         // Determine which category the event belongs to
         void evaluate(VarSet& vars);

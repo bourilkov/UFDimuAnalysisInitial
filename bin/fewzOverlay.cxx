@@ -83,8 +83,8 @@ TH1F* getFewzTH1F(TString categoryName)
     if(fewzHisto != 0)
     {
         std::cout << fewzHisto->GetName() << ", " << fewzHisto->Integral() << std::endl;
-        fewzHisto->SetName("fewz_dimu_mass_"+categoryName);
-        fewzHisto->SetTitle("fewz_dimu_mass_"+categoryName);
+        fewzHisto->SetName("fewz_"+categoryName);
+        fewzHisto->SetTitle("fewz_"+categoryName);
     }
     else std::cout << "isNULL" << std::endl;
     std::cout << std::endl;
@@ -96,11 +96,14 @@ TH1F* getFewzTH1F(TString categoryName)
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-TH1F* getDYJetsTH1F(TString categoryName, TString filename)
+TH1F* getSampleTH1F(TString categoryName, TString filename, bool isDYMC)
 {
-    std::cout << "getDYJets looking at category, " << categoryName << std::endl;
+    std::cout << "getSampleTH1F looking at category, " << categoryName << std::endl;
     TH1F* dyHisto = 0;
-    TString dyHistoName = "histos/dimu_mass_" + categoryName + "_DYJetsToLL";
+    TString dyHistoName = "histos/" + categoryName;
+    if(isDYMC) dyHistoName += "_DYJetsToLL";
+    else dyHistoName += "_Data";
+
     TFile* file = new TFile(filename);
 
     if(categoryName.EqualTo("1Jet_Narrow"))
@@ -131,8 +134,8 @@ TH1F* getDYJetsTH1F(TString categoryName, TString filename)
     if(dyHisto != 0) 
     {
         std::cout << dyHisto->GetName() << ", " << dyHisto->Integral() << std::endl;
-        dyHisto->SetName("dy_mc_dimu_mass_"+categoryName);
-        dyHisto->SetTitle("dy_mc_dimu_mass_"+categoryName);
+        dyHisto->SetName("dy_mc_"+categoryName);
+        dyHisto->SetTitle("dy_mc_"+categoryName);
     }
     else std::cout << "isNULL" << std::endl;
     std::cout << std::endl;
@@ -151,6 +154,7 @@ int main(int argc, char* argv[])
 
     // The filename with the DY_MC histos. Filenames for fewz histos are given in getFewzTH1F.
     TString filename = "rootfiles/00111_validate_dimu_mass_DY-FEWZ_MC_categories_3990.root";
+    bool isDYMC = true;
     bool log = false;
     double luminosity = 3990;
 
@@ -164,8 +168,9 @@ int main(int argc, char* argv[])
         std::stringstream ss; 
         ss << argv[i];
         if(i==1) filename = TString(argv[i]);
-        if(i==2) ss >> luminosity;
-        if(i==3) ss >> log;
+        if(i==2) ss >> isDYMC;
+        if(i==3) ss >> luminosity;
+        if(i==4) ss >> log;
     }   
 
     TString varname = "dimu_mass";
@@ -189,10 +194,10 @@ int main(int argc, char* argv[])
     for(auto &c : categorySelection.categoryMap)
     {
         // Name the canvas 
-        TString cname = c.first+"_"+varname+"_stack";
+        TString cname = c.first+"_stack";
         // Grab the fewz histogram for this category
         TH1F* fewzHisto = getFewzTH1F(c.first);
-        TH1F* dyHisto = getDYJetsTH1F(c.first, filename);
+        TH1F* dyHisto = getSampleTH1F(c.first, filename, isDYMC);
         if(fewzHisto != 0 && dyHisto != 0)
         {
             c.second.histoList->Add(dyHisto);
@@ -230,7 +235,7 @@ int main(int argc, char* argv[])
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    filename.ReplaceAll("validate", "overlay_fewz");
+    filename.ReplaceAll("validate", Form("overlay_fewz_DYMC%d",(int)isDYMC));
     TFile* savefile = new TFile(filename, "RECREATE");
     TDirectory* stacks = savefile->mkdir("stacks");
     TDirectory* overlays = savefile->mkdir("overlays");

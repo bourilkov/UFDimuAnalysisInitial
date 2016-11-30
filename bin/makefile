@@ -19,8 +19,8 @@ TDIR = ../tools/
 CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = categorizeRun1
-MAIN = categorizeRun2
+MAIN = categorizeRun1
+#MAIN = categorizeRun2
 #MAIN = fewzCategorize
 #MAIN = fewzOverlay
 #MAIN = fewzDYMCGenToRecoSmearing

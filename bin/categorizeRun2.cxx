@@ -475,8 +475,8 @@ int main(int argc, char* argv[])
           int hbins = bins;
 
           // c.second is the category object, c.first is the category name
-          TString hname = varname+"_"+c.first+"_"+s->name;
-          hkey = varname+"_"+s->name;
+          TString hname = c.first+"_"+s->name;
+          hkey = s->name;
 
           // Not sure what the low stats categories are for run2 yet
           //if(c.first.Contains("VBF") || c.first.Contains("GGF") || (c.first.Contains("01_Jet") && varname.Contains("jj"))) hbins = lowstatsbins; 
@@ -484,6 +484,7 @@ int main(int argc, char* argv[])
 
           // Set up the histogram for the category and variable to plot
           c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, min, max);
+          c.second.histoMap[hkey]->GetXaxis()->SetTitle(varname);
           c.second.histoList->Add(c.second.histoMap[hkey]); // need them ordered by xsec for the stack and ratio plot
           if(s->sampleType.Contains("data")) c.second.dataList->Add(c.second.histoMap[hkey]);      // data histo
           if(s->sampleType.Contains("signal")) c.second.signalList->Add(c.second.histoMap[hkey]);  // signal histos
@@ -838,9 +839,11 @@ int main(int argc, char* argv[])
 
     } // end sample loop
 
-    TList* varstacklist = new TList();  // list to save all of the stacks
-    TList* histolist = new TList();     // list to save all of the histos
-    TList* netlist = new TList();       // list to save all of the histos
+    TList* varstacklist = new TList();   // list to save all of the stacks
+    TList* signallist = new TList();     // list to save all of the signal histos
+    TList* bglist = new TList();         // list to save all of the background histos
+    TList* datalist = new TList();       // list to save all of the data histos
+    TList* netlist = new TList();        // list to save all of the net histos
 
     for(auto &c : categorySelection.categoryMap)
     {
@@ -848,25 +851,27 @@ int main(int argc, char* argv[])
         if(c.second.hide) continue;
 
         // Create the stack and ratio plot    
-        TString cname = c.first+"_"+varname+"_stack";
+        TString cname = c.first+"_stack";
         //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
                                   //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
+        // stack signal, bkg, and data
         TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries", rebin);
         varstacklist->Add(stack);
-        histolist->Add(c.second.histoList);
        
-        // we need the data histo, the net signal, and the net bkg for the datacards
-        // so we make these histos if we are plotting the dimu_mass spectrum
-        if(varname.Contains("dimu_mass"))
-        {
-            TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"Net_Signal");
-            TH1D* hNetBkg    = dps->addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
-            TH1D* hNetData   = dps->addHists(c.second.dataList, c.first+"_Net_Data", c.first+"_Net_Data");
+        // lists will contain signal, bg, and data histos for every category
+        signallist->Add(c.second.signalList);
+        bglist->Add(c.second.bkgList);
+        datalist->Add(c.second.dataList);
 
-            netlist->Add(hNetSignal);
-            netlist->Add(hNetBkg);
-            netlist->Add(hNetData);
-        }
+        // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
+        // so we make these histos. Might as well make them for every variable, not just dimu_mass.
+        TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
+        TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
+        TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
+
+        netlist->Add(hNetSignal);
+        netlist->Add(hNetBkg);
+        netlist->Add(hNetData);
 
         // fails here with seg-fault if the TCanvas 'stack' was created with bad info, aka 0 integral histograms for numerator or denominator
         stack->SaveAs("imgs/"+cname+".png");
@@ -880,17 +885,28 @@ int main(int argc, char* argv[])
                                 "_x69p2_8_0_X_MC_lotsOfCategoriesRun2_"+Form("%d",(int)luminosity)+
                                 Form("_rebin%d_partition%d-%d.root", (int)rebin, partition, nPartitions), "RECREATE");
 
-    TDirectory* stacks = savefile->mkdir("stacks");
-    TDirectory* histos = savefile->mkdir("histos");
-    TDirectory* net_histos = savefile->mkdir("net_histos");
+    TDirectory* stacks        = savefile->mkdir("stacks");
+    TDirectory* signal_histos = savefile->mkdir("signal_histos");
+    TDirectory* bg_histos     = savefile->mkdir("bg_histos");
+    TDirectory* data_histos   = savefile->mkdir("data_histos");
+    TDirectory* net_histos    = savefile->mkdir("net_histos");
 
     // save the different histos and stacks in the appropriate directories in the tfile
     stacks->cd();
     varstacklist->Write();
-    histos->cd();
-    histolist->Write();
+
+    signal_histos->cd();
+    signallist->Write();
+
+    bg_histos->cd();
+    bglist->Write();
+
+    data_histos->cd();
+    datalist->Write();
+
     net_histos->cd();
     netlist->Write();
+
     savefile->Close();
 
     return 0;

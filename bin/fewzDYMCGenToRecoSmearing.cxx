@@ -81,8 +81,9 @@ TH1F* getFewzTH1F(TString categoryName)
     if(fewzHisto != 0)
     {
         std::cout << fewzHisto->GetName() << ", " << fewzHisto->Integral() << std::endl;
-        fewzHisto->SetName("fewz_dimu_mass_"+categoryName);
-        fewzHisto->SetTitle("fewz_dimu_mass_"+categoryName);
+        fewzHisto->SetName("fewz_"+categoryName);
+        fewzHisto->SetTitle("fewz_"+categoryName);
+        fewzHisto->GetXaxis()->SetTitle("dimu_mass");
     }
     else std::cout << "isNULL" << std::endl;
     std::cout << std::endl;
@@ -98,7 +99,7 @@ TH1F* getDYJetsTH1F(TString categoryName, TString filename)
 {
     std::cout << "getDYJets looking at category, " << categoryName << std::endl;
     TH1F* dyHisto = 0;
-    TString dyHistoName = "histos/dimu_mass_" + categoryName + "_DYJetsToLL";
+    TString dyHistoName = "histos/" + categoryName + "_DYJetsToLL";
     TFile* file = new TFile(filename);
 
     if(categoryName.EqualTo("1Jet_Narrow"))
@@ -129,8 +130,8 @@ TH1F* getDYJetsTH1F(TString categoryName, TString filename)
     if(dyHisto != 0) 
     {
         std::cout << dyHisto->GetName() << ", " << dyHisto->Integral() << std::endl;
-        dyHisto->SetName("dy_mc_dimu_mass_"+categoryName);
-        dyHisto->SetTitle("dy_mc_dimu_mass_"+categoryName);
+        dyHisto->SetName("dy_mc_"+categoryName);
+        dyHisto->SetTitle("dy_mc_"+categoryName);
     }
     else std::cout << "isNULL" << std::endl;
     std::cout << std::endl;

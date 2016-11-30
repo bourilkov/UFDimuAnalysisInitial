@@ -37,15 +37,17 @@ class WorkspaceAndDatacardMaker:
         self.infilename = infilename
         self.category = category
         self.tfile = TFile(infilename)
-        self.setBackgroundHist()
-        self.setSignalHist()
+        self.setNetBackgroundHist()
+        self.setNetSignalHist()
         self.setNetMCHist()
     
-    def setBackgroundHist(self):
+    def setNetBackgroundHist(self):
         self.bkg_hist = self.tfile.Get('net_histos/'+self.category+"_Net_Bkg")
+        self.bkg_hist.SetTitle(self.category+"_Net_Bkg")
     
-    def setSignalHist(self):
+    def setNetSignalHist(self):
         self.signal_hist = self.tfile.Get('net_histos/'+self.category+"_Net_Signal")
+        self.signal_hist.SetTitle(self.category+"_Net_Signal")
     
     def setNetMCHist(self):
         # add up the signal and background
@@ -72,61 +74,73 @@ class WorkspaceAndDatacardMaker:
         # syntax:
         # <name>[initial-val, min-val, max-val]
         #----------------------------------------
-        wspace.factory('x[120.0, %f, %f]' % (massmin, massmax))
-        wspace.var('x').SetTitle('m_{#mu#mu}')
-        wspace.var('x').setUnit('GeV')
-    
-        # define the set obs = (x)
-        wspace.defineSet('obs', 'x')
-    
-        # make the set obs known to Python
-        obs  = wspace.set('obs')
+        x = RooRealVar('x','x',120, massmin, massmax)
+        x.SetTitle('m_{#mu#mu}')
+        x.setUnit('GeV')
     
         # create binned dataset from histogram
         # needs to be named data_obs for higgs combine limit setting
-        data = RooDataHist('data_obs', 'data_obs', RooArgList(obs), self.net_hist)
-        # add data to workspace.
-        # the RooCmdArg() is a workaround a PyROOT "feature"
-        getattr(wspace,'import')(data, RooCmdArg())
+        data   = RooDataHist('data_obs', 'data_obs', RooArgList(x), self.net_hist)
+        # import is a keyword so we wspace.import() doesn't work in python. have to do this
+        getattr(wspace, 'import')(data)
+
+        # need to set the signal model to something concrete, so we will fit it to the expected SM histogram
+        shist  = RooDataHist('sig', 'sig', RooArgList(x), self.signal_hist)
     
         #----------------------------------------
         # create background model
         #----------------------------------------
-        #wspace.factory('bmodel_norm[1.0, 0.1, 10]') # higgs combine fits the background and sets the norm on its own
-        #wspace.var('bmodel_norm').setConstant()     # so we don't need this when we use the wkspace in conjuction with higgs combine
-        wspace.factory('a1[ 5.0, -50, 50]')          # nuisance parameter1 for the background fit
-        wspace.factory('a2[-1.0, -50, 50]')          # nuisance parameter2 for the background fit
-        self.nuisance_params.append('a1')
-        self.nuisance_params.append('a2')
+        a1 = RooRealVar("a1", "a1", 5.0, -50, 50)          # nuisance parameter1 for the background fit
+        a2 = RooRealVar("a2", "a2", -1.0, -50, 50)         # nuisance parameter2 for the background fit
+        one = RooRealVar("one", "one", 1.0, -10, 10)
+        one.setConstant()
     
-        # define the background model 
-        # should take this as an input instead of hard coding it
-        # so that we can automatically get limits for different models
-        wspace.factory('expr::f("-(a1*(x/100)+a2*(x/100)^2)",a1,a2,x)')
-        # exp(c*x), c = 1 and x = f
-        wspace.factory('Exponential::bmodel_'+self.category+'(f, 1)')
-        bmodel  = wspace.pdf('bmodel_'+self.category)
+        f = RooFormulaVar("f", "-(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a1, a2))
+        bmodel = RooExponential('bmodel_'+self.category, 'bmodel_'+self.category, f, one) # exp(1*f(x))
+        getattr(wspace, 'import')(bmodel)
     
         #----------------------------------------
-        # create signal model
+        # create signal model, double gaussian
         #----------------------------------------
-        #wspace.factory('smodel_norm[1.0, 0.001, 1000.0]') # higgs combine automatically runs through different normalizations
-        #wspace.var('smodel_norm').setConstant()           # to get the limits so we don't need to figure it out here
-        wspace.factory('mass[125, %f, %f]' % (massmin, massmax))
-        wspace.factory('w[1.0, 0.1, 10]')
-        # define the signal model 
-        # should take this as an input instead of hard coding it
-        # so that we can automatically get limits for different models
-        wspace.factory('Gaussian::smodel_'+self.category+'(x, mass, w)')
-        wspace.var('mass').setConstant()                   # just set the mass to 125 for now
-        self.nuisance_params.append('w')
-        self.nuisance_params.append('mass')
-        smodel = wspace.pdf('smodel_'+self.category)
-    
+
+        # define the parameters for the two gaussians
+        meanG1 = RooRealVar("MeanG1", "MeanG1", 125.0, massmin, massmax)
+        meanG2 = RooRealVar("MeanG2", "MeanG2", 125.0, massmin, massmax)
+        
+        widthG1 = RooRealVar("WidthG1", "WidthG1", 5.0, 2.0, 10.0)
+        widthG2 = RooRealVar("WidthG2", "WidthG2", 1.0, 0.5, 5.0)
+        
+        # mixing parameters for the two gaussians
+        mixGG = RooRealVar("mixGG",  "mixGG", 0.5,0.,1.)
+
+        # define the two gaussians
+        gaus1 = RooGaussian("gaus1", "gaus1", x, meanG1, widthG1)
+        gaus2 = RooGaussian("gaus2", "gaus2", x, meanG2, widthG2)
+
+        # double gaussian
+        smodel = RooAddPdf('smodel_'+self.category, 'smodel_'+self.category, gaus1, gaus2, mixGG)
+
+        sigParamList = [meanG1, meanG2, widthG1, widthG2, mixGG]
+
         #----------------------------------------
         # save data and signal & bg models for use
         # with higgs combine
         #----------------------------------------
+        smodel.fitTo(shist)
+        xframe = x.frame()
+        shist.plotOn(xframe)
+        smodel.plotOn(xframe)
+        smodel.paramOn(xframe)
+        c1 = TCanvas('fig_signal_fit', 'fit', 10, 10, 500, 500)
+        xframe.Draw()
+        c1.SaveAs('.png')
+     
+        # after fitting, we nail the parameters down so that higgs combine 
+        # knows what the SM signal shape is
+        for i in rooParamList:
+            i.setConstant(True)
+
+        getattr(wspace, 'import')(smodel)
         wspace.SaveAs(self.category+'_s.root')
 
     def makeShapeDatacard(self):
@@ -206,9 +220,10 @@ class WorkspaceAndDatacardMaker:
         f.write('----------------------------------------------------------------------------------------------------------------------------------\n')
 
 print('program is running ...')
-# Needs the file with the dimu_mass plots created by categorize.cxx via running ./categorize 0 1
+# Needs the file with the dimu_mass plots created by categorize.cxx via running ./categorizeRun1/2
 # also needs to know the category you want to make the root file and datacard for
-wdm = WorkspaceAndDatacardMaker('/home/acarnes/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_110_160_x69p2_8_0_X_MC_categories_27217.root', 'GGF_Tight') 
+wdm = WorkspaceAndDatacardMaker('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_110_160_x69p2_8_0_X_MC_categories_33598_rebin0.root', 
+                                '01_Jet_Tight_BB') 
 print wdm.infilename, wdm.category
 wdm.makeShapeWorkspace()
 wdm.makeShapeDatacard()
