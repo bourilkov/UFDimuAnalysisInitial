@@ -82,7 +82,7 @@ class WorkspaceAndDatacardMaker:
         # needs to be named data_obs for higgs combine limit setting
         data   = RooDataHist('data_obs', 'data_obs', RooArgList(x), self.net_hist)
         # import is a keyword so we wspace.import() doesn't work in python. have to do this
-        getattr(wspace, 'import')(data)
+        getattr(wspace, 'import')(data, RooCmdArg())
 
         # need to set the signal model to something concrete, so we will fit it to the expected SM histogram
         shist  = RooDataHist('sig', 'sig', RooArgList(x), self.signal_hist)
@@ -97,7 +97,7 @@ class WorkspaceAndDatacardMaker:
     
         f = RooFormulaVar("f", "-(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a1, a2))
         bmodel = RooExponential('bmodel_'+self.category, 'bmodel_'+self.category, f, one) # exp(1*f(x))
-        getattr(wspace, 'import')(bmodel)
+        getattr(wspace, 'import')(bmodel, RooCmdArg())
     
         #----------------------------------------
         # create signal model, double gaussian
@@ -137,10 +137,12 @@ class WorkspaceAndDatacardMaker:
      
         # after fitting, we nail the parameters down so that higgs combine 
         # knows what the SM signal shape is
-        for i in rooParamList:
+        for i in sigParamList:
             i.setConstant(True)
 
-        getattr(wspace, 'import')(smodel)
+        getattr(wspace, 'import')(smodel, RooCmdArg())
+
+        wspace.Print()
         wspace.SaveAs(self.category+'_s.root')
 
     def makeShapeDatacard(self):
