@@ -175,7 +175,7 @@ class LotsOfCategoriesRun2 : public Categorizer
 
                 float c_0b_nonVlH_2j_mjj_min_VhH;
                 float c_0b_nonVlH_2j_mjj_max_VhH;
-                float c_0b_nonVlH_2j_dEtajjMuMu_min_vbfLoose;
+                float c_0b_nonVlH_2j_dEtajjMuMu_max_VhH;
             
                 // < c_0b_nonVlH_njets
                 float c_0b_nonVlH_01j_MET_min_ZvvH;              

@@ -499,7 +499,7 @@ LotsOfCategoriesRun2::LotsOfCategoriesRun2()
 
                 c_0b_nonVlH_2j_mjj_min_VhH = 60;
                 c_0b_nonVlH_2j_mjj_max_VhH = 110;
-                c_0b_nonVlH_2j_dEtajjMuMu_min_vbfLoose = 1.5;
+                c_0b_nonVlH_2j_dEtajjMuMu_max_VhH = 1.5;
 
                 // < c_0b_nonVlH_njets
                 c_0b_nonVlH_01j_MET_min_ZvvH = 40;
@@ -683,7 +683,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
                    else if(dijetMass > c_0b_nonVlH_2j_mjj_min_vbfLoose && dEta > c_0b_nonVlH_2j_dEtajj_min_vbfLoose)
                        categoryMap["0b_nonVlH_2j_VBF_Loose"].inCategory = true; 
 
-                   else if(dijetMass > c_0b_nonVlH_2j_mjj_min_VhH && dijetMass < c_0b_nonVlH_2j_mjj_max_VhH && dEtajjMuMu < c_0b_nonVlH_2j_dEtajjMuMu_min_vbfLoose)
+                   else if(dijetMass > c_0b_nonVlH_2j_mjj_min_VhH && dijetMass < c_0b_nonVlH_2j_mjj_max_VhH && dEtajjMuMu < c_0b_nonVlH_2j_dEtajjMuMu_max_VhH)
                        categoryMap["0b_nonVlH_2j_V_Hadronic_H"].inCategory = true; 
 
                    else

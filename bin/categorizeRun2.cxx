@@ -431,6 +431,15 @@ int main(int argc, char* argv[])
         varname = "MET";
     }
  
+    // dEta_jj_mumu
+    if(input == 24)
+    {
+        bins = 100;
+        min = -10; 
+        max = 10;
+        varname = "dEta_jj_mumu";
+    }
+ 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
     std::cout << "var         : " << varname << std::endl;
@@ -820,6 +829,16 @@ int main(int argc, char* argv[])
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.met.pt, s->getWeight());
             }
 
+            // dEta_jj_mumu
+            if(varname.EqualTo("dEta_jj_mumu"))
+            {
+                 if(s->vars.validJets.size() >= 2)
+                 {
+                     TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
+                     float dEta = dijet.Eta() - s->vars.dimuCand.recoCandEtaPF;
+                     if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
+                 }
+            }
         } // end category loop
 
         if(false)
