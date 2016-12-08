@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
     bool useRecoJetCuts = 1;
     bool useRecoToPlotJets = 1;
     bool cutNoGens = 1;
-    bool plotData = 0;
+    bool plotData = 1;
 
     for(int i=1; i<argc; i++)
     {   
@@ -47,6 +47,11 @@ int main(int argc, char* argv[])
         if(i==7) ss >> plotData;
     }   
 
+    float reductionFactor = 1;     // run over less data (e.g. 20 = 20x less). useful for debugging, runs faster.
+    float luminosity = 33598;      // pb-1
+    float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
+    float signalSF = 100;          // not using this at the moment
+
     // map of samples
     std::map<std::string, Sample*> samples;
 
@@ -60,13 +65,6 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
-
-    //float luminosity = 3990;       // pb-1
-    float luminosity = 33598;      // pb-1
-    //float luminosity = 12900;      // pb-1 (ICHEP)
-    //float luminosity = 15900;      // pb-1   (2016-08-03)
-    float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
-    float signalSF = 100;          // not using this at the moment
 
     // ================================================================
     // Data -----------------------------------------------------------
@@ -298,6 +296,12 @@ int main(int argc, char* argv[])
         varname = "dR_jj";
     }   
 
+    // Figure out the save file name here, since data may change the flags for the settings later.
+    TString savefilename = TString("rootfiles/")+Form("%d%d%d%d%d%d_", (int)useRecoMuCuts, (int)useRecoToPlotMu, (int)useRecoJetCuts,
+                                 (int)useRecoToPlotJets, (int)cutNoGens, (int)plotData)+ "validate_"+varname+"_DY-FEWZ_MC_categories_"+
+                                 Form("%d",(int)luminosity)+".root";
+
+
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
     std::cout << "useRecoMuCuts    : " << useRecoMuCuts << std::endl;
@@ -316,7 +320,6 @@ int main(int argc, char* argv[])
     std::cout << "wbins        : " << wbins << std::endl;
     std::cout << std::endl;
 
-    float reductionFactor = 1;
 
     // Objects to help with the cuts and selections
     JetSelectionTools jetSelectionTools;
@@ -365,6 +368,21 @@ int main(int argc, char* argv[])
           c.second.histoList->Add(c.second.histoMap[hkey]); // need them ordered by xsec for the stack and ratio plot
       }
 
+      if(s->sampleType.Contains("data"))
+      {
+          // must use reco information for data
+          // data is last so we can overwrite these and it won't affect the drell yan sample
+          useRecoMuCuts = 1;
+          useRecoToPlotMu = 1;
+          useRecoJetCuts = 1;
+          useRecoToPlotJets = 1;
+          cutNoGens = 0;
+
+          categorySelection.useRecoMu   = useRecoMuCuts;
+          categorySelection.useRecoJets = useRecoJetCuts;
+          FEWZselection.useReco = useRecoMuCuts; 
+      }
+
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
 
@@ -386,22 +404,8 @@ int main(int argc, char* argv[])
 
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
-        if(s->sampleType.Contains("data"))
-        {
-            // must use reco information for data
-            // data is last so we can overwrite these and it won't affect the drell yan sample
-            useRecoMuCuts = 1;
-            useRecoToPlotMu = 1;
-            useRecoJetCuts = 1;
-            useRecoToPlotJets = 1;
-            cutNoGens = 0;
-
-            categorySelection.useRecoMu   = useRecoMuCuts;
-            categorySelection.useRecoJets = useRecoJetCuts;
-            FEWZselection.useReco = useRecoMuCuts; 
-        }
         // can get the gen info since we have a MC sample
-        else
+        if(!s->sampleType.Contains("data"))
         {
             jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
             // get first postFSR DY gen muon
@@ -411,11 +415,34 @@ int main(int argc, char* argv[])
             // get dimuon candidate from DY gen muons
             gen_dimu = ParticleTools::getMotherPtEtaPhiM(gen_mu0.pt, gen_mu0.eta, gen_mu0.phi, MASS_MUON, gen_mu1.pt, gen_mu1.eta, gen_mu1.phi, MASS_MUON);
 
+            if(gen_mu0.pt < 0 || gen_mu1.pt < 0 && cutNoGens)
+            {   
+                continue;
+                // was printing this for debugging, don't want to print it right now, but leaving it here in case I do later
+                std::cout << "run, lumi, event" << std::endl;
+                std::cout << s->vars.eventInfo.run << ", " << s->vars.eventInfo.lumi << ", " << s->vars.eventInfo.event << std::endl;
+                std::cout << "gen muons gathered" << std::endl;
+                std::cout << gen_mu0.pt << "," << gen_mu0.eta << "," << gen_mu0.phi << std::endl;
+                std::cout << gen_mu1.pt << "," << gen_mu1.eta << "," << gen_mu1.phi << std::endl;
+                std::cout << "gen muons from Z" << std::endl;
+                std::cout << s->vars.genM1ZpostFSR.pt << "," << s->vars.genM1ZpostFSR.eta << "," << s->vars.genM1ZpostFSR.phi << std::endl;
+                std::cout << s->vars.genM2ZpostFSR.pt << "," << s->vars.genM2ZpostFSR.eta << "," << s->vars.genM2ZpostFSR.phi << std::endl;
+                std::cout << "gen muons from gamma*" << std::endl;
+                std::cout << s->vars.genM1GpostFSR.pt << "," << s->vars.genM1GpostFSR.eta << "," << s->vars.genM1GpostFSR.phi << std::endl;
+                std::cout << s->vars.genM2GpostFSR.pt << "," << s->vars.genM2GpostFSR.eta << "," << s->vars.genM2GpostFSR.phi << std::endl;
+                std::cout << "Dimuon gen mother" << std::endl;
+                std::cout << s->vars.genZpostFSR.pt << "," << s->vars.genZpostFSR.eta << "," << s->vars.genZpostFSR.phi << std::endl;
+                std::cout << s->vars.genGpostFSR.pt << "," << s->vars.genGpostFSR.eta << "," << s->vars.genGpostFSR.phi << std::endl;
+                std::cout << std::endl;
+            }
         }
 
         ///////////////////////////////////////////////////////////////////
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
+        
+        // If cutNoGens is true, we don't want to plot events where there are no gen muons from a Z or gamma*
+
         
         
         // don't apply iso cuts when using reco, already turned off for gen
@@ -604,9 +631,7 @@ int main(int argc, char* argv[])
 
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile(TString("rootfiles/")+Form("%d%d%d%d%d%d_", (int)useRecoMuCuts, (int)useRecoToPlotMu, (int)useRecoJetCuts, 
-                                (int)useRecoToPlotJets, (int)cutNoGens, (int)plotData)+ "validate_"+varname+"_DY-FEWZ_MC_categories_"+
-                                Form("%d",(int)luminosity)+".root", "RECREATE");
+    TFile* savefile = new TFile(savefilename, "RECREATE");
 
     TDirectory* histos = savefile->mkdir("histos");
 

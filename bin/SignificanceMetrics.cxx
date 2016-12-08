@@ -4,7 +4,8 @@
 #define SIGMETRICS
 
 #include "TMath.h"
-#include "TH1F.h"
+#include "TGraph.h"
+#include "TH1D.h"
 #include <vector>
 #include <utility>
 #include <cmath>
@@ -46,7 +47,7 @@ class SignificanceMetric
         virtual double significance(double signal, double background) = 0;
 
         // if we have a suitable significance function, then this function is determined
-        std::pair<double, double> significanceGivenCut(TH1F* signal, TH1F* background, int cutbin, bool ismin)
+        std::pair<double, double> significanceGivenCut(TH1D* signal, TH1D* background, int cutbin, bool ismin)
         {
             double sIntegral = 0;
             double bIntegral = 0;
@@ -54,8 +55,8 @@ class SignificanceMetric
             // the cut is a minimum bound we want the integral from the cut to the end
             if(ismin)
             {
-                sIntegral = signal->Integral(cutbin, signal->GetSize()-1);
-                bIntegral = background->Integral(cutbin, background->GetSize()-1);
+                sIntegral = signal->Integral(cutbin, signal->GetSize()+1);
+                bIntegral = background->Integral(cutbin, background->GetSize()+1);
                 
             }
             // the cut is a maximum bound we want the integral from beginning to the cut
@@ -68,7 +69,7 @@ class SignificanceMetric
         }
 
         // if we have a suitable significance function, then this function is determined as well
-        void significanceVsCut(std::vector<std::pair<double,double>>& svec, TH1F* signal, TH1F* background, bool ismin)
+        void significanceVsCut(std::vector<std::pair<double,double>>& svec, TH1D* signal, TH1D* background, bool ismin)
         {
             for(int i=0; i<signal->GetSize()-1; i++)
             {
@@ -116,18 +117,26 @@ class AsimovSignificance : public SignificanceMetric
 
         double significance(double signal, double background)
         {
+            if(background < 0) background = 0;
+            if(signal < 0) signal = 0;
+
             setUncertainty(background);
+
             if(unc == 0 && background == 0) return 0;
-            if(background == 0 && signal == 0) return 0;
+            if((background <= 0 && signal <= 0) || (background + signal <= 0)) return 0;
             
             double varb = background*unc*background*unc; 
             double tot = signal + background;
         
+            double noerr = std::sqrt(2*(tot*std::log(1+signal/background) - signal)); 
+            double werr = std::sqrt(2*(tot*std::log((tot*(varb+background))/((background*background)+tot*varb))-
+                                    (1/unc/unc)*std::log(1.+(varb*signal)/(background*(background+varb))))); 
+
             // return the simple case for zero uncertainty
-            if(unc == 0) return std::sqrt(2*(tot*std::log(1+signal/background) - signal));
+            if(unc == 0) return std::isfinite(noerr)?noerr:0;
 
             // return the full calculation when there is an uncertainty
-            return std::sqrt(2*(tot*std::log((tot*(varb+background))/((background*background)+tot*varb))-(1/unc/unc)*std::log(1.+(varb*signal)/(background*(background+varb)))));
+            return std::isfinite(werr)?werr:0;
         }
 };
 
@@ -144,9 +153,13 @@ class PoissonSignificance : public SignificanceMetric
 
         double significance(double signal, double background)
         {
+            if(background < 0) background = 0;
+            if(signal < 0) signal = 0;
+
             setUncertainty(background);
-            if(background == 0) return 0;
-            return signal/TMath::Sqrt(background + unc*unc*background*background);
+
+            double val = signal/TMath::Sqrt(signal + background + unc*unc*background*background);
+            return std::isfinite(val)?val:0;
         }
 };
 

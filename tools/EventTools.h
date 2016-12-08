@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 
+#include "TString.h"
 #include "EventTools.h"
 #include "CategorySelection.h"
 #include "JetSelectionTools.h"
@@ -22,6 +23,9 @@ class EventTools
 
         static void loadEventsFromFile(TString filename, std::vector<std::pair<int, long long int>>& v);
         static void outputEventsToFile(std::vector<std::pair<int,long long int>>& v, TString filename);
+        static TString outputMapKeysCSV(std::map<TString,double>& map);
+        static TString outputMapValuesCSV(std::map<TString,double>& map);
+        static void outputCategoryCountsToFile(Categorizer& categories, TString filename);
         static bool sameRunAndEvent(std::pair<int,long long int> a, std::pair<int,long long int> b);
         static bool eventInVector(std::pair<int,long long int> e, std::vector<std::pair<int,long long int>> events);
         static void outputEvent(VarSet& vars);

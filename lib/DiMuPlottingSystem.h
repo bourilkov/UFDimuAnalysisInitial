@@ -110,18 +110,18 @@ class DiMuPlottingSystem
         // Functions-------------------------------------------
         // ====================================================
 
-        THStack* stackComparison(TList* list, TString title, TString xaxistitle, TString yaxistitle, bool log = true, bool stats = false, int legend = 0);
-        TCanvas* overlay(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
+        static THStack* stackComparison(TList* list, TString title, TString xaxistitle, TString yaxistitle, bool log = true, bool stats = false, int legend = 0);
+        static TCanvas* overlay(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
 
-        float ratioError2(float numerator, float numeratorError2, float denominator, float denominatorError2);
-        void  getBinningForRatio(TH1D* numerator, TH1D* denominator, std::vector<Double_t>& newBins, float maxPercentError);
+        static float ratioError2(float numerator, float numeratorError2, float denominator, float denominatorError2);
+        static void  getBinningForRatio(TH1D* numerator, TH1D* denominator, std::vector<Double_t>& newBins, float maxPercentError);
 
-        TCanvas* stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true, 
+        static TCanvas* stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true, 
                                            TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        TH1D* addHists(TList* list, TString name, TString title);
+        static TH1D* addHists(TList* list, TString name, TString title);
 
-        void arrangeStatBox(TCanvas* c, int i);
-        void arrangeLegend(TCanvas* c, int i);
+        static void arrangeStatBox(TCanvas* c, int i);
+        static void arrangeLegend(TCanvas* c, int i);
 
 };
 

@@ -20,10 +20,13 @@ CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = categorizeRun1
-MAIN = categorizeRun2
+#MAIN = significanceRun1
+#MAIN = categorizeRun2
 #MAIN = fewzCategorize
 #MAIN = fewzOverlay
 #MAIN = fewzDYMCGenToRecoSmearing
+MAIN = outputCategorizationTraining
+#MAIN = outputRun1CountsCSV
 
 # link all of the objects to the main program
 ${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h

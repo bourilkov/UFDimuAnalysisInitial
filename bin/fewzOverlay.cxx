@@ -134,8 +134,8 @@ TH1F* getSampleTH1F(TString categoryName, TString filename, bool isDYMC)
     if(dyHisto != 0) 
     {
         std::cout << dyHisto->GetName() << ", " << dyHisto->Integral() << std::endl;
-        dyHisto->SetName("dy_mc_"+categoryName);
-        dyHisto->SetTitle("dy_mc_"+categoryName);
+        dyHisto->SetName((isDYMC?"dy_mc_":"data_")+categoryName);
+        dyHisto->SetTitle((isDYMC?"dy_mc_":"data_")+categoryName);
     }
     else std::cout << "isNULL" << std::endl;
     std::cout << std::endl;
@@ -153,10 +153,10 @@ int main(int argc, char* argv[])
     TH1::AddDirectory(kFALSE);
 
     // The filename with the DY_MC histos. Filenames for fewz histos are given in getFewzTH1F.
-    TString filename = "rootfiles/00111_validate_dimu_mass_DY-FEWZ_MC_categories_3990.root";
-    bool isDYMC = true;
+    TString filename = "rootfiles/111101_validate_dimu_mass_DY-FEWZ_MC_categories_33598.root";
+    bool isDYMC = false;
     bool log = false;
-    double luminosity = 3990;
+    double luminosity = 33598;
 
     // get binary options for the cuts and filling from the string
     int slash = filename.First("/");
@@ -197,34 +197,50 @@ int main(int argc, char* argv[])
         TString cname = c.first+"_stack";
         // Grab the fewz histogram for this category
         TH1F* fewzHisto = getFewzTH1F(c.first);
+        // Get Data or DY_MC histogram
         TH1F* dyHisto = getSampleTH1F(c.first, filename, isDYMC);
+
         if(fewzHisto != 0 && dyHisto != 0)
         {
-            c.second.histoList->Add(dyHisto);
-            // if we don't care about this cateogry or it didn't work then move on
-            // Get the dy histogram that we just made earlier
             //fewzHisto->Scale(dyHisto->Integral()/fewzHisto->Integral());
             fewzHisto->Scale(luminosity);
 
-            // Make a clone with unit scaling for the overlay plots
-            TH1F* fewzHistoClone = (TH1F*)fewzHisto->Clone();
-            fewzHistoClone->Scale(1/fewzHistoClone->Integral());
-            fewzHistoClone->SetName(c.first);
+            // Make a clone with unit norm for the overlay plots
+            TH1F* fewzHistoCloneUnitNorm = (TH1F*)fewzHisto->Clone();
+            fewzHistoCloneUnitNorm->Scale(1/fewzHistoCloneUnitNorm->Integral());
+            fewzHistoCloneUnitNorm->SetName(c.first);
 
-            // Add the fewzHisto to the list so that we can make a stack
-            c.second.histoList->Add(fewzHisto);
+
+            // Add the fewz and dy histos to the list so that we can make a stack
+            TString ratiotitle;
+            if(!isDYMC)
+            {
+                ratiotitle = "DATA/FEWZ"; 
+                c.first.Contains("Narrow")?fewzHisto->GetXaxis()->SetRangeUser(140, 160):fewzHisto->GetXaxis()->SetRangeUser(140, 310);
+                c.first.Contains("Narrow")?dyHisto->GetXaxis()->SetRangeUser(140, 160):dyHisto->GetXaxis()->SetRangeUser(140, 310);
+                c.second.histoList->Add(fewzHisto);
+                c.second.histoList->Add(dyHisto);
+            }
+            else
+            {
+                ratiotitle = "FEWZ/DY_MC"; 
+                c.second.histoList->Add(dyHisto);
+                c.second.histoList->Add(fewzHisto);
+            }
+
+
             //                                              list of histos    ,name  , title, xtitle,  ytitle,      , rebin, fit, ratiotitle,  log,  stats, legend
-            TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries", true, true, "FEWZ/DY_MC", log, false, 1);
+            TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries", true, true, ratiotitle, log, false, 0);
             varstacklist->Add(stack);
 
-            // Add the two histograms to the list
+            // Add the histograms to the save list
             histolist->Add(c.second.histoList);
 
             if(log) stack->SaveAs("../python/fewz/img/"+cinfo+cname+"_log.png");
             else stack->SaveAs("../python/fewz/img/"+cinfo+cname+".png");
 
-            if(c.first.Contains("Wide")) widelist->Add(fewzHistoClone);
-            if(c.first.Contains("Narrow")) narrowlist->Add(fewzHistoClone);
+            if(c.first.Contains("Wide")) widelist->Add(fewzHistoCloneUnitNorm);
+            if(c.first.Contains("Narrow")) narrowlist->Add(fewzHistoCloneUnitNorm);
        }
     }
 

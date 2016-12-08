@@ -24,12 +24,13 @@ void CategorySelectionRun1::initCategoryMap()
 // Initialize the categories
     categoryMap["ALL"] = Category("ALL");
 
-    // intermediate category to make things easier, don't plot this one, hence the true
-    categoryMap["Preselection"] = Category("Preselection", true);
+    // intermediate categories to make things easier
+    categoryMap["2_Jet"] = Category("2_Jet");
+    categoryMap["01_Jet"] = Category("01_Jet");
 
-    categoryMap["VBF_Tight"] = Category("VBF_Tight");
-    categoryMap["VBF_Loose"] = Category("VBF_Loose");
-    categoryMap["GGF_Tight"] = Category("GGF_Tight");
+    categoryMap["2_Jet_VBF_Tight"] = Category("2_Jet_VBF_Tight");
+    categoryMap["2_Jet_VBF_Loose"] = Category("2_Jet_VBF_Loose");
+    categoryMap["2_Jet_GGF_Tight"] = Category("2_Jet_GGF_Tight");
     categoryMap["01_Jet_Tight"] = Category("01_Jet_Tight");
     categoryMap["01_Jet_Loose"] = Category("01_Jet_Loose");
 
@@ -161,7 +162,7 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
     if(TMath::Abs(vars.recoMuons.eta[1]) >= 0.8 && TMath::Abs(vars.recoMuons.eta[1]) < 1.6 && TMath::Abs(vars.recoMuons.eta[0]) >= 1.6) 
         categoryMap["OE"].inCategory = true;
 
-    // preselection
+    // jet category selection
     if(vars.validJets.size() >= 2)
     {
         TLorentzVector leadJet = vars.validJets[0];
@@ -173,14 +174,15 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
 
         if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.met.pt < cMETMax)
         {
-            categoryMap["Preselection"].inCategory = true;
-            if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["VBF_Tight"].inCategory = true; return; }
-            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand.recoCandPtPF > cDimuPtMinGGFT){ categoryMap["GGF_Tight"].inCategory = true; return; }
-            else{ categoryMap["VBF_Loose"].inCategory = true; return; }
+            categoryMap["2_Jet"].inCategory = true;
+            if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["2_Jet_VBF_Tight"].inCategory = true; return; }
+            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand.recoCandPtPF > cDimuPtMinGGFT){ categoryMap["2_Jet_GGF_Tight"].inCategory = true; return; }
+            else{ categoryMap["2_Jet_VBF_Loose"].inCategory = true; return; }
         }
     }
-    if(!categoryMap["Preselection"].inCategory) // fails 2jet preselection enters 01 categories
+    if(!categoryMap["2_Jet"].inCategory) // fails 2jet preselection enters 01 categories
     {
+        categoryMap["01_Jet"].inCategory = true;
         if(vars.dimuCand.recoCandPtPF > cDimuPtMin01T){ categoryMap["01_Jet_Tight"].inCategory = true;}
         else{ categoryMap["01_Jet_Loose"].inCategory = true; }
 

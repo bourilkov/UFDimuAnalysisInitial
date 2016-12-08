@@ -7,7 +7,9 @@
 #include <sstream>
 #include <fstream>
 
+#include "../bin/SignificanceMetrics.cxx"
 #include "EventTools.h"
+#include "DiMuPlottingSystem.h"
 #include "CategorySelection.h"
 #include "JetSelectionTools.h"
 
@@ -49,6 +51,115 @@ void EventTools::outputEventsToFile(std::vector<std::pair<int,long long int>>& v
         file << e.first << ", " << e.second << std::endl;
     }   
     file.close();  
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString filename)
+{
+    std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
+    std::ofstream file(filename, std::ofstream::out);
+
+    TString fieldnames = "Category, Significance, Signal_Net, Bkg_Net";
+
+    // Loop through signal samples to get names
+    TIter nextSig(categories.categoryMap["ALL"].signalList);
+    TObject* object = 0;
+
+    while ((object = nextSig()))
+    {
+        TH1D* h = (TH1D*) object;
+        TString samplename = h->GetName();
+        samplename = samplename.ReplaceAll("ALL_", ""); // remove "ALL_" and we are left with the sample name
+        fieldnames += ", " + samplename; 
+    }
+    
+    // Loop through bkg samples to get names
+    TIter nextBkg(categories.categoryMap["ALL"].bkgList);
+    object = 0;
+
+    while ((object = nextBkg()))
+    {
+        TH1D* h = (TH1D*) object;
+        TString samplename = h->GetName();
+        samplename = samplename.ReplaceAll("ALL_", ""); // remove "ALL_" and we are left with the sample name
+        fieldnames += ", " + samplename; 
+    }
+
+    // put the titles of the csv fields on the first line
+    file << fieldnames.Data() << std::endl;
+
+    // now get the info for each category    
+    for(auto const &c : categories.categoryMap)
+    {   
+        TH1D* hsig = DiMuPlottingSystem::addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
+        TH1D* hbkg = DiMuPlottingSystem::addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
+
+        double sintegral = hsig->Integral(0, hsig->GetSize());
+        double bintegral = hbkg->Integral(0, hbkg->GetSize());
+
+        PoissonSignificance poisson0(0);
+        double significance = poisson0.significance(sintegral, bintegral);
+
+        file << c.first << ", " << significance << ", " << sintegral << ", " << bintegral;
+
+        // Loop through signal samples to get names
+        TIter nextSig2(c.second.signalList);
+        object = 0;
+
+        while ((object = nextSig2()))
+        {
+            TH1D* h = (TH1D*) object;
+            file << ", " << h->Integral(0, h->GetSize()); 
+        }
+        
+        // Loop through bkg samples to get names
+        TIter nextBkg2(c.second.bkgList);
+        object = 0;
+
+        while ((object = nextBkg2()))
+        {
+            TH1D* h = (TH1D*) object;
+            file << ", " << h->Integral(0, h->GetSize()); 
+        }
+        file << std::endl;
+
+    }   
+    file.close();  
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+TString EventTools::outputMapKeysCSV(std::map<TString,double>& map)
+{
+    TString out = "";
+    for(auto const &c : map)
+    {   
+        out+=","+c.first;
+    }
+    out = out(1,out.Length());
+    return out;
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+TString EventTools::outputMapValuesCSV(std::map<TString,double>& map)
+{
+    TString out = "";
+    for(auto const &c : map)
+    {   
+        std::stringstream ss;
+        ss << c.second;
+        out+=","+ss.str();
+    }
+    out = out(1,out.Length());
+    return out;
 }
 
 //////////////////////////////////////////////////////////////////
