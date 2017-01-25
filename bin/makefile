@@ -15,24 +15,21 @@ SDIR = ../selection/
 # the directory for the cut tool objects specific to the analysis
 TDIR = ../tools/
 
+# directory for a threadpool based on C++11 std::thread
+THREADDIR = ../threadpool/
+
 # include the libdir and sdir and the root libraries
-CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -c -g `root-config --cflags`
+CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = categorizeRun1
-#MAIN = significanceRun1
-#MAIN = categorizeRun2
-#MAIN = fewzCategorize
-#MAIN = fewzOverlay
-#MAIN = fewzDYMCGenToRecoSmearing
-MAIN = outputCategorizationTraining
-#MAIN = outputRun1CountsCSV
+#MAIN = example
+MAIN = categorizeRun1
 
 # link all of the objects to the main program
-${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h
+${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${THREADDIR}ThreadPool.hxx
 	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
 
-${MAIN}.o: ${MAIN}.cxx SignificanceMetrics.cxx ${LIBDIR}DataFormats.h 
+${MAIN}.o: ${MAIN}.cxx SignificanceMetrics.hxx ${LIBDIR}DataFormats.h ${THREADDIR}ThreadPool.hxx 
 	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
 
 ${TDIR}EventTools.o: ${TDIR}EventTools.cxx ${TDIR}EventTools.h ${LIBDIR}VarSet.h

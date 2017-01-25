@@ -47,8 +47,9 @@ class Sample
         void calculateNoriginal(); // calculate nOriginal and nOriginalWeighted
         void setBranchAddresses(); // link the values in the tree to vars
         float getWeight();         // get the weight for the histogram based upon the pileup weight and the MC gen weight
-        float getScaleFactor(float luminosity); // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
-        float getScaleFactor(float luminosity, float reductionFactor); // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
+
+        // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
+        float getScaleFactor(float luminosity); 
 
     protected:
         TFile* file;           // the file with the ttree

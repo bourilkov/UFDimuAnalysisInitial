@@ -22,17 +22,17 @@
 void CategorySelectionRun1::initCategoryMap()
 {
 // Initialize the categories
-    categoryMap["ALL"] = Category("ALL");
+    categoryMap["ALL"] = Category("ALL", true);
 
     // intermediate categories to make things easier
-    categoryMap["2_Jet"] = Category("2_Jet");
-    categoryMap["01_Jet"] = Category("01_Jet");
+    categoryMap["2_Jet"] = Category("2_Jet", true);
+    categoryMap["01_Jet"] = Category("01_Jet", true);
 
     categoryMap["2_Jet_VBF_Tight"] = Category("2_Jet_VBF_Tight");
     categoryMap["2_Jet_VBF_Loose"] = Category("2_Jet_VBF_Loose");
     categoryMap["2_Jet_GGF_Tight"] = Category("2_Jet_GGF_Tight");
-    categoryMap["01_Jet_Tight"] = Category("01_Jet_Tight");
-    categoryMap["01_Jet_Loose"] = Category("01_Jet_Loose");
+    categoryMap["01_Jet_Tight"] = Category("01_Jet_Tight", true);
+    categoryMap["01_Jet_Loose"] = Category("01_Jet_Loose", true);
 
     // intermediate categories to make things easier, don't plot these, hence the true
     categoryMap["BB"] = Category("BB", true);

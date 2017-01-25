@@ -89,42 +89,7 @@ Sample::~Sample() {
 
 void Sample::setBranchAddresses()
 {
-    // reco info
-    tree->SetBranchAddress("recoMuons", &vars.recoMuons);
-    tree->SetBranchAddress("recoElectrons", &vars.recoElectrons);
-    tree->SetBranchAddress("recoTaus", &vars.recoTaus);
-    tree->SetBranchAddress("dimuCand", &vars.dimuCand);           // reco dimu candidate
-
-    tree->SetBranchAddress("pfJets", &vars.jets);
-    tree->SetBranchAddress("met", &vars.met);
-
-    tree->SetBranchAddress("vertexInfo", &vars.vertices);
-    tree->SetBranchAddress("eventInfo", &vars.eventInfo);
-
-    // gen info
-    tree->SetBranchAddress("genJets", &vars.genJets);
-
-    // gen dimuon mothers
-    tree->SetBranchAddress("genZpreFSR", &vars.genZpreFSR);
-    tree->SetBranchAddress("genZpostFSR", &vars.genZpostFSR);
-    tree->SetBranchAddress("genGpreFSR", &vars.genGpreFSR);
-    tree->SetBranchAddress("genGpostFSR", &vars.genGpostFSR);
-
-    // gen muons from virutal gamma
-    tree->SetBranchAddress("genM1GpreFSR", &vars.genM1GpreFSR);
-    tree->SetBranchAddress("genM1GpostFSR", &vars.genM1GpostFSR);
-    tree->SetBranchAddress("genM2GpreFSR", &vars.genM2GpreFSR);
-    tree->SetBranchAddress("genM2GpostFSR", &vars.genM2GpostFSR);
-
-    // gen muons from Z
-    tree->SetBranchAddress("genM1ZpreFSR", &vars.genM1ZpreFSR);
-    tree->SetBranchAddress("genM1ZpostFSR", &vars.genM1ZpostFSR);
-    tree->SetBranchAddress("genM2ZpreFSR", &vars.genM2ZpreFSR);
-    tree->SetBranchAddress("genM2ZpostFSR", &vars.genM2ZpostFSR);
-
-    // other gen info
-    tree->SetBranchAddress("genWeight", &vars.genWeight);
-    tree->SetBranchAddress("nPU", &vars.nPU);
+    //tree->SetBranchStatus("*", 0);
 }
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -177,7 +142,7 @@ float Sample::getWeight()
 {
 // Assumes getEntry has already been called to load the appropriate values.
 // Gets the weight for the histogram depending on the sample type 
-    if(sampleType.Contains("data")) return 1.0;
+    if(sampleType.EqualTo("data")) return 1.0;
     else if(lumiWeights == 0) return 1.0*vars.genWeight;
     else return 1.0*vars.genWeight*lumiWeights->weight(vars.nPU);
     //else return 1.0*vars.genWeight;
@@ -191,18 +156,6 @@ float Sample::getScaleFactor(float luminosity)
 {
 // Scale the MC histograms based upon the data luminosity, the number of events
 // that the CMSSW analyzer looked at, and the xsec for the process
-    if(sampleType.Contains("data")) return 1.0;
-    else return luminosity*xsec/nOriginalWeighted;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-float Sample::getScaleFactor(float luminosity, float reductionFactor)
-{
-// Scale the MC histograms based upon the data luminosity, the number of events
-// that the CMSSW analyzer looked at, and the xsec for the process
-    if(sampleType.Contains("data")) return 1.0;
+    if(sampleType.EqualTo("data")) return 1.0;
     else return luminosity*xsec/nOriginalWeighted;
 }

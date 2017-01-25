@@ -39,8 +39,8 @@ class CutInfo
         CutInfo operator&&(const CutInfo& c)
         {
            CutInfo cutinfo;
-           cutinfo.tstring = this->name + " && " + c.name; 
-           cutinfo.name = this->name + " and " + c.name; 
+           cutinfo.tstring = this->tstring.EqualTo("")?c.tstring:this->tstring + " && " + c.tstring; 
+           cutinfo.name = this->name.EqualTo("")?c.tstring:this->name + " and " + c.name; 
            cutinfo.passed = this->passed && c.passed;
            return cutinfo;
         }
@@ -77,25 +77,28 @@ class CutSet
 
         }
 
-        void concatenate(std::vector<CutInfo>& cuts)         // see whether the event passes the set of cuts
+        void concatCuts(std::vector<CutInfo>& cuts)
         {
-            CutInfo cutinfo;
-            // set cutinfo to the first active cut
-            for(unsigned int i=1; i<cuts.size(); i++)
-            {
-                if(cuts[i].on)
-                {
-                    cutinfo = cuts[i];
-                    break;
-                }
-            } 
-
+            CutInfo c;
             // concatenate active cuts together
-            for(unsigned int i=1; i<cuts.size(); i++)
+            for(unsigned int i=0; i<cuts.size(); i++)
             {
                 if(cuts[i].on)
-                    cutinfo = cutinfo && cuts[i];
+                    c = c && cuts[i];
             } 
+            cutinfo = c;
+        }
+
+        void concatCuts()
+        {
+            CutInfo c;
+            // concatenate active cuts together
+            for(unsigned int i=0; i<cuts.size(); i++)
+            {
+                if(cuts[i].on)
+                    c = c && cuts[i];
+            } 
+            cutinfo = c;
         }
 
         void turnOnCut(int i)
