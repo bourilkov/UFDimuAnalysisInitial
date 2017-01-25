@@ -1,4 +1,4 @@
-// plot different variables in the run 1 categories.
+// plot different variables in the run 1 or run 2 categories.
 // may be used to look for discrepancies between data and mc or to make dimu_mass plots for limit setting.
 // outputs mc stacks with data overlayed and a ratio plot underneath.
 // also saves the histos needed to make the mc stack, data.
@@ -47,11 +47,11 @@ UInt_t getNumCPUs()
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-// set bins, min, max, and the var to plot based upon terminal input: input and binning
-void initPlotSettings(int input, int binning, int& bins, float& min, float& max, TString& varname)
+// set bins, min, max, and the var to plot based upon terminal varNumber: varNumber and binning
+void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& max, TString& varname)
 {
     // dimu_mass
-    if(input == 0)
+    if(varNumber == 0)
     {
         if(binning == 0)
         {
@@ -83,7 +83,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }
 
     // dimu_pt 
-    if(input == 1)
+    if(varNumber == 1)
     {
         bins = 200;
         min = 0;
@@ -92,7 +92,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }
 
     // mu_pt
-    if(input == 2)
+    if(varNumber == 2)
     {
         bins = 200;
         min = 0;
@@ -101,7 +101,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }
  
     // mu_eta
-    if(input == 3)
+    if(varNumber == 3)
     {
         bins = 100;
         min = -2.5;
@@ -110,7 +110,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }
 
     // NPV
-    if(input == 4)
+    if(varNumber == 4)
     {
         bins = 50;
         min = 0;
@@ -119,7 +119,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }
 
     // jet_pt
-    if(input == 5)
+    if(varNumber == 5)
     {   
         bins = 200;
         min = 0;
@@ -128,7 +128,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }   
 
     // jet_eta 
-    if(input == 6)
+    if(varNumber == 6)
     {   
         bins = 100;
         min = -5; 
@@ -137,7 +137,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }   
 
     // N_valid_jets
-    if(input == 7)
+    if(varNumber == 7)
     {   
         bins = 11;
         min = 0; 
@@ -146,7 +146,7 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }   
 
     // m_jj
-    if(input == 8)
+    if(varNumber == 8)
     {   
         bins = 200;
         min = 0; 
@@ -155,13 +155,145 @@ void initPlotSettings(int input, int binning, int& bins, float& min, float& max,
     }   
 
     // dEta_jj
-    if(input == 9)
+    if(varNumber == 9)
     {   
         bins = 100;
         min = -10; 
         max = 10;
         varname = "dEta_jj";
     }   
+    // N_valid_muons
+    if(varNumber == 10) 
+    {   
+        bins = 11; 
+        min = 0;  
+        max = 11; 
+        varname = "N_valid_muons";
+    }   
+
+    // N_valid_extra_muons
+    if(varNumber == 11) 
+    {   
+        bins = 11; 
+        min = 0;  
+        max = 11; 
+        varname = "N_valid_extra_muons";
+    }   
+
+    // extra_muon_pt
+    if(varNumber == 12) 
+    {   
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "extra_muon_pt";
+    }   
+ 
+    // extra_muon_eta
+    if(varNumber == 13)
+    {
+        bins = 100;
+        min = -3;
+        max = 3;
+        varname = "extra_muon_eta";
+    }
+
+    // N_valid_electrons
+    if(varNumber == 14)
+    {
+        bins = 11;
+        min = 0;
+        max = 11;
+        varname = "N_valid_electrons";
+    }
+    // electron_pt
+    if(varNumber == 15)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "electron_pt";
+    }
+
+    // electron_eta
+    if(varNumber == 16)
+    {
+        bins = 100;
+        min = -3;
+        max = 3;
+        varname = "electron_eta";
+    }
+
+    // N_valid_extra_leptons
+    if(varNumber == 17)
+    {
+        bins = 11;
+        min = 0;
+        max = 11;
+        varname = "N_valid_extra_leptons";
+    }
+
+    // N_valid_bjets
+    if(varNumber == 18)
+    {
+        bins = 11;
+        min = 0;
+        max = 11;
+        varname = "N_valid_bjets";
+    }
+
+    // bjet_pt
+    if(varNumber == 19)
+    {
+        bins = 200;
+        min = 0;
+        max = 200;
+        varname = "bjet_pt";
+    }
+    // bjet_eta 
+    if(varNumber == 20)
+    {
+        bins = 100;
+        min = -5;
+        max = 5;
+        varname = "bjet_eta";
+    }
+
+    // m_bb
+    if(varNumber == 21)
+    {
+        bins = 200;
+        min = 0;
+        max = 2000;
+        varname = "m_bb";
+    }
+
+    // mT_b_MET
+    if(varNumber == 22)
+    {
+        bins = 200;
+        min = 0;
+        max = 2000;
+        varname = "mT_b_MET";
+    }
+
+    // MET
+    if(varNumber == 23)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "MET";
+    }
+
+    // dEta_jj_mumu
+    if(varNumber == 24)
+    {
+        bins = 100;
+        min = -10;
+        max = 10;
+        varname = "dEta_jj_mumu";
+    }
 }
 
 
@@ -176,28 +308,30 @@ int main(int argc, char* argv[])
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
 
-    int nthreads = 10;   // number of threads to use in parallelization
-    int input = 0;       // the variable to plot, 0 is dimu_mass for instance
-    bool rebin = false;  // rebin the histograms so that the ratio plots have small errors
-    int binning = 0;     // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
-    bool fitratio = 0;   // fit the ratio plot (data/mc) under the stack w/ a straight line
+    int whichCategories = 1;  // run1categories = 1, run2categories = 2
+    int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
+    int nthreads = 10;        // number of threads to use in parallelization
+    bool rebin = false;       // rebin the histograms so that the ratio plots have small errors
+    int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
+    bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
 
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
-        if(i==1) ss >> input;
-        if(i==2) ss >> nthreads;
-        if(i==3) ss >> rebin;
-        if(i==4) ss >> binning;
-        if(i==5) ss >> fitratio;
+        if(i==1) ss >> whichCategories;
+        if(i==2) ss >> varNumber;
+        if(i==3) ss >> nthreads;
+        if(i==4) ss >> rebin;
+        if(i==5) ss >> binning;
+        if(i==6) ss >> fitratio;
     }   
     std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
     std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
 
     // Not sure that we need a map if we have a vector
     // Should use this as the main database and choose from it to make the vector
-    std::map<std::string, Sample*> samples;
+    std::map<TString, Sample*> samples;
 
     // Second container so that we can have a copy sorted by cross section.
     std::vector<Sample*> samplevec;
@@ -269,11 +403,12 @@ int main(int argc, char* argv[])
     float min;
     float max;
 
-    // set nbins, min, max, and var to plot based upon terminal inputs: input and binning
-    initPlotSettings(input, binning, bins, min, max, varname);
+    // set nbins, min, max, and var to plot based upon terminal varNumbers: varNumber and binning
+    initPlotSettings(varNumber, binning, bins, min, max, varname);
 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
+    std::cout << "categories  : " << whichCategories << std::endl;
     std::cout << "var         : " << varname << std::endl;
     std::cout << "min         : " << min << std::endl;
     std::cout << "max         : " << max << std::endl;
@@ -285,7 +420,7 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varname, bins, min, max, rebin, triggerSF, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << std::endl;
@@ -296,11 +431,18 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
       
       // Objects to help with the cuts and selections
-      JetSelectionTools jetSelectionTools;
-      CategorySelectionRun1 categorySelection;
-      Run1MuonSelectionCuts run1MuonSelection;
+      JetSelectionTools      jetSelectionTools;
+      MuonSelectionTools     muonSelectionTools;
+      ElectronSelectionTools electronSelectionTools;
+      TauSelectionTools      tauSelectionTools;
+
+      Run1MuonSelectionCuts     run1MuonSelection;
       Run1EventSelectionCuts80X run1EventSelectionData(true);
       Run1EventSelectionCuts80X run1EventSelectionMC;
+
+      Categorizer* categorySelection = 0;
+      if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
+      else categorySelection = new LotsOfCategoriesRun2();
 
       bool isData = s->sampleType.EqualTo("data");
 
@@ -319,7 +461,7 @@ int main(int argc, char* argv[])
       TString hkey = s->name;
 
       // Different categories for the analysis
-      for(auto &c : categorySelection.categoryMap)
+      for(auto &c : categorySelection->categoryMap)
       {
           //number of bins for the histogram
           int hbins;
@@ -335,15 +477,15 @@ int main(int argc, char* argv[])
           // Set up the histogram for the category and variable to plot
           c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, min, max);
           c.second.histoMap[hkey]->GetXaxis()->SetTitle(varname);
-          c.second.histoList->Add(c.second.histoMap[hkey]);                                        // need them ordered by xsec for the stack and ratio plot
-          if(s->sampleType.EqualTo("data")) c.second.dataList->Add(c.second.histoMap[hkey]);      // data histo
-          if(s->sampleType.EqualTo("signal")) c.second.signalList->Add(c.second.histoMap[hkey]);  // signal histos
-          if(s->sampleType.EqualTo("background")) c.second.bkgList->Add(c.second.histoMap[hkey]); // bkg histos
+          c.second.histoList->Add(c.second.histoMap[hkey]);                                      // need them ordered by xsec for the stack and ratio plot
+          if(s->sampleType.EqualTo("data")) c.second.dataList->Add(c.second.histoMap[hkey]);     // data histo
+          if(s->sampleType.EqualTo("signal")) c.second.signalList->Add(c.second.histoMap[hkey]); // signal histos
+          if(s->sampleType.EqualTo("background")) c.second.bkgList->Add(c.second.histoMap[hkey]);// bkg histos
 
       }
 
-
       // Link only to the branches we need to save a lot of time
+      // run 1 category info 
       TBranch* dimuCandBranch  = s->tree->GetBranch("dimuCand");
       TBranch* recoMuonsBranch = s->tree->GetBranch("recoMuons");
       TBranch* pfJetsBranch    = s->tree->GetBranch("pfJets");
@@ -356,6 +498,20 @@ int main(int argc, char* argv[])
       metBranch->SetAddress(&s->vars.met);
       eventInfoBranch->SetAddress(&s->vars.eventInfo);
 
+      // extra branches needed for run 2 categories
+      TBranch* recoElectronsBranch  = 0;
+      //TBranch* recoTausBranch       = 0;          // not using taus
+
+      if(whichCategories == 2)
+      {
+          recoElectronsBranch = s->tree->GetBranch("recoElectrons");
+          recoElectronsBranch->SetAddress(&s->vars.recoElectrons);
+
+          //s->tree->GetBranch("recoTaus");
+          //recoTausBranch->SetAddress(&s->vars.recoTaus);
+      }
+
+      // extra branches needed for MC samples
       TBranch* nPUBranch = 0;
       TBranch* genWeightBranch = 0;
 
@@ -366,7 +522,6 @@ int main(int argc, char* argv[])
           genWeightBranch->SetAddress(&s->vars.genWeight);
           nPUBranch->SetAddress(&s->vars.nPU);
       }
-
 
       ///////////////////////////////////////////////////////////////////
       // LOOP OVER EVENTS -----------------------------------------------
@@ -413,17 +568,47 @@ int main(int argc, char* argv[])
             nPUBranch->GetEntry(i);
         }
 
-        s->vars.validJets = std::vector<TLorentzVector>();
-        jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
+        if(whichCategories == 1) 
+        {
+            s->vars.validJets.clear();
+            jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
+        }
         //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
+        if(whichCategories == 2)
+        {
+            // load extra branches needed by run 2 categories
+            recoElectronsBranch->GetEntry(i);
+
+            // clear vectors for the valid collections
+            s->vars.validMuons.clear();
+            s->vars.validMuonsDecoy.clear();
+            s->vars.validExtraMuons.clear();
+            s->vars.validElectrons.clear();
+            s->vars.validJets.clear();
+            s->vars.validBJets.clear();
+
+            // load valid collections from s->vars raw collections
+            jetSelectionTools.getValidJets(s->vars, s->vars.validJets);
+            jetSelectionTools.getValidBJets(s->vars, s->vars.validBJets);
+            muonSelectionTools.getValidMuons(s->vars, s->vars.validMuons);
+            electronSelectionTools.getValidElectrons(s->vars, s->vars.validElectrons);
+
+            for(unsigned int m=2; m<s->vars.validMuons.size(); m++)
+                s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
+
+            // not using Taus
+            //recoTausBranch->GetEntry(i);
+            //tauSelectionTools.getValidTaus(s->vars, s->vars.validTaus);
+            //s->vars.validTaus.clear();
+        }
 
         // Figure out which category the event belongs to
-        categorySelection.evaluate(s->vars);
+        categorySelection->evaluate(s->vars);
 
 
         // Look at each category
-        for(auto &c : categorySelection.categoryMap)
+        for(auto &c : categorySelection->categoryMap)
         {
             // skip categories
             if(c.second.hide) continue;
@@ -518,19 +703,144 @@ int main(int argc, char* argv[])
                  continue;
             }
 
+            // N_valid_muons
+            if(varname.EqualTo("N_valid_muons"))
+            {
+                 c.second.histoMap[hkey]->Fill(s->vars.validMuons.size(), s->getWeight());
+                 continue;
+            }
+
+            // N_valid_extra_muons
+            if(varname.EqualTo("N_valid_extra_muons"))
+            {
+                 c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
+                 continue;
+            }
+
+            // extra_muon_pt
+            if(varname.EqualTo("extra_muon_pt"))
+            {
+                for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
+                    c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Pt(), s->getWeight());
+                continue;
+            }
+
+            // extra_muon_eta
+            if(varname.EqualTo("extra_muon_eta"))
+            {
+                for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
+                    c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Eta(), s->getWeight());
+                continue;
+            }
+
+            // N_valid_electrons
+            if(varname.EqualTo("N_valid_electrons"))
+            {
+                 c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
+                 continue;
+            }
+
+            // electron_pt
+            if(varname.EqualTo("electron_pt"))
+            {
+                for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
+                    c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Pt(), s->getWeight());
+                continue;
+            }
+            // electron_eta
+            if(varname.EqualTo("electron_eta"))
+            {
+                for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
+                    c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Eta(), s->getWeight());
+                continue;
+            }
+
+            // N_valid_extra_leptons
+            if(varname.EqualTo("N_valid_extra_leptons"))
+            {
+                 c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
+                 continue;
+            }
+
+            // N_valid_bjets
+            if(varname.EqualTo("N_valid_bjets"))
+            {
+                 c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
+                 continue;
+            }
+
+            // bjet_pt
+            if(varname.EqualTo("bjet_pt"))
+            {
+                for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
+                    c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Pt(), s->getWeight());
+                continue;
+            }
+
+            // bjet_eta 
+            if(varname.EqualTo("bjet_eta"))
+            {
+                for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
+                    c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Eta(), s->getWeight());
+                continue;
+            }
+            // m_bb
+            if(varname.EqualTo("m_bb"))
+            {
+                 if(s->vars.validBJets.size() >= 2)
+                 {
+                     TLorentzVector dijet = s->vars.validBJets[0] + s->vars.validBJets[1];
+                     c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
+                 }
+                 continue;
+            }
+
+            // mT_b_MET
+            if(varname.EqualTo("mT_b_MET"))
+            {
+                 if(s->vars.validBJets.size() > 0)
+                 {
+                     TLorentzVector met(s->vars.met.px, s->vars.met.py, 0, s->vars.met.sumEt);
+                     TLorentzVector bjet = s->vars.validBJets[0];
+                     TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
+                     TLorentzVector bmet_t = met + bjet_t;
+
+                     c.second.histoMap[hkey]->Fill(bmet_t.M(), s->getWeight());
+                 }
+                 continue;
+            }
+
+            // MET
+            if(varname.EqualTo("MET"))
+            {
+                c.second.histoMap[hkey]->Fill(s->vars.met.pt, s->getWeight());
+            }
+
+            // dEta_jj_mumu
+            if(varname.EqualTo("dEta_jj_mumu"))
+            {
+                 if(s->vars.validJets.size() >= 2)
+                 {
+                     TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
+                     float dEta = dijet.Eta() - s->vars.dimuCand.recoCandEtaPF;
+                     c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
+                 }
+                 continue;
+            }
+
         } // end category loop
 
         if(false)
           // ouput pt, mass info etc for the event
-          EventTools::outputEvent(s->vars, categorySelection);
+          EventTools::outputEvent(s->vars, *categorySelection);
 
         // Reset the flags in preparation for the next event
-        categorySelection.reset();
+        categorySelection->reset();
 
       } // end event loop
 
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
-      for(auto &c : categorySelection.categoryMap)
+      for(auto &c : categorySelection->categoryMap)
       {
           c.second.histoMap[hkey]->Scale(s->getScaleFactor(luminosity));
           if(!isData) c.second.histoMap[hkey]->Scale(triggerSF);
@@ -541,12 +851,11 @@ int main(int argc, char* argv[])
     }; // done defining makeHistoForSample
 
    ///////////////////////////////////////////////////////////////////
-   // LOOP OVER EVENTS -----------------------------------------------
+   // SAMPLE PARALLELIZATION------ ----------------------------------
    ///////////////////////////////////////////////////////////////////
 
-
     ThreadPool pool(nthreads);
-    std::vector< std::future<CategorySelectionRun1> > results;
+    std::vector< std::future<Categorizer*> > results;
 
     TStopwatch timerWatch;
     timerWatch.Start();
@@ -554,30 +863,48 @@ int main(int argc, char* argv[])
     for(auto &s : samplevec)
         results.push_back(pool.enqueue(makeHistoForSample, s));
 
+   ///////////////////////////////////////////////////////////////////
+   // Gather all the Histos into one Categorizer----------------------
+   ///////////////////////////////////////////////////////////////////
 
-    for(auto && categorySelection: results)
+    bool first = true;
+    Categorizer* cAll = 0;
+
+    // get histos from all categorizers and put them into one
+    // one categorizer per sample
+    for(auto && categorizer: results)
     {
-        for(auto& category: categorySelection.get().categoryMap)
+        if(first) cAll = categorizer.get();
+
+        for(auto& category: categorizer.get()->categoryMap)
         {
             if(category.second.hide) continue;
-            for(auto& c: category.second.histoMap)
+            for(auto& h: category.second.histoMap)
             {
-                std::cout << c.second->GetName() << ", " << c.second->Integral() << std::endl;
+                if(!first)
+                {
+                    // h.first is the sample name, histoMap<samplename, TH1D*>
+                    Sample* s = samples[h.first];
+
+                    cAll->categoryMap[category.first].histoMap[h.first] = h.second;
+                    cAll->categoryMap[category.first].histoList->Add(h.second);
+
+                    if(s->sampleType.EqualTo("signal"))          cAll->categoryMap[category.first].signalList->Add(h.second);
+                    else if(s->sampleType.EqualTo("background")) cAll->categoryMap[category.first].bkgList->Add(h.second);
+                    else                                         cAll->categoryMap[category.first].dataList->Add(h.second);
+                }
             }
         }
+        if(first) first = false;
     }
 
-    timerWatch.Stop();
-    std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
-
-/*
     TList* varstacklist = new TList();   // list to save all of the stacks
     TList* signallist = new TList();     // list to save all of the signal histos
     TList* bglist = new TList();         // list to save all of the background histos
     TList* datalist = new TList();       // list to save all of the data histos
     TList* netlist = new TList();        // list to save all of the net histos
 
-    for(auto &c : categorySelection.categoryMap)
+    for(auto &c : cAll->categoryMap)
     {
         // some categories are intermediate and we don't want to save the plots for those
         if(c.second.hide) continue;
@@ -608,12 +935,11 @@ int main(int argc, char* argv[])
         stack->SaveAs("imgs/"+cname+".png");
     }
     std::cout << std::endl;
-
-    TString savename = "validate_"+varname+Form("_%d_%d", (int)min, (int)max)+
-                       "_x69p2_8_0_X_MC_run1categories_"+Form("%d",(int)luminosity)+Form("_rebin%d.root", (int)rebin);
+    TString savename = Form("validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
+
     TFile* savefile = new TFile(savename, "RECREATE");
 
     TDirectory* stacks        = savefile->mkdir("stacks");
@@ -640,7 +966,8 @@ int main(int argc, char* argv[])
 
     savefile->Close();
  
-    std::cout << "&&& Elapsed Time: " << timerWatch.RealTime() << std::endl;
-*/
+    timerWatch.Stop();
+    std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
+
     return 0;
 }

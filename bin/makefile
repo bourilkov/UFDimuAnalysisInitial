@@ -23,7 +23,7 @@ CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cfl
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = example
-MAIN = categorizeRun1
+MAIN = categorize
 
 # link all of the objects to the main program
 ${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${THREADDIR}ThreadPool.hxx
