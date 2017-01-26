@@ -35,6 +35,46 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
+TList* getSortedMC(TList* list, std::vector<Sample*>& sampleVec)
+{
+// Sorts according to the xsec of the sample
+
+    // map sample name to sorted vector location
+    std::map<TString, unsigned int> xsecMap;
+    for(unsigned int i=0; i< sampleVec.size(); i++)
+        xsecMap[sampleVec[i]->name] = i;
+
+    // strip data and get a sorted vector of mc samples
+    std::vector<TH1D*> mcVec(sampleVec.size());
+    unsigned int ndata = 0;
+    for(unsigned int i=0; i<list->GetSize(); i++)
+    {
+        TH1D* hist = (TH1D*)list->At(i); 
+        TString name = hist->GetName();
+        int uscore = name.Last('_');
+        TString sampleName = name(uscore+1,name.Length());
+
+        if(sampleName.Contains("Run") || sampleName.Contains("Data"))
+            ndata++;
+        else
+            mcVec[xsecMap[sampleName]] = hist;    
+    }
+
+    // put the sorted mc into a list
+    TList* sortedMCList = new TList();
+    for(unsigned int i=0; i<mcVec.size()-ndata; i++)
+    {
+        sortedMCList->Add(mcVec[i]); 
+    }
+
+    return sortedMCList;
+}
+
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
 UInt_t getNumCPUs()
 {
   SysInfo_t s;
@@ -310,8 +350,8 @@ int main(int argc, char* argv[])
 
     int whichCategories = 1;  // run1categories = 1, run2categories = 2
     int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
-    int nthreads = 10;        // number of threads to use in parallelization
-    bool rebin = false;       // rebin the histograms so that the ratio plots have small errors
+    int nthreads = 11;        // number of threads to use in parallelization
+    bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
 
@@ -451,8 +491,7 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
 
       // Fewer bins for lowstats categories if necessary
-      int lowstatsbins = bins;
-      if(!rebin)  lowstatsbins = bins/5;
+      int lowstatsbins = bins/5;
 
       // If we are dealing with NPV or N_valid_jets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
@@ -867,36 +906,35 @@ int main(int argc, char* argv[])
    // Gather all the Histos into one Categorizer----------------------
    ///////////////////////////////////////////////////////////////////
 
-    bool first = true;
     Categorizer* cAll = 0;
+    if(whichCategories == 1) cAll = new CategorySelectionRun1(); 
+    else cAll = new LotsOfCategoriesRun2();
 
     // get histos from all categorizers and put them into one
-    // one categorizer per sample
-    for(auto && categorizer: results)
+    for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
     {
-        if(first) cAll = categorizer.get();
-
-        for(auto& category: categorizer.get()->categoryMap)
+        for(auto& category: categorizer.get()->categoryMap) // loop through each category
         {
+            // category.first is the category name, category.second is the Category object
             if(category.second.hide) continue;
-            for(auto& h: category.second.histoMap)
+            for(auto& h: category.second.histoMap) // loop through each histogram in the category
             {
-                if(!first)
-                {
-                    // h.first is the sample name, histoMap<samplename, TH1D*>
-                    Sample* s = samples[h.first];
+                // h.first is the sample name, category.histoMap<samplename, TH1D*>
+                Sample* s = samples[h.first];
 
-                    cAll->categoryMap[category.first].histoMap[h.first] = h.second;
-                    cAll->categoryMap[category.first].histoList->Add(h.second);
+                cAll->categoryMap[category.first].histoMap[h.first] = h.second;
+                cAll->categoryMap[category.first].histoList->Add(h.second);
 
-                    if(s->sampleType.EqualTo("signal"))          cAll->categoryMap[category.first].signalList->Add(h.second);
-                    else if(s->sampleType.EqualTo("background")) cAll->categoryMap[category.first].bkgList->Add(h.second);
-                    else                                         cAll->categoryMap[category.first].dataList->Add(h.second);
-                }
+                if(s->sampleType.EqualTo("signal"))          cAll->categoryMap[category.first].signalList->Add(h.second);
+                else if(s->sampleType.EqualTo("background")) cAll->categoryMap[category.first].bkgList->Add(h.second);
+                else                                         cAll->categoryMap[category.first].dataList->Add(h.second);
             }
         }
-        if(first) first = false;
     }
+
+   ///////////////////////////////////////////////////////////////////
+   // Save All of the Histos-----------------------------------------
+   ///////////////////////////////////////////////////////////////////
 
     TList* varstacklist = new TList();   // list to save all of the stacks
     TList* signallist = new TList();     // list to save all of the signal histos
@@ -909,21 +947,7 @@ int main(int argc, char* argv[])
         // some categories are intermediate and we don't want to save the plots for those
         if(c.second.hide) continue;
 
-        // Create the stack and ratio plot    
-        TString cname = c.first+"_stack";
-        //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
-                                  //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        // stack signal, bkg, and data
-        TCanvas* stack = dps->stackedHistogramsAndRatio(c.second.histoList, cname, cname, varname, "Num Entries", rebin);
-        varstacklist->Add(stack);
-
-        // lists will contain signal, bg, and data histos for every category
-        signallist->Add(c.second.signalList);
-        bglist->Add(c.second.bkgList);
-        datalist->Add(c.second.dataList);
-       
         // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-        // so we make these histos. Might as well make them for every variable, not just dimu_mass.
         TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
         TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
         TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
@@ -932,6 +956,22 @@ int main(int argc, char* argv[])
         netlist->Add(hNetBkg);
         netlist->Add(hNetData);
 
+        TList* sortedlist = getSortedMC(c.second.histoList, samplevec);
+        sortedlist->Add(hNetData);
+
+        // Create the stack and ratio plot    
+        TString cname = c.first+"_stack";
+        //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
+                                  //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
+        // stack signal, bkg, and data
+        TCanvas* stack = dps->stackedHistogramsAndRatio(sortedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
+        varstacklist->Add(stack);
+
+        // lists will contain signal, bg, and data histos for every category
+        signallist->Add(c.second.signalList);
+        bglist->Add(c.second.bkgList);
+        datalist->Add(c.second.dataList);
+       
         stack->SaveAs("imgs/"+cname+".png");
     }
     std::cout << std::endl;

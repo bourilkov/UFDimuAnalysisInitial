@@ -647,6 +647,8 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     std::cout << "########## ratio integral for " << name << ": " << hratio->Integral() << std::endl; 
     std::cout << std::endl;
 
+    if(!fit) hratio->SetStats(0);
+
     if(fit && hratio->Integral() != 0)
     {
         // Display fit info on canvas, mess with stat box styles.
