@@ -7,7 +7,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "../bin/SignificanceMetrics.cxx"
+#include "../bin/SignificanceMetrics.hxx"
 #include "EventTools.h"
 #include "DiMuPlottingSystem.h"
 #include "CategorySelection.h"

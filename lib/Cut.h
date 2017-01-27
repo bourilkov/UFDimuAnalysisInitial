@@ -4,7 +4,7 @@
 #ifndef ADD_CUT
 #define ADD_CUT
 
-#include "CutSet.h"
+#include "CutSet.hxx"
 #include "VarSet.h"
 #include "TString.h"
 

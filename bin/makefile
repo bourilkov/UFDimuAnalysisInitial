@@ -1,76 +1,61 @@
 # MakeFile
 
-# Set the Compiler
-CC = g++
-
-# Include the root libraries
+CC = g++ 
 LIBFLAGS = `root-config --libs` -O3 -lXMLIO -lMLP -lMinuit
 
-# the directory for the base library that enables the analysis
 LIBDIR = ../lib/
-
-# the directory for the cut selection objects specific to the analysis
 SDIR = ../selection/
-
-# the directory for the cut tool objects specific to the analysis
 TDIR = ../tools/
-
-# directory for a threadpool based on C++11 std::thread
 THREADDIR = ../threadpool/
+OBJDIR = ../lib/analyzer_objects/
 
-# include the libdir and sdir and the root libraries
-CFLAGS = -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
+CFLAGS = -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = example
-MAIN = categorize
+MAIN = example
+#MAIN = categorize
 
-# link all of the objects to the main program
-${MAIN}: ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${MAIN}.o ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${THREADDIR}ThreadPool.hxx
-	$(CC) $(LIBFLAGS) ${LIBDIR}Sample.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${MAIN}.o -o ${MAIN}
+MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o 
+MAINRULES2 = ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o 
+MAINRULES3 = ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.out 
+MAINDEPS   =  ${THREADDIR}ThreadPool.hxx 
+DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx
 
-${MAIN}.o: ${MAIN}.cxx SignificanceMetrics.hxx ${LIBDIR}DataFormats.h ${THREADDIR}ThreadPool.hxx 
-	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.o
+OBJH := $(shell find $(OBJDIR) -maxdepth 1 -name '*.h') 
+OBJCC := $(shell find $(OBJDIR) -maxdepth 1 -name '*.cc') 
 
-${TDIR}EventTools.o: ${TDIR}EventTools.cxx ${TDIR}EventTools.h ${LIBDIR}VarSet.h
-	$(CC) $(CFLAGS) ${TDIR}EventTools.cxx -o ${TDIR}EventTools.o
+#OBJS = 
 
-${TDIR}PUTools.o: ${TDIR}PUTools.cxx ${TDIR}PUTools.h ${LIBDIR}VarSet.h
-	$(CC) $(CFLAGS) ${TDIR}PUTools.cxx -o ${TDIR}PUTools.o
+# execute all of the rules to make the main program
+# $@ is the left of the :, and $^ is everything on the right
+${MAIN}: $(MAINRULES1) $(MAINRULES2) $(MAINRULES3)
+	$(CC) $(LIBFLAGS) -o $@ $^
 
-${TDIR}ParticleTools.o: ${TDIR}ParticleTools.cxx ${TDIR}ParticleTools.h ${LIBDIR}VarSet.h
-	$(CC) $(CFLAGS) ${TDIR}ParticleTools.cxx -o ${TDIR}ParticleTools.o
+# define a rule for each .o rule
+# %.o  all files ending in .o, % is the filename without the suffix
+# $< is the first item on the right side of the :, and $@ is the left side of the :
+%.o: %.cxx %.h $(DEPS)
+	$(CC) $(CFLAGS) $< -o $@ 
 
-${SDIR}SelectionCuts.o: ${SDIR}SelectionCuts.cxx ${SDIR}SelectionCuts.h ${LIBDIR}Cut.h ${LIBDIR}CutSet.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}SelectionCuts.cxx -o ${SDIR}SelectionCuts.o
+%.out: %.cxx $(MAINDEPS)
+	$(CC) $(CFLAGS) $< -o $@ 
 
-${SDIR}CategorySelection.o: ${SDIR}CategorySelection.cxx ${SDIR}CategorySelection.h ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}CategorySelection.cxx -o ${SDIR}CategorySelection.o
+# need this so that ROOT TTrees know how to pull out our analysis objects
+MyDict.cxx: ${OBJH} ${OBJDIR}linkdef/Linkdef.h
+	rootcint -f $@ -c $(CFLAGS) -p $^
 
-${SDIR}JetSelectionTools.o: ${SDIR}JetSelectionTools.cxx ${SDIR}JetSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}JetSelectionTools.cxx -o ${SDIR}JetSelectionTools.o
-
-${SDIR}MuonSelectionTools.o: ${SDIR}MuonSelectionTools.cxx ${SDIR}MuonSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}MuonSelectionTools.cxx -o ${SDIR}MuonSelectionTools.o
-
-${SDIR}ElectronSelectionTools.o: ${SDIR}ElectronSelectionTools.cxx ${SDIR}ElectronSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}ElectronSelectionTools.cxx -o ${SDIR}ElectronSelectionTools.o
-
-${SDIR}TauSelectionTools.o: ${SDIR}TauSelectionTools.cxx ${SDIR}TauSelectionTools.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${SDIR}TauSelectionTools.cxx -o ${SDIR}TauSelectionTools.o
-
-${LIBDIR}Sample.o: ${LIBDIR}Sample.cxx ${LIBDIR}Sample.h ${LIBDIR}VarSet.h ${LIBDIR}DataFormats.h
-	$(CC) $(CFLAGS) ${LIBDIR}Sample.cxx -o ${LIBDIR}Sample.o
-
-${LIBDIR}DiMuPlottingSystem.o: ${LIBDIR}DiMuPlottingSystem.cxx ${LIBDIR}DiMuPlottingSystem.h ${LIBDIR}Sample.h 
-	$(CC) $(CFLAGS) ${LIBDIR}DiMuPlottingSystem.cxx -o ${LIBDIR}DiMuPlottingSystem.o
-
+libAnalysisObjects.so: MyDict.cxx ${OBJCC}
+	g++ -shared -o$@ `root-config --cflags` -fPIC -I$(ROOTSYS)/include $^
 
 clean:
-	rm *.o
+	rm MyDict*
+	rm *.out
+	rm *.so
 
 cleanall:
-	rm *.o
 	rm ${LIBDIR}*.o
 	rm ${SDIR}*.o
 	rm ${TDIR}*.o
+	rm MyDict*
+	rm *.out
+	rm *.so
