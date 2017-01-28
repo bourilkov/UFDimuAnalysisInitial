@@ -46,34 +46,35 @@ EleCollectionCleaner::EleCollectionCleaner(float electronSelectionPtMin, float e
 
 void EleCollectionCleaner::getValidElectrons(VarSet& vars, std::vector<TLorentzVector>& electronvec)
 {
-    for(unsigned int j=0; j < vars.recoElectrons.nElectrons && j < vars.recoElectrons.arraySize; ++j)
+    for(unsigned int j=0; j < vars.recoElectrons->size(); ++j)
     {
         bool id = false;
-        if(cElectronSelectionID == 0) id = vars.recoElectrons.isTightElectron[j]; 
-        if(cElectronSelectionID == 1) id = vars.recoElectrons.isMediumElectron[j]; 
-        if(cElectronSelectionID == 2) id = vars.recoElectrons.isLooseElectron[j]; 
-        if(cElectronSelectionID == 3) id = vars.recoElectrons.isVetoElectron[j]; 
+        if(cElectronSelectionID == 0) id = vars.recoElectrons->at(j).isTightID; 
+        if(cElectronSelectionID == 1) id = vars.recoElectrons->at(j).isMediumID; 
+        if(cElectronSelectionID == 2) id = vars.recoElectrons->at(j).isLooseID; 
+        if(cElectronSelectionID == 3) id = vars.recoElectrons->at(j).isVetoID; 
 
         // Pt, Eta and ID
-        if(!(vars.recoElectrons.pt[j] > cElectronSelectionPtMin && TMath::Abs(vars.recoElectrons.eta[j]) < cElectronSelectionEtaMax && id)) 
+        if(!(vars.recoElectrons->at(j).pt > cElectronSelectionPtMin && TMath::Abs(vars.recoElectrons->at(j).eta) < cElectronSelectionEtaMax && id)) 
             continue;
 
         // Conversion Veto
-        if(!vars.recoElectrons.passConversionVeto[j])
+        if(!vars.recoElectrons->at(j).passConversionVeto)
             continue;
 
         // missing inner hits
-        if(!(TMath::Abs(vars.recoElectrons.missingInnerHits[j]) <= 1))
+        if(!(TMath::Abs(vars.recoElectrons->at(j).missingInnerHits) <= 1))
             continue;
 
         // isolation
-        if(!((vars.recoElectrons.sumChargedHadronPtR03[j] + TMath::Max(0.0,vars.recoElectrons.sumNeutralHadronEtR03[j]+vars.recoElectrons.sumPhotonEtR03[j]
-          - 0.5*vars.recoElectrons.sumPUPtR03[j]))/vars.recoElectrons.pt[j] <= cElectronSelectionIsoMax))
+        if(!((vars.recoElectrons->at(j).sumChargedHadronPtR03+ TMath::Max(0.0,vars.recoElectrons->at(j).sumNeutralHadronEtR03+
+              vars.recoElectrons->at(j).sumPhotonEtR03 - 0.5*vars.recoElectrons->at(j).sumPUPtR03))/vars.recoElectrons->at(j).pt 
+               <= cElectronSelectionIsoMax))
             continue;
 
         // passes all selections, add to valid extra electrons
         TLorentzVector electron4vec; 
-        electron4vec.SetPtEtaPhiM(vars.recoElectrons.pt[j],vars.recoElectrons.eta[j],vars.recoElectrons.phi[j],MASS_ELECTRON);
+        electron4vec.SetPtEtaPhiM(vars.recoElectrons->at(j).pt,vars.recoElectrons->at(j).eta,vars.recoElectrons->at(j).phi,MASS_ELECTRON);
         electronvec.push_back(electron4vec);
     }
 }

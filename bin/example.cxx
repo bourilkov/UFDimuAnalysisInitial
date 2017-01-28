@@ -6,7 +6,6 @@
 #include "JetCollectionCleaner.h"
 #include "MuonCollectionCleaner.h"
 #include "EleCollectionCleaner.h"
-#include "TauCollectionCleaner.h"
 
 #include "EventTools.h"
 #include "PUTools.h"

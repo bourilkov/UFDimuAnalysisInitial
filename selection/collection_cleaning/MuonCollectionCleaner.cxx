@@ -46,25 +46,25 @@ MuonCollectionCleaner::MuonCollectionCleaner(float muSelectionPtMin, float muSel
 
 void MuonCollectionCleaner::getValidMuons(VarSet& vars, std::vector<TLorentzVector>& muvec)
 {
-    for(unsigned int j=0; j < vars.recoMuons.nMuons && j < vars.recoMuons.arraySize; ++j)
+    for(unsigned int j=0; j < vars.recoMuons->size(); ++j)
     {
         bool id = false;
-        if(cMuonSelectionID == 0) id = vars.recoMuons.isTightMuon[j]; 
-        if(cMuonSelectionID == 1) id = vars.recoMuons.isMediumMuon[j]; 
-        if(cMuonSelectionID == 2) id = vars.recoMuons.isLooseMuon[j]; 
+        if(cMuonSelectionID == 0) id = vars.recoMuons->at(j).isTightID; 
+        if(cMuonSelectionID == 1) id = vars.recoMuons->at(j).isMediumID; 
+        if(cMuonSelectionID == 2) id = vars.recoMuons->at(j).isLooseID; 
 
         // Pt, Eta and ID
-        if(!(vars.recoMuons.pt[j] > cMuonSelectionPtMin && TMath::Abs(vars.recoMuons.eta[j]) < cMuonSelectionEtaMax && id)) 
+        if(!(vars.recoMuons->at(j).pt > cMuonSelectionPtMin && TMath::Abs(vars.recoMuons->at(j).eta) < cMuonSelectionEtaMax && id)) 
             continue;
 
         // isolation
-        if(!((vars.recoMuons.sumChargedHadronPtR03[j] + TMath::Max(0.0,vars.recoMuons.sumNeutralHadronEtR03[j]+vars.recoMuons.sumPhotonEtR03[j]
-          - 0.5*vars.recoMuons.sumPUPtR03[j]))/vars.recoMuons.pt[j] <= cMuonSelectionIsoMax))
+        if(!((vars.recoMuons->at(j).sumChargedHadronPtR03 + TMath::Max(0.0,vars.recoMuons->at(j).sumNeutralHadronEtR03+vars.recoMuons->at(j).sumPhotonEtR03
+          - 0.5*vars.recoMuons->at(j).sumPUPtR03))/vars.recoMuons->at(j).pt <= cMuonSelectionIsoMax))
             continue;
 
         // passes all selections, add to valid extra muons
         TLorentzVector mu4vec; 
-        mu4vec.SetPtEtaPhiM(vars.recoMuons.pt[j],vars.recoMuons.eta[j],vars.recoMuons.phi[j],MASS_MUON);
+        mu4vec.SetPtEtaPhiM(vars.recoMuons->at(j).pt,vars.recoMuons->at(j).eta,vars.recoMuons->at(j).phi,MASS_MUON);
         muvec.push_back(mu4vec);
     }
 }

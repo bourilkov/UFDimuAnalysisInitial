@@ -66,17 +66,17 @@ void JetCollectionCleaner::getValidJetsdR(VarSet& vars, std::vector<TLorentzVect
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
-    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
+    for(unsigned int j=0; j < vars.jets->size(); ++j)
     {
         // Pt and Eta selections
-        if(vars.jets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionEtaMax)
+        if(vars.jets->at(j).pt > cJetSelectionPtMin && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionEtaMax)
         {
             // dR vs muons selection
-            if(!(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) < cJetSelectiondRMin) 
-                 && !(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) < cJetSelectiondRMin))
+            if(!(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) < cJetSelectiondRMin) 
+                 && !(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) < cJetSelectiondRMin))
             {
                 TLorentzVector jet4vec; 
-                jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
+                jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
                 // passes all selections, add to valid jets
                 jetvec.push_back(jet4vec);
             }
@@ -92,17 +92,17 @@ void JetCollectionCleaner::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVec
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
-    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
+    for(unsigned int j=0; j < vars.jets->size(); ++j)
     {
         // Pt selection, btag-id, eta selections
-        if(vars.jets.pt[j] > cJetSelectionPtMin && vars.jets.isB[j] > cJetSelectionBTagMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionBJetEtaMax)
+        if(vars.jets->at(j).pt > cJetSelectionPtMin && vars.jets->at(j).CSV > cJetSelectionBTagMin && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionBJetEtaMax)
         {
             // dR vs muons selection
-            if(!(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) < cJetSelectiondRMin) 
-                 && !(dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) < cJetSelectiondRMin))
+            if(!(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) < cJetSelectiondRMin) 
+                 && !(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) < cJetSelectiondRMin))
             {
                 TLorentzVector jet4vec; 
-                jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
+                jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
                 // add to valid b-jets
                 jetvec.push_back(jet4vec);
             }
@@ -117,13 +117,13 @@ void JetCollectionCleaner::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVec
 void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
-    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
+    for(unsigned int j=0; j < vars.jets->size(); ++j)
     {
         // Pt and Eta selections
-        if(vars.jets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionEtaMax)
+        if(vars.jets->at(j).pt > cJetSelectionPtMin && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionEtaMax)
         {
            TLorentzVector jet4vec; 
-           jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
+           jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
            // passes all selections, add to valid jets
            jetvec.push_back(jet4vec);
         }
@@ -137,13 +137,14 @@ void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector
 void JetCollectionCleaner::getValidBJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
-    for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
+    for(unsigned int j=0; j < vars.jets->size(); ++j)
     {
         // Pt selection
-        if(vars.jets.pt[j] > cJetSelectionPtMin && vars.jets.isB[j] > cJetSelectionBTagMin && TMath::Abs(vars.jets.eta[j]) < cJetSelectionBJetEtaMax)
+        if(vars.jets->at(j).pt > cJetSelectionPtMin && vars.jets->at(j).CSV > cJetSelectionBTagMin 
+           && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionBJetEtaMax)
         {
            TLorentzVector jet4vec; 
-           jet4vec.SetPtEtaPhiM(vars.jets.pt[j],vars.jets.eta[j],vars.jets.phi[j],vars.jets.mass[j]);
+           jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
            // add to valid b-jets
            jetvec.push_back(jet4vec);
         }
@@ -174,22 +175,22 @@ void JetCollectionCleaner::getValidGenJets(VarSet& vars, std::vector<TLorentzVec
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
-
+/*
 bool JetCollectionCleaner::jetID(VarSet& vars, unsigned int jet, int id)
 {
     bool looseJetID, tightJetID, tightLepVetoJetID;
     tightLepVetoJetID = false;
 
-    float eta = TMath::Abs(vars.jets.eta[jet]);
+    float eta = TMath::Abs(vars.jets->at(jet).eta);
 
-    int NHF = vars.jets.nhf[jet];
-    int NEMF = vars.jets.nef[jet];
-    int NumConst = vars.jets.cm[jet]+vars.jets.nm[jet];
-    int MUF = vars.jets.muf[jet];
-    int CHF = vars.jets.chf[jet];
-    int CHM = vars.jets.cm[jet];
-    int CEMF = vars.jets.cef[jet];
-    int NumNeutralParticle = vars.jets.nm[jet];
+    int NHF = vars.jets->at(jet).nhf;
+    int NEMF = vars.jets->at(jet).nef;
+    int NumConst = vars.jets->at(jet).cm+vars.jets->at(jet).nm; // not available in awb ttree
+    int MUF = vars.jets->at(jet).muf;
+    int CHF = vars.jets->at(jet).chf;
+    int CHM = vars.jets->at(jet).cm;
+    int CEMF = vars.jets->at(jet).cef;
+    int NumNeutralParticle = vars.jets->at(jet).nm;            // same nm not available in awb ttree
 
     if(eta <= 2.7)
     {
@@ -212,3 +213,4 @@ bool JetCollectionCleaner::jetID(VarSet& vars, unsigned int jet, int id)
     else if(id == 1) return tightJetID;
     else return looseJetID;
 }
+*/

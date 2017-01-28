@@ -6,6 +6,13 @@
 #define ADD_VARSET
 
 #include "DataFormats.h"
+#include "EventInfo.h"
+#include "VertexInfo.h"
+#include "MuonInfo.h"
+#include "PairInfo.h"
+#include "EleInfo.h"
+#include "MetInfo.h"
+#include "JetInfo.h"
 #include "TLorentzVector.h"
 
 class VarSet
@@ -15,20 +22,19 @@ class VarSet
         ~VarSet(){};
 
         // reco info
-        _EventInfo eventInfo;
-        _VertexInfo vertices;
-        _MuonInfo recoMuons;
-        _DimuCandInfo dimuCand;
-        _ElectronInfo recoElectrons;
-        _TauInfo recoTaus;
-        _MetInfo met;
-        _PFJetInfo jets;
+        EventInfo eventInfo;
+        PairInfo dimuCand;
+        MetInfo met;
+
+        std::vector<VertexInfo>* vertices = 0;
+        std::vector<MuonInfo>* recoMuons = 0;
+        std::vector<EleInfo>* recoElectrons = 0;
+        std::vector<JetInfo>* jets = 0;
 
         std::vector<TLorentzVector> validMuonsDecoy;
         std::vector<TLorentzVector> validMuons;
         std::vector<TLorentzVector> validExtraMuons;
         std::vector<TLorentzVector> validElectrons;
-        std::vector<TLorentzVector> validTaus;
         std::vector<TLorentzVector> validJets;
         std::vector<TLorentzVector> validBJets;
 

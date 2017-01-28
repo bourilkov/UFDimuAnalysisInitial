@@ -17,7 +17,7 @@ class SynchMuonSelectionCuts : public Cut
 
         void makeCutSet();
         bool evaluate(VarSet& vars);
-        bool evaluate(_MuonInfo& recoMu, int m);
+        bool evaluate(std::vector<MuonInfo>* recoMuons, int m);
         TString string();
 };
 
@@ -33,7 +33,7 @@ class Run1MuonSelectionCuts : public Cut
 
         void makeCutSet();
         bool evaluate(VarSet& vars);
-        bool evaluate(_MuonInfo& recoMu, int m);
+        bool evaluate(std::vector<MuonInfo>* recoMuons, int m);
         TString string();
 };
 

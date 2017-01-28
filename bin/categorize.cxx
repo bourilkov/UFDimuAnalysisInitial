@@ -15,7 +15,6 @@
 #include "JetCollectionCleaner.h"
 #include "MuonCollectionCleaner.h"
 #include "EleCollectionCleaner.h"
-#include "TauCollectionCleaner.h"
 
 #include "EventTools.h"
 #include "PUTools.h"
@@ -475,7 +474,6 @@ int main(int argc, char* argv[])
       JetCollectionCleaner      jetCollectionCleaner;
       MuonCollectionCleaner     muonCollectionCleaner;
       EleCollectionCleaner      eleCollectionCleaner;
-      TauCollectionCleaner      tauCollectionCleaner;
 
       Run1MuonSelectionCuts     run1MuonSelection;
       Run1EventSelectionCuts80X run1EventSelectionData(true);
@@ -540,15 +538,11 @@ int main(int argc, char* argv[])
 
       // extra branches needed for run 2 categories
       TBranch* recoElectronsBranch  = 0;
-      //TBranch* recoTausBranch       = 0;          // not using taus
 
       if(whichCategories == 2)
       {
           recoElectronsBranch = s->tree->GetBranch("recoElectrons");
           recoElectronsBranch->SetAddress(&s->vars.recoElectrons);
-
-          //s->tree->GetBranch("recoTaus");
-          //recoTausBranch->SetAddress(&s->vars.recoTaus);
       }
 
       // extra branches needed for MC samples
@@ -587,7 +581,7 @@ int main(int argc, char* argv[])
         { 
             continue; 
         }
-        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
+        if(!s->vars.recoMuons->at(0).isTightID || !s->vars.recoMuons->at(1).isTightID)
         { 
             continue; 
         }
@@ -636,11 +630,6 @@ int main(int argc, char* argv[])
 
             for(unsigned int m=2; m<s->vars.validMuons.size(); m++)
                 s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
-
-            // not using Taus
-            //recoTausBranch->GetEntry(i);
-            //tauCollectionCleaner.getValidTaus(s->vars, s->vars.validTaus);
-            //s->vars.validTaus.clear();
         }
 
         // Figure out which category the event belongs to
@@ -657,7 +646,7 @@ int main(int argc, char* argv[])
             // dimuCand.recoCandMass
             if(varname.EqualTo("dimu_mass")) 
             {
-                float varvalue = s->vars.dimuCand.recoCandMassPF;
+                float varvalue = s->vars.dimuCand.mass_PF;
                 // blind the signal region for data but not for MC
                 if(!(isData && varvalue >= 110 && varvalue < 140))
                 {
@@ -667,34 +656,33 @@ int main(int argc, char* argv[])
                 }
                continue;
             }
-            // dimuCand.recoCandMass
 
             if(varname.EqualTo("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
-                c.second.histoMap[hkey]->Fill(s->vars.dimuCand.recoCandPtPF, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.dimuCand.pt_PF, s->getWeight());
                 continue;
             }
 
             if(varname.EqualTo("mu_pt"))
             {
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons.pt[0], s->getWeight());
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons.pt[1], s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).pt, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).pt, s->getWeight());
                 continue;
             }
 
             // recoMu_Eta
             if(varname.EqualTo("mu_eta"))
             {
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[0], s->getWeight());
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[1], s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).eta, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).eta, s->getWeight());
                 continue;
             }
 
             // NPV
             if(varname.EqualTo("NPV"))
             {
-                 c.second.histoMap[hkey]->Fill(s->vars.vertices.nVertices, s->getWeight());
+                 c.second.histoMap[hkey]->Fill(s->vars.vertices->size(), s->getWeight());
                  continue;
             }
 
@@ -862,7 +850,7 @@ int main(int argc, char* argv[])
                  if(s->vars.validJets.size() >= 2)
                  {
                      TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
-                     float dEta = dijet.Eta() - s->vars.dimuCand.recoCandEtaPF;
+                     float dEta = dijet.Eta() - s->vars.dimuCand.eta;
                      c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
                  }
                  continue;

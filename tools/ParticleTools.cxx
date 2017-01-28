@@ -105,8 +105,8 @@ bool ParticleTools::isMuPairGenMatchedDY(float dRcut, float ptCut, VarSet& vars)
 
     TLorentzVector reco0, reco1, gen0, gen1;
 
-    reco0.SetPtEtaPhiM(vars.recoMuons.pt[0],vars.recoMuons.eta[0], vars.recoMuons.phi[0], MASS_MUON);
-    reco1.SetPtEtaPhiM(vars.recoMuons.pt[1],vars.recoMuons.eta[1], vars.recoMuons.phi[1], MASS_MUON);
+    reco0.SetPtEtaPhiM(vars.recoMuons->at(0).pt,vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi, MASS_MUON);
+    reco1.SetPtEtaPhiM(vars.recoMuons->at(1).pt,vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi, MASS_MUON);
     recoMuons.push_back(reco0);
     recoMuons.push_back(reco1);
 

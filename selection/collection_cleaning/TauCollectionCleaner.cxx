@@ -50,7 +50,7 @@ void TauCollectionCleaner::getValidTaus(VarSet& vars, std::vector<TLorentzVector
     for(unsigned int j=0; j < vars.recoTaus.nTaus && j < vars.recoTaus.arraySize; ++j)
     {
         // Pt, Eta
-        if(!(vars.recoTaus.pt[j] > cTauSelectionPtMin && TMath::Abs(vars.recoTaus.eta[j]) < cTauSelectionEtaMax)) 
+        if(!(vars.recoTaus->at(j).pt > cTauSelectionPtMin && TMath::Abs(vars.recoTaus->at(j).eta) < cTauSelectionEtaMax)) 
             continue;
 
         // IDs, j is the tau, i is the id
@@ -62,7 +62,7 @@ void TauCollectionCleaner::getValidTaus(VarSet& vars, std::vector<TLorentzVector
 
         // passes all selections, add to valid extra taus
         TLorentzVector tau4vec; 
-        tau4vec.SetPtEtaPhiM(vars.recoTaus.pt[j],vars.recoTaus.eta[j],vars.recoTaus.phi[j],MASS_TAU);
+        tau4vec.SetPtEtaPhiM(vars.recoTaus->at(j).pt,vars.recoTaus->at(j).eta,vars.recoTaus->at(j).phi,MASS_TAU);
         tauvec.push_back(tau4vec);
     }
 }

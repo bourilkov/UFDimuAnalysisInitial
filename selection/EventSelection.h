@@ -57,7 +57,7 @@ class SynchEventSelectionCuts : public Cut
 
         void makeCutSet();
         bool evaluate(VarSet& vars);
-        bool passesVertexSelection(_VertexInfo& vertices);
+        bool passesVertexSelection(std::vector<VertexInfo>* vertices);
         TString string();
 };
 

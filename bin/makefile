@@ -13,11 +13,11 @@ OBJDIR = ../lib/analyzer_objects/
 CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-MAIN = example
-#MAIN = categorize
+#MAIN = example
+MAIN = categorize
 
 MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
-MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}TauCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
+MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
 MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.out 
 MAINDEPS   = ${THREADDIR}ThreadPool.hxx 
 DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx
@@ -61,6 +61,7 @@ cleanall:
 	rm ${LIBDIR}*.o
 	rm ${SDIR}*.o
 	rm ${TDIR}*.o
+	rm ${CDIR}*.o
 	rm MyDict*
 	rm *.out
 	rm *.so

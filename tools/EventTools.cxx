@@ -210,21 +210,23 @@ void EventTools::outputEvent(VarSet& vars)
          JetCollectionCleaner js;
          std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
          std::cout << std::endl;
-         std::cout << "  dimuCand.recoCandMass: " << vars.dimuCand.recoCandMass << std::endl;
-         std::cout << "  dimuCand.recoCandMassPF: " << vars.dimuCand.recoCandMassPF << std::endl;
-         std::cout << "  dimuCand.recoCandPt: " << vars.dimuCand.recoCandPt << std::endl;
+         std::cout << "  dimuCand.mass: " << vars.dimuCand.mass << std::endl;
+         std::cout << "  dimuCand.mass_PF: " << vars.dimuCand.mass_PF << std::endl;
+         std::cout << "  dimuCand.pt: " << vars.dimuCand.pt << std::endl;
          std::cout << std::endl;
-         std::cout << "  recoMuons.pt[0]: " << vars.recoMuons.pt[0] << std::endl;
-         std::cout << "  recoMuons.phi[0]: " << vars.recoMuons.phi[0] << std::endl;
-         std::cout << "  recoMuons.eta[0]: " << vars.recoMuons.eta[0] << std::endl;
-         std::cout << "  recoMuons.isHltMatched[0][0or1]: " << (vars.recoMuons.isHltMatched[0][0] || vars.recoMuons.isHltMatched[1][1]) << std::endl;
+         std::cout << "  recoMuons->at(0).pt: " << vars.recoMuons->at(0).pt << std::endl;
+         std::cout << "  recoMuons->at(0).phi: " << vars.recoMuons->at(0).phi << std::endl;
+         std::cout << "  recoMuons->at(0).eta: " << vars.recoMuons->at(0).eta << std::endl;
+         std::cout << "  recoMuons->at(0).isHltMatched[4or5]: " << (vars.recoMuons->at(0).isHltMatched[4] || 
+                                                                    vars.recoMuons->at(0).isHltMatched[5]) << std::endl;
          std::cout << std::endl;
-         std::cout << "  recoMuons.pt[1]: " << vars.recoMuons.pt[1] << std::endl;
-         std::cout << "  recoMuons.phi[1]: " << vars.recoMuons.phi[1] << std::endl;
-         std::cout << "  recoMuons.eta[1]: " << vars.recoMuons.eta[1] << std::endl;
-         std::cout << "  recoMuons.isHltMatched[1][0or1]: " << (vars.recoMuons.isHltMatched[1][0] || vars.recoMuons.isHltMatched[1][1]) << std::endl;
+         std::cout << "  recoMuons->at(1).pt: " << vars.recoMuons->at(1).pt << std::endl;
+         std::cout << "  recoMuons->at(1).phi: " << vars.recoMuons->at(1).phi << std::endl;
+         std::cout << "  recoMuons->at(1).eta: " << vars.recoMuons->at(1).eta << std::endl;
+         std::cout << "  recoMuons->at(1).isHltMatched[0or1]: " << (vars.recoMuons->at(1).isHltMatched[4] || 
+                                                                    vars.recoMuons->at(1).isHltMatched[5]) << std::endl;
          std::cout << std::endl;
-         std::cout << "  nJets: " << vars.jets.nJets << std::endl;
+         std::cout << "  nJets: " << vars.jets->size() << std::endl;
          std::cout << "  nValidJets: " << vars.validJets.size() << std::endl;
          std::cout << "  nValidBJets: " << vars.validBJets.size() << std::endl;
          std::cout << std::endl;
@@ -239,14 +241,14 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << "  MET: " << vars.met.pt << std::endl;
          std::cout << std::endl;
 
-         for(unsigned int j=0; j<vars.jets.nJets && j<vars.jets.arraySize; j++)
+         for(unsigned int j=0; j<vars.jets->size(); j++)
          {
-             std::cout << "  jet" << j << " pt: " <<  vars.jets.pt[j] << std::endl;
-             std::cout << "  jet" << j << " phi: " << vars.jets.phi[j] << std::endl;
-             std::cout << "  jet" << j << " eta: " << vars.jets.eta[j] << std::endl;
-             std::cout << "  jet" << j << " isB: " << vars.jets.isB[j] << std::endl;
-             std::cout << "  jet" << j << " dR1: " << js.dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-             std::cout << "  jet" << j << " dR2: " << js.dR(vars.jets.eta[j], vars.jets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+             std::cout << "  jet" << j << " pt: " <<  vars.jets->at(j).pt << std::endl;
+             std::cout << "  jet" << j << " phi: " << vars.jets->at(j).phi << std::endl;
+             std::cout << "  jet" << j << " eta: " << vars.jets->at(j).eta << std::endl;
+             std::cout << "  jet" << j << " isB: " << vars.jets->at(j).CSV << std::endl;
+             std::cout << "  jet" << j << " dR1: " << js.dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) << std::endl;
+             std::cout << "  jet" << j << " dR2: " << js.dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) << std::endl;
              std::cout << std::endl;
 
          }
@@ -258,8 +260,8 @@ void EventTools::outputEvent(VarSet& vars)
              std::cout << "  validjet" << j << " pt: " <<  vars.validJets[j].Pt() << std::endl;
              std::cout << "  validjet" << j << " phi: " << vars.validJets[j].Phi() << std::endl;
              std::cout << "  validjet" << j << " eta: " << vars.validJets[j].Eta() << std::endl;
-             std::cout << "  validjet" << j << " dR1: " << js.dR(vars.validJets[j].Eta(), vars.validJets[j].Phi(), vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-             std::cout << "  validjet" << j << " dR2: " << js.dR(vars.validJets[j].Eta(), vars.validJets[j].Phi(), vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+             std::cout << "  validjet" << j << " dR1: " << js.dR(vars.validJets[j].Eta(), vars.validJets[j].Phi(), vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) << std::endl;
+             std::cout << "  validjet" << j << " dR2: " << js.dR(vars.validJets[j].Eta(), vars.validJets[j].Phi(), vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) << std::endl;
              std::cout << std::endl;
 
          }
@@ -270,8 +272,8 @@ void EventTools::outputEvent(VarSet& vars)
              std::cout << "  validBjet" << j << " pt: " <<  vars.validBJets[j].Pt() << std::endl;
              std::cout << "  validBjet" << j << " phi: " << vars.validBJets[j].Phi() << std::endl;
              std::cout << "  validBjet" << j << " eta: " << vars.validBJets[j].Eta() << std::endl;
-             std::cout << "  validBjet" << j << " dR1: " << js.dR(vars.validBJets[j].Eta(), vars.validBJets[j].Phi(), vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-             std::cout << "  validBjet" << j << " dR2: " << js.dR(vars.validBJets[j].Eta(), vars.validBJets[j].Phi(), vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+             std::cout << "  validBjet" << j << " dR1: " << js.dR(vars.validBJets[j].Eta(), vars.validBJets[j].Phi(), vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) << std::endl;
+             std::cout << "  validBjet" << j << " dR2: " << js.dR(vars.validBJets[j].Eta(), vars.validBJets[j].Phi(), vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) << std::endl;
              std::cout << std::endl;
 
          }
@@ -282,8 +284,8 @@ void EventTools::outputEvent(VarSet& vars)
          //    std::cout << "  genJet" << j << " pt: " <<  vars.genJets.pt[j] << std::endl;
          //    std::cout << "  genJet" << j << " phi: " << vars.genJets.phi[j] << std::endl;
          //    std::cout << "  genJet" << j << " eta: " << vars.genJets.eta[j] << std::endl;
-         //    std::cout << "  genJet" << j << " dR1: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-         //    std::cout << "  genJet" << j << " dR2: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+         //    std::cout << "  genJet" << j << " dR1: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) << std::endl;
+         //    std::cout << "  genJet" << j << " dR2: " << js.dR(vars.genJets.eta[j], vars.genJets.phi[j], vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) << std::endl;
          //    std::cout << std::endl;
 
          //}
@@ -295,8 +297,8 @@ void EventTools::outputEvent(VarSet& vars)
          //    std::cout << "  validGenJet" << j << " pt: " <<  vars.validGenJets[j].Pt() << std::endl;
          //    std::cout << "  validGenJet" << j << " phi: " << vars.validGenJets[j].Phi() << std::endl;
          //    std::cout << "  validGenJet" << j << " eta: " << vars.validGenJets[j].Eta() << std::endl;
-         //    std::cout << "  validGenJet" << j << " dR1: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons.eta[0], vars.recoMuons.phi[0]) << std::endl;
-         //    std::cout << "  validGenJet" << j << " dR2: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons.eta[1], vars.recoMuons.phi[1]) << std::endl;
+         //    std::cout << "  validGenJet" << j << " dR1: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) << std::endl;
+         //    std::cout << "  validGenJet" << j << " dR2: " << js.dR(vars.validGenJets[j].Eta(), vars.validGenJets[j].Phi(), vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) << std::endl;
          //    std::cout << std::endl;
 
          //}

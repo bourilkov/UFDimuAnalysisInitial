@@ -20,6 +20,8 @@ struct PairInfo {
   Double_t mass_PF;
   Double_t pt_PF  ;
 
+  // need eta_PF, y_PF, phi_PF
+
   Double_t mass_trk;
   Double_t pt_trk  ;
 
