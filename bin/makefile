@@ -13,8 +13,8 @@ OBJDIR = ../lib/analyzer_objects/
 CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-#MAIN = example
-MAIN = categorize
+MAIN = example
+#MAIN = categorize
 
 MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}TauCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
@@ -47,7 +47,7 @@ ${MAIN}: $(MAINRULES1) $(MAINRULES2) $(MAINRULES3)
 # Then creates a shared library object from the dictionary, which we link to our executable
 # need this so that ROOT TTrees know how to pull out our analysis objects
 MyDict.cxx: ${OBJH} ${OBJDIR}linkdef/Linkdef.h
-	rootcint -f $@ -c $(CFLAGS) -p $^
+	rootcint -f $@ -c `root-config --cflags` -p $^
 
 libAnalysisObjects.so: MyDict.cxx ${OBJCC}
 	g++ -shared -o$@ `root-config --cflags` -fPIC -I$(ROOTSYS)/include $^

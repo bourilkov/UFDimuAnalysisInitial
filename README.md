@@ -11,6 +11,9 @@
     - bin/categorize.cxx is the most important executable
     - check it out to see how to use the code
 
+* the makefile creates a shared library so you need to update your LD_LIBRARY_PATH so that it can find it in the bin directory 
+    - LD_LIBRARY_PATH=/path/to/UFDimuAnalysis/bin:${LD_LIBRARY_PATH}
+
 * bin/categorize.cxx produces the histograms and data vs MC stacks for the run1 or run2 categories depending on the inputs
     - ./categorize 1 -> run 1 categories
     - ./categorize 2 -> run 2 categories
@@ -19,5 +22,4 @@
 * create c++ executables in bin, python scripts in python
 * the rest of the directories have objects that help with the h2mu analysis
     - Check out the ABOUT file in other folders to see how they help 
-
 ```
