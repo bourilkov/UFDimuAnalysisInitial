@@ -11,7 +11,7 @@
 #include "EventTools.h"
 #include "DiMuPlottingSystem.h"
 #include "CategorySelection.h"
-#include "JetSelectionTools.h"
+#include "JetCollectionCleaner.h"
 
 //////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------
@@ -19,6 +19,9 @@
 
 void EventTools::loadEventsFromFile(TString filename, std::vector<std::pair<int, long long int>>& v)
 {
+// Used for the synchronization exercise. Run, event were saved to different csv files.
+// Load the run, event from the csv into the vector.
+
     std::ifstream file(filename);
     std::string run;
     std::string event;
@@ -44,6 +47,9 @@ void EventTools::loadEventsFromFile(TString filename, std::vector<std::pair<int,
 
 void EventTools::outputEventsToFile(std::vector<std::pair<int,long long int>>& v, TString filename)
 {
+// used for the synchronization exercise
+// output the run, event info from the vector into a csv file
+
     std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
     std::ofstream file(filename, std::ofstream::out);
     for(auto const &e : v)
@@ -59,6 +65,8 @@ void EventTools::outputEventsToFile(std::vector<std::pair<int,long long int>>& v
 
 void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString filename)
 {
+// Given a categorizer, output the expected net signal, bkg to a csv
+
     std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
     std::ofstream file(filename, std::ofstream::out);
 
@@ -136,6 +144,9 @@ void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString fil
 
 TString EventTools::outputMapKeysCSV(std::map<TString,double>& map)
 {
+// Given a map output the keys to a csv string, used to output the variable names
+// then later the variable values in csv to create a dataset useable by other
+// machine learning algorithms outside of ROOT
     TString out = "";
     for(auto const &c : map)
     {   
@@ -151,6 +162,8 @@ TString EventTools::outputMapKeysCSV(std::map<TString,double>& map)
 
 TString EventTools::outputMapValuesCSV(std::map<TString,double>& map)
 {
+// used to output the values of the map to csv string
+// easy to export the var values to use this dataset outside ROOT
     TString out = "";
     for(auto const &c : map)
     {   
@@ -168,6 +181,7 @@ TString EventTools::outputMapValuesCSV(std::map<TString,double>& map)
 
 bool EventTools::sameRunAndEvent(std::pair<int,long long int> a, std::pair<int,long long int> b)
 {
+// are the run and event number the same for both?
    if(a.first == b.first && a.second == b.second) return true; 
    else return false;
 }
@@ -178,6 +192,7 @@ bool EventTools::sameRunAndEvent(std::pair<int,long long int> a, std::pair<int,l
 
 bool EventTools::eventInVector(std::pair<int,long long int> e, std::vector<std::pair<int,long long int>> events)
 {
+// see if the same run, event number is in the vector 
     for(unsigned int i=0; i<events.size(); i++)
     {
         if(sameRunAndEvent(e, events[i])) return true;
@@ -191,7 +206,8 @@ bool EventTools::eventInVector(std::pair<int,long long int> e, std::vector<std::
 
 void EventTools::outputEvent(VarSet& vars)
 {
-         JetSelectionTools js;
+// output all of the information for an event, should make this more modular
+         JetCollectionCleaner js;
          std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
          std::cout << std::endl;
          std::cout << "  dimuCand.recoCandMass: " << vars.dimuCand.recoCandMass << std::endl;
@@ -323,6 +339,7 @@ void EventTools::outputEvent(VarSet& vars)
 
 void EventTools::outputEvent(VarSet& vars, Categorizer& categorizer)
 {
+// output the event and its categorization
          // output standard information about the event
          outputEvent(vars);
          categorizer.outputResults();
@@ -334,7 +351,8 @@ void EventTools::outputEvent(VarSet& vars, Categorizer& categorizer)
 
 void EventTools::cleanByDR(std::vector<TLorentzVector>& v1, std::vector<TLorentzVector>& v2, float dRmin)
 {
-// clean 4vecs in v1 by dR based upon 4vecs in v2
+// clean 4vecs in v1 by dR based upon 4vecs in v2, should probably move to CollectionCleaners
+// Not debugged, I have no idea if this works right at the moment
 
     for(unsigned int i=0; i<v1.size(); i++)
     {

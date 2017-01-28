@@ -1,4 +1,4 @@
-//MuonSelectionTools.h
+//MuonCollectionCleaner.h
 
 #ifndef ADD_MUSELECTIONTOOLS
 #define ADD_MUSELECTIONTOOLS
@@ -6,11 +6,11 @@
 #include "VarSet.h"
 #include <vector>
 
-class MuonSelectionTools
+class MuonCollectionCleaner
 {
     public:
-        MuonSelectionTools();
-        MuonSelectionTools(float cMuonSelectionPtMin, float cMuonSelectionEtaMax, float cMuonSelectionIsoMax, int cMuonSelectionID);
+        MuonCollectionCleaner();
+        MuonCollectionCleaner(float cMuonSelectionPtMin, float cMuonSelectionEtaMax, float cMuonSelectionIsoMax, int cMuonSelectionID);
 
         float cMuonSelectionPtMin; 
         float cMuonSelectionEtaMax;       

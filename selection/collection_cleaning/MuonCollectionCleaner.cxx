@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-//                         MuonSelectionTools.cxx                        //
+//                         MuonCollectionCleaner.cxx                     //
 //=======================================================================//
 //                                                                       //
 //        Select valid muons beyond the candidate pair.                  //
@@ -10,17 +10,17 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-#include "MuonSelectionTools.h"
+#include "MuonCollectionCleaner.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// ___________________MuonSelectionTools______________________________//
+// ___________________MuonCollectionCleaner______________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-MuonSelectionTools::MuonSelectionTools()
+MuonCollectionCleaner::MuonCollectionCleaner()
 {
     cMuonSelectionPtMin = 10;
     cMuonSelectionEtaMax = 2.4;
@@ -32,7 +32,7 @@ MuonSelectionTools::MuonSelectionTools()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-MuonSelectionTools::MuonSelectionTools(float muSelectionPtMin, float muSelectionEtaMax, float muSelectionIsoMax, int muSelectionID)
+MuonCollectionCleaner::MuonCollectionCleaner(float muSelectionPtMin, float muSelectionEtaMax, float muSelectionIsoMax, int muSelectionID)
 {
     cMuonSelectionPtMin = muSelectionPtMin;
     cMuonSelectionEtaMax = muSelectionEtaMax;
@@ -44,7 +44,7 @@ MuonSelectionTools::MuonSelectionTools(float muSelectionPtMin, float muSelection
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void MuonSelectionTools::getValidMuons(VarSet& vars, std::vector<TLorentzVector>& muvec)
+void MuonCollectionCleaner::getValidMuons(VarSet& vars, std::vector<TLorentzVector>& muvec)
 {
     for(unsigned int j=0; j < vars.recoMuons.nMuons && j < vars.recoMuons.arraySize; ++j)
     {

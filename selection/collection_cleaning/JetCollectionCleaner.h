@@ -1,4 +1,4 @@
-//JetSelectionTools.h
+//JetCollectionCleaner.h
 
 #ifndef ADD_JETSELECTIONTOOLS
 #define ADD_JETSELECTIONTOOLS
@@ -6,11 +6,11 @@
 #include "VarSet.h"
 #include <vector>
 
-class JetSelectionTools
+class JetCollectionCleaner
 {
     public:
-        JetSelectionTools();
-        JetSelectionTools(float cJetSelectionPtMin, float cJetSelectionEtaMax, float cJetSelectiondRMin, float cJetSelectionBTagMin, float cJetSelectionBJetEtaMax);
+        JetCollectionCleaner();
+        JetCollectionCleaner(float cJetSelectionPtMin, float cJetSelectionEtaMax, float cJetSelectiondRMin, float cJetSelectionBTagMin, float cJetSelectionBJetEtaMax);
 
         float cJetSelectionPtMin; 
         float cJetSelectionEtaMax;       

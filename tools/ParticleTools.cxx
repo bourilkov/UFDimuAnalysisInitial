@@ -14,6 +14,7 @@
 
 TLorentzVector ParticleTools::getMotherPtEtaPhiM(float pt0, float eta0, float phi0, float m0, float pt1, float eta1, float phi1, float m1)
 {
+// get a 4vec for the mother particle based upon the daughters
     TLorentzVector p0, p1, mother;
     p0.SetPtEtaPhiM(pt0, eta0, phi0, m0);
     p1.SetPtEtaPhiM(pt1, eta1, phi1, m1);
@@ -27,7 +28,7 @@ TLorentzVector ParticleTools::getMotherPtEtaPhiM(float pt0, float eta0, float ph
 
 _TrackInfo ParticleTools::getGenMuDY(bool m, bool postFSR, VarSet& vars)
 {
-// m tells us which muon to get
+// m = muon 0 or muon 1, postFSR = want postFSR gen muon or preFSR gen muon?
     _TrackInfo genZmu = vars.genM1ZpostFSR;
     _TrackInfo genGmu = vars.genM1GpostFSR;
 

@@ -13,7 +13,7 @@
 #include "TString.h"
 #include "EventTools.h"
 #include "CategorySelection.h"
-#include "JetSelectionTools.h"
+#include "JetCollectionCleaner.h"
 
 class EventTools
 {

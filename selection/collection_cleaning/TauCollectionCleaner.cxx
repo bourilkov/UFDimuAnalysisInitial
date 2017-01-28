@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-//                         TauSelectionTools.cxx                    //
+//                         TauCollectionCleaner.cxx                    //
 //=======================================================================//
 //                                                                       //
 //        Select valid taus beyond the candidate pair.            //
@@ -10,18 +10,18 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-#include "TauSelectionTools.h"
+#include "TauCollectionCleaner.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
 #include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// ___________________TauSelectionTools_____________________________//
+// ___________________TauCollectionCleaner_____________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-TauSelectionTools::TauSelectionTools()
+TauCollectionCleaner::TauCollectionCleaner()
 {
     cTauSelectionPtMin = 10;
     cTauSelectionEtaMax = 2.5;
@@ -34,7 +34,7 @@ TauSelectionTools::TauSelectionTools()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-TauSelectionTools::TauSelectionTools(float tauSelectionPtMin, float tauSelectionEtaMax, std::vector<unsigned int>& tauSelectionIDs)
+TauCollectionCleaner::TauCollectionCleaner(float tauSelectionPtMin, float tauSelectionEtaMax, std::vector<unsigned int>& tauSelectionIDs)
 {
     cTauSelectionPtMin = tauSelectionPtMin;
     cTauSelectionEtaMax = tauSelectionEtaMax;
@@ -45,7 +45,7 @@ TauSelectionTools::TauSelectionTools(float tauSelectionPtMin, float tauSelection
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void TauSelectionTools::getValidTaus(VarSet& vars, std::vector<TLorentzVector>& tauvec)
+void TauCollectionCleaner::getValidTaus(VarSet& vars, std::vector<TLorentzVector>& tauvec)
 {
     for(unsigned int j=0; j < vars.recoTaus.nTaus && j < vars.recoTaus.arraySize; ++j)
     {
@@ -56,7 +56,7 @@ void TauSelectionTools::getValidTaus(VarSet& vars, std::vector<TLorentzVector>& 
         // IDs, j is the tau, i is the id
         for(unsigned int i=0; i<cTauSelectionIDs.size(); i++)
         {
-            if(!(cTauSelectionIDs[i]<vars.recoTaus.idArraySize)) std::cout << "ERROR: TAU SELECTION ID OUT OF BOUNDS in TauSelectionTools::getValidTaus." << std::endl;
+            if(!(cTauSelectionIDs[i]<vars.recoTaus.idArraySize)) std::cout << "ERROR: TAU SELECTION ID OUT OF BOUNDS in TauCollectionCleaner::getValidTaus." << std::endl;
             if(!(vars.recoTaus.tauID[j][cTauSelectionIDs[i]] > 0.5)) continue;
         }
 

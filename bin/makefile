@@ -5,29 +5,31 @@ LIBFLAGS = `root-config --libs` -O3 -lXMLIO -lMLP -lMinuit
 
 LIBDIR = ../lib/
 SDIR = ../selection/
+CDIR = ../selection/collection_cleaning/
 TDIR = ../tools/
 THREADDIR = ../threadpool/
 OBJDIR = ../lib/analyzer_objects/
 
-CFLAGS = -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
+CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-MAIN = example
-#MAIN = categorize
+#MAIN = example
+MAIN = categorize
 
-MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}SelectionCuts.o ${SDIR}CategorySelection.o ${SDIR}JetSelectionTools.o ${SDIR}MuonSelectionTools.o 
-MAINRULES2 = ${SDIR}ElectronSelectionTools.o ${SDIR}TauSelectionTools.o ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o 
-MAINRULES3 = ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.out 
-MAINDEPS   =  ${THREADDIR}ThreadPool.hxx 
+MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
+MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}TauCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
+MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.out 
+MAINDEPS   = ${THREADDIR}ThreadPool.hxx 
 DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx
 
+# ANALYZER objects that were stored into the ttree need to be linked to ROOT
+# by creating a dictionary
 OBJH := $(shell find $(OBJDIR) -maxdepth 1 -name '*.h') 
 OBJCC := $(shell find $(OBJDIR) -maxdepth 1 -name '*.cc') 
 
-#OBJS = 
-
 # execute all of the rules to make the main program
 # $@ is the left of the :, and $^ is everything on the right
+# so main requires execution of all MAINRULES, run these rules then compile by linking all MAINRULES
 ${MAIN}: $(MAINRULES1) $(MAINRULES2) $(MAINRULES3)
 	$(CC) $(LIBFLAGS) -o $@ $^
 
@@ -37,9 +39,12 @@ ${MAIN}: $(MAINRULES1) $(MAINRULES2) $(MAINRULES3)
 %.o: %.cxx %.h $(DEPS)
 	$(CC) $(CFLAGS) $< -o $@ 
 
+#MAIN has to MAIN.h and needs to be compiled with its own dependencies, so we have a different rule
 %.out: %.cxx $(MAINDEPS)
 	$(CC) $(CFLAGS) $< -o $@ 
 
+# Creates a dictionary out of the analyzer objects in OBJDIR and Linkdef.h
+# Then creates a shared library object from the dictionary, which we link to our executable
 # need this so that ROOT TTrees know how to pull out our analysis objects
 MyDict.cxx: ${OBJH} ${OBJDIR}linkdef/Linkdef.h
 	rootcint -f $@ -c $(CFLAGS) -p $^

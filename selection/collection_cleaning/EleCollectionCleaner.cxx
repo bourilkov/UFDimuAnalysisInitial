@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-//                         ElectronSelectionTools.cxx                    //
+//                         EleCollectionCleaner.cxx                    //
 //=======================================================================//
 //                                                                       //
 //        Select valid electrons beyond the candidate pair.            //
@@ -10,17 +10,17 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-#include "ElectronSelectionTools.h"
+#include "EleCollectionCleaner.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// ___________________ElectronSelectionTools_____________________________//
+// ___________________EleCollectionCleaner_____________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-ElectronSelectionTools::ElectronSelectionTools()
+EleCollectionCleaner::EleCollectionCleaner()
 {
     cElectronSelectionPtMin = 10;
     cElectronSelectionEtaMax = 2.5;
@@ -32,7 +32,7 @@ ElectronSelectionTools::ElectronSelectionTools()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-ElectronSelectionTools::ElectronSelectionTools(float electronSelectionPtMin, float electronSelectionEtaMax, float electronSelectionIsoMax, int electronSelectionID)
+EleCollectionCleaner::EleCollectionCleaner(float electronSelectionPtMin, float electronSelectionEtaMax, float electronSelectionIsoMax, int electronSelectionID)
 {
     cElectronSelectionPtMin = electronSelectionPtMin;
     cElectronSelectionEtaMax = electronSelectionEtaMax;
@@ -44,7 +44,7 @@ ElectronSelectionTools::ElectronSelectionTools(float electronSelectionPtMin, flo
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void ElectronSelectionTools::getValidElectrons(VarSet& vars, std::vector<TLorentzVector>& electronvec)
+void EleCollectionCleaner::getValidElectrons(VarSet& vars, std::vector<TLorentzVector>& electronvec)
 {
     for(unsigned int j=0; j < vars.recoElectrons.nElectrons && j < vars.recoElectrons.arraySize; ++j)
     {

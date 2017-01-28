@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-//                             JetSelectionTools.cxx                     //
+//                             JetCollectionCleaner.cxx                     //
 //=======================================================================//
 //                                                                       //
 //        Work with the _PFJetsInfo data structure.                      //
@@ -10,17 +10,17 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-#include "JetSelectionTools.h"
+#include "JetCollectionCleaner.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// _______________________JetSelectionTools______________________________//
+// _______________________JetCollectionCleaner______________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-JetSelectionTools::JetSelectionTools()
+JetCollectionCleaner::JetCollectionCleaner()
 {
     cJetSelectionPtMin = 30;
     cJetSelectionEtaMax = 4.7;
@@ -33,7 +33,7 @@ JetSelectionTools::JetSelectionTools()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-JetSelectionTools::JetSelectionTools(float jetSelectionPtMin, float jetSelectionEtaMax, float jetSelectiondRMin, float jetSelectionBTagMin, float jetSelectionBJetEtaMax)
+JetCollectionCleaner::JetCollectionCleaner(float jetSelectionPtMin, float jetSelectionEtaMax, float jetSelectiondRMin, float jetSelectionBTagMin, float jetSelectionBJetEtaMax)
 {
     cJetSelectionPtMin = jetSelectionPtMin;
     cJetSelectionEtaMax = jetSelectionEtaMax;
@@ -46,7 +46,7 @@ JetSelectionTools::JetSelectionTools(float jetSelectionPtMin, float jetSelection
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-float JetSelectionTools::dR(float eta1, float phi1, float eta2, float phi2) 
+float JetCollectionCleaner::dR(float eta1, float phi1, float eta2, float phi2) 
 {
 // Determine the number of valid jets using the given cuts
 
@@ -62,7 +62,7 @@ float JetSelectionTools::dR(float eta1, float phi1, float eta2, float phi2)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void JetSelectionTools::getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+void JetCollectionCleaner::getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
@@ -88,7 +88,7 @@ void JetSelectionTools::getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void JetSelectionTools::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+void JetCollectionCleaner::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
@@ -114,7 +114,7 @@ void JetSelectionTools::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVector
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void JetSelectionTools::getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
     for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
@@ -134,7 +134,7 @@ void JetSelectionTools::getValidJets(VarSet& vars, std::vector<TLorentzVector>& 
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void JetSelectionTools::getValidBJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+void JetCollectionCleaner::getValidBJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
     for(unsigned int j=0; j < vars.jets.nJets && j < vars.jets.arraySize; ++j)
@@ -154,7 +154,7 @@ void JetSelectionTools::getValidBJets(VarSet& vars, std::vector<TLorentzVector>&
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void JetSelectionTools::getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
+void JetCollectionCleaner::getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
 {
 // Determine the number of valid jets using the given cuts
 // Cut jets by dR here instead of in CMSSW
@@ -175,7 +175,7 @@ void JetSelectionTools::getValidGenJets(VarSet& vars, std::vector<TLorentzVector
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-bool JetSelectionTools::jetID(VarSet& vars, unsigned int jet, int id)
+bool JetCollectionCleaner::jetID(VarSet& vars, unsigned int jet, int id)
 {
     bool looseJetID, tightJetID, tightLepVetoJetID;
     tightLepVetoJetID = false;

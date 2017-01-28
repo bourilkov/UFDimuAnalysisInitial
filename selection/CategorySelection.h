@@ -4,7 +4,6 @@
 #define ADD_CATEGORYSELECTION
 
 #include "VarSet.h"
-#include "JetSelectionTools.h"
 #include "TH1D.h"
 #include "TList.h"
 #include <map>

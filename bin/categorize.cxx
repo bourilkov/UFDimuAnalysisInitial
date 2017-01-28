@@ -2,19 +2,20 @@
 // may be used to look for discrepancies between data and mc or to make dimu_mass plots for limit setting.
 // outputs mc stacks with data overlayed and a ratio plot underneath.
 // also saves the histos needed to make the mc stack, data.
-// Also saves net BKG histo and net signal histo for limit setting.
+// Also saves net BKG histo and net signal histo for limit setting, saves individuals as well
 
 // Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
 // We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"
-#include "SelectionCuts.h"
+#include "EventSelection.h"
+#include "MuonSelection.h"
 #include "CategorySelection.h"
-#include "JetSelectionTools.h"
-#include "MuonSelectionTools.h"
-#include "ElectronSelectionTools.h"
-#include "TauSelectionTools.h"
+#include "JetCollectionCleaner.h"
+#include "MuonCollectionCleaner.h"
+#include "EleCollectionCleaner.h"
+#include "TauCollectionCleaner.h"
 
 #include "EventTools.h"
 #include "PUTools.h"
@@ -471,10 +472,10 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
       
       // Objects to help with the cuts and selections
-      JetSelectionTools      jetSelectionTools;
-      MuonSelectionTools     muonSelectionTools;
-      ElectronSelectionTools electronSelectionTools;
-      TauSelectionTools      tauSelectionTools;
+      JetCollectionCleaner      jetCollectionCleaner;
+      MuonCollectionCleaner     muonCollectionCleaner;
+      EleCollectionCleaner      eleCollectionCleaner;
+      TauCollectionCleaner      tauCollectionCleaner;
 
       Run1MuonSelectionCuts     run1MuonSelection;
       Run1EventSelectionCuts80X run1EventSelectionData(true);
@@ -610,7 +611,7 @@ int main(int argc, char* argv[])
         if(whichCategories == 1) 
         {
             s->vars.validJets.clear();
-            jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
+            jetCollectionCleaner.getValidJetsdR(s->vars, s->vars.validJets);
         }
         //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
@@ -628,17 +629,17 @@ int main(int argc, char* argv[])
             s->vars.validBJets.clear();
 
             // load valid collections from s->vars raw collections
-            jetSelectionTools.getValidJets(s->vars, s->vars.validJets);
-            jetSelectionTools.getValidBJets(s->vars, s->vars.validBJets);
-            muonSelectionTools.getValidMuons(s->vars, s->vars.validMuons);
-            electronSelectionTools.getValidElectrons(s->vars, s->vars.validElectrons);
+            jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets);
+            jetCollectionCleaner.getValidBJets(s->vars, s->vars.validBJets);
+            muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons);
+            eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
 
             for(unsigned int m=2; m<s->vars.validMuons.size(); m++)
                 s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
 
             // not using Taus
             //recoTausBranch->GetEntry(i);
-            //tauSelectionTools.getValidTaus(s->vars, s->vars.validTaus);
+            //tauCollectionCleaner.getValidTaus(s->vars, s->vars.validTaus);
             //s->vars.validTaus.clear();
         }
 

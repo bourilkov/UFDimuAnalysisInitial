@@ -1,4 +1,4 @@
-//TauSelectionTools.h
+//TauCollectionCleaner.h
 
 #ifndef ADD_TAUSELECTIONTOOLS
 #define ADD_TAUSELECTIONTOOLS
@@ -6,11 +6,11 @@
 #include "VarSet.h"
 #include <vector>
 
-class TauSelectionTools
+class TauCollectionCleaner
 {
     public:
-        TauSelectionTools();
-        TauSelectionTools(float cTauSelectionPtMin, float cTauSelectionEtaMax, std::vector<unsigned int>& cTauSelectionIDs);
+        TauCollectionCleaner();
+        TauCollectionCleaner(float cTauSelectionPtMin, float cTauSelectionEtaMax, std::vector<unsigned int>& cTauSelectionIDs);
 
         float cTauSelectionPtMin; 
         float cTauSelectionEtaMax;       
