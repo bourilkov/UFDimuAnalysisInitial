@@ -7,11 +7,10 @@
 
 #include "DataFormats.h"
 #include "EventInfo.h"
-#include "VertexInfo.h"
 #include "MuonInfo.h"
 #include "PairInfo.h"
 #include "EleInfo.h"
-#include "MetInfo.h"
+#include "MhtInfo.h"
 #include "JetInfo.h"
 #include "TLorentzVector.h"
 
@@ -22,16 +21,15 @@ class VarSet
         ~VarSet(){};
 
         // reco info
+        int nVertices;
         EventInfo eventInfo;
         PairInfo dimuCand;
-        MetInfo met;
+        MhtInfo mht;
 
-        std::vector<VertexInfo>* vertices = 0;
         std::vector<MuonInfo>* recoMuons = 0;
         std::vector<EleInfo>* recoElectrons = 0;
         std::vector<JetInfo>* jets = 0;
 
-        std::vector<TLorentzVector> validMuonsDecoy;
         std::vector<TLorentzVector> validMuons;
         std::vector<TLorentzVector> validExtraMuons;
         std::vector<TLorentzVector> validElectrons;

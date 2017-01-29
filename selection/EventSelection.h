@@ -39,28 +39,6 @@ class Run1EventSelectionCuts : public Cut
         TString string();
 };
 
-class SynchEventSelectionCuts : public Cut
-{
-    public:
-        SynchEventSelectionCuts();
-        SynchEventSelectionCuts(float cDimuMassMin, float cDimuMassMax, float cTrigMuPtMin, float cTrigMuEtaMax, 
-                                float cPVzMax, int cNDFpv, int cNPV, int nJets);
-
-        float cDimuMassMin;        // >
-        float cDimuMassMax;        // <
-        float cTrigMuPtMin;        // >
-        float cTrigMuEtaMax;       // <
-        float cPVzMax;             // < 
-        int cNDFpv;                // >
-        int cNPV;                  // > 
-        int cNJets;                // <=
-
-        void makeCutSet();
-        bool evaluate(VarSet& vars);
-        bool passesVertexSelection(std::vector<VertexInfo>* vertices);
-        TString string();
-};
-
 class Run1EventSelectionSigCuts : public Cut
 {
     public:

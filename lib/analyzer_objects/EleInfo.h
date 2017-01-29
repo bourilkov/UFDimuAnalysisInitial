@@ -4,8 +4,9 @@
 
 #include <vector>
 #include "TMath.h"
+#include "ParticleInfo.h"
 
-struct EleInfo {
+struct EleInfo : public ParticleInfo{
 
   Bool_t isTightID         ;
   Bool_t isMediumID        ;
@@ -31,6 +32,10 @@ struct EleInfo {
   Float_t sumPUPtR03           ;  // sum pt of charged Particles not from PV (for Pu corrections)
 
   void init();
+  Float_t getMass();
+  TLorentzVector get4vec();
+  TString outputInfo();
+  Double_t iso();
 
 };
 

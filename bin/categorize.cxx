@@ -524,24 +524,26 @@ int main(int argc, char* argv[])
 
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
-      TBranch* dimuCandBranch  = s->tree->GetBranch("dimuCand");
-      TBranch* recoMuonsBranch = s->tree->GetBranch("recoMuons");
-      TBranch* pfJetsBranch    = s->tree->GetBranch("pfJets");
-      TBranch* metBranch       = s->tree->GetBranch("met");
-      TBranch* eventInfoBranch = s->tree->GetBranch("eventInfo");
+      TBranch* dimuCandBranch  = s->tree->GetBranch("pairs");
+      TBranch* recoMuonsBranch = s->tree->GetBranch("muons");
+      TBranch* pfJetsBranch    = s->tree->GetBranch("jets");
+      TBranch* mhtBranch       = s->tree->GetBranch("mht");
+      TBranch* eventInfoBranch = s->tree->GetBranch("event");
+      TBranch* nVerticesBranch = s->tree->GetBranch("nVertices");
 
       dimuCandBranch->SetAddress(&s->vars.dimuCand);
       recoMuonsBranch->SetAddress(&s->vars.recoMuons);
       pfJetsBranch->SetAddress(&s->vars.jets);
-      metBranch->SetAddress(&s->vars.met);
+      mhtBranch->SetAddress(&s->vars.mht);
       eventInfoBranch->SetAddress(&s->vars.eventInfo);
+      nVerticesBranch->SetAddress(&s->vars.nVertices);
 
       // extra branches needed for run 2 categories
       TBranch* recoElectronsBranch  = 0;
 
       if(whichCategories == 2)
       {
-          recoElectronsBranch = s->tree->GetBranch("recoElectrons");
+          recoElectronsBranch = s->tree->GetBranch("eles");
           recoElectronsBranch->SetAddress(&s->vars.recoElectrons);
       }
 
@@ -552,7 +554,7 @@ int main(int argc, char* argv[])
       if(!isData)
       { 
           nPUBranch       = s->tree->GetBranch("nPU");
-          genWeightBranch = s->tree->GetBranch("genWeight");
+          genWeightBranch = s->tree->GetBranch("GEN_wgt");
           genWeightBranch->SetAddress(&s->vars.genWeight);
           nPUBranch->SetAddress(&s->vars.nPU);
       }
@@ -593,7 +595,8 @@ int main(int argc, char* argv[])
 
         // Load the rest of the information needed for run1 categories
         pfJetsBranch->GetEntry(i);
-        metBranch->GetEntry(i);
+        mhtBranch->GetEntry(i);
+        nVerticesBranch->GetEntry(i);
         //eventInfoBranch->GetEntry(i);
 
         if(!isData)
@@ -616,7 +619,6 @@ int main(int argc, char* argv[])
 
             // clear vectors for the valid collections
             s->vars.validMuons.clear();
-            s->vars.validMuonsDecoy.clear();
             s->vars.validExtraMuons.clear();
             s->vars.validElectrons.clear();
             s->vars.validJets.clear();
@@ -682,7 +684,7 @@ int main(int argc, char* argv[])
             // NPV
             if(varname.EqualTo("NPV"))
             {
-                 c.second.histoMap[hkey]->Fill(s->vars.vertices->size(), s->getWeight());
+                 c.second.histoMap[hkey]->Fill(s->vars.nVertices, s->getWeight());
                  continue;
             }
 
@@ -824,24 +826,24 @@ int main(int argc, char* argv[])
             }
 
             // mT_b_MET
-            if(varname.EqualTo("mT_b_MET"))
-            {
-                 if(s->vars.validBJets.size() > 0)
-                 {
-                     TLorentzVector met(s->vars.met.px, s->vars.met.py, 0, s->vars.met.sumEt);
-                     TLorentzVector bjet = s->vars.validBJets[0];
-                     TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
-                     TLorentzVector bmet_t = met + bjet_t;
+            //if(varname.EqualTo("mT_b_MET"))
+            //{
+            //     if(s->vars.validBJets.size() > 0)
+            //     {
+            //         TLorentzVector mht(s->vars.mht.px, s->vars.mht.py, 0, s->vars.met.sumEt);
+            //         TLorentzVector bjet = s->vars.validBJets[0];
+            //         TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
+            //         TLorentzVector bmet_t = met + bjet_t;
 
-                     c.second.histoMap[hkey]->Fill(bmet_t.M(), s->getWeight());
-                 }
-                 continue;
-            }
+            //         c.second.histoMap[hkey]->Fill(bmet_t.M(), s->getWeight());
+            //     }
+            //     continue;
+            //}
 
-            // MET
-            if(varname.EqualTo("MET"))
+            // MHT
+            if(varname.EqualTo("MHT"))
             {
-                c.second.histoMap[hkey]->Fill(s->vars.met.pt, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.mht.pt, s->getWeight());
             }
 
             // dEta_jj_mumu

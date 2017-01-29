@@ -94,9 +94,7 @@ bool Run1MuonSelectionCuts::evaluate(std::vector<MuonInfo>* recoMuons, int m)
     if(!(TMath::Abs(recoMuons->at(m).eta) < cMaxEta)  && ((m==0 && cutset.cuts[1].on) || (m==1 && cutset.cuts[4].on))) return false;
 
     // isolation cuts
-    if(!((recoMuons->at(m).sumChargedHadronPtR03 + TMath::Max(0.0,recoMuons->at(m).sumNeutralHadronEtR03+recoMuons->at(m).sumPhotonEtR03 
-          - 0.5*recoMuons->at(m).sumPUPtR03))/recoMuons->at(m).pt <= cMaxRelIso) && 
-          ((m==0 && cutset.cuts[2].on) || (m==1 && cutset.cuts[5].on))) return false;
+    if(!(recoMuons->at(m).iso() <= cMaxRelIso) && ((m==0 && cutset.cuts[2].on) || (m==1 && cutset.cuts[5].on))) return false;
     
     return true;
 }

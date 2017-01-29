@@ -12,6 +12,17 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
+
+TString ParticleTools::output4vecInfo(TLorentzVector& v)
+{
+    TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %11.5f", 
+                      v.Pt(), v.Eta(), v.Phi(), v.M());
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
 TLorentzVector ParticleTools::getMotherPtEtaPhiM(float pt0, float eta0, float phi0, float m0, float pt1, float eta1, float phi1, float m1)
 {
 // get a 4vec for the mother particle based upon the daughters

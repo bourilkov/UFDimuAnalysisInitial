@@ -52,5 +52,6 @@ int main(int argc, char* argv[])
     {
        recoMuonsBranch->GetEntry(i);
        std::cout << i << " pt: " << recoMuons->at(0).pt << std::endl;
+       std::cout << i << " iso: " << recoMuons->at(0).iso() << std::endl;
     }
 }

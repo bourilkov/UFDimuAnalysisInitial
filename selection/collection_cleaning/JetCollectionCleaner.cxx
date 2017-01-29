@@ -75,9 +75,7 @@ void JetCollectionCleaner::getValidJetsdR(VarSet& vars, std::vector<TLorentzVect
             if(!(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) < cJetSelectiondRMin) 
                  && !(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) < cJetSelectiondRMin))
             {
-                TLorentzVector jet4vec; 
-                jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
-                // passes all selections, add to valid jets
+                TLorentzVector jet4vec = vars.jets->at(j).get4vec();
                 jetvec.push_back(jet4vec);
             }
         }
@@ -101,9 +99,7 @@ void JetCollectionCleaner::getValidBJetsdR(VarSet& vars, std::vector<TLorentzVec
             if(!(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(0).eta, vars.recoMuons->at(0).phi) < cJetSelectiondRMin) 
                  && !(dR(vars.jets->at(j).eta, vars.jets->at(j).phi, vars.recoMuons->at(1).eta, vars.recoMuons->at(1).phi) < cJetSelectiondRMin))
             {
-                TLorentzVector jet4vec; 
-                jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
-                // add to valid b-jets
+                TLorentzVector jet4vec = vars.jets->at(j).get4vec();
                 jetvec.push_back(jet4vec);
             }
         }
@@ -122,9 +118,7 @@ void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector
         // Pt and Eta selections
         if(vars.jets->at(j).pt > cJetSelectionPtMin && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionEtaMax)
         {
-           TLorentzVector jet4vec; 
-           jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
-           // passes all selections, add to valid jets
+           TLorentzVector jet4vec = vars.jets->at(j).get4vec();
            jetvec.push_back(jet4vec);
         }
     }
@@ -143,9 +137,7 @@ void JetCollectionCleaner::getValidBJets(VarSet& vars, std::vector<TLorentzVecto
         if(vars.jets->at(j).pt > cJetSelectionPtMin && vars.jets->at(j).CSV > cJetSelectionBTagMin 
            && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionBJetEtaMax)
         {
-           TLorentzVector jet4vec; 
-           jet4vec.SetPtEtaPhiM(vars.jets->at(j).pt,vars.jets->at(j).eta,vars.jets->at(j).phi,vars.jets->at(j).mass);
-           // add to valid b-jets
+           TLorentzVector jet4vec = vars.jets->at(j).get4vec();
            jetvec.push_back(jet4vec);
         }
     }
@@ -171,46 +163,3 @@ void JetCollectionCleaner::getValidGenJets(VarSet& vars, std::vector<TLorentzVec
         }
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-/*
-bool JetCollectionCleaner::jetID(VarSet& vars, unsigned int jet, int id)
-{
-    bool looseJetID, tightJetID, tightLepVetoJetID;
-    tightLepVetoJetID = false;
-
-    float eta = TMath::Abs(vars.jets->at(jet).eta);
-
-    int NHF = vars.jets->at(jet).nhf;
-    int NEMF = vars.jets->at(jet).nef;
-    int NumConst = vars.jets->at(jet).cm+vars.jets->at(jet).nm; // not available in awb ttree
-    int MUF = vars.jets->at(jet).muf;
-    int CHF = vars.jets->at(jet).chf;
-    int CHM = vars.jets->at(jet).cm;
-    int CEMF = vars.jets->at(jet).cef;
-    int NumNeutralParticle = vars.jets->at(jet).nm;            // same nm not available in awb ttree
-
-    if(eta <= 2.7)
-    {
-        looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1) && ((eta<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7;
-        tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7;
-        tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((eta<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || eta>2.4) && eta<=2.7;
-    }
-    if(eta > 2.7 && eta <= 3.0)
-    {
-        looseJetID = (NEMF<0.90 && NumNeutralParticle>2 && eta>2.7 && eta<=3.0 );
-        tightJetID = (NEMF<0.90 && NumNeutralParticle>2 && eta>2.7 && eta<=3.0 );
-    }
-    if(eta > 3.0)
-    {
-        looseJetID = (NEMF<0.90 && NumNeutralParticle>10 && eta>3.0 );
-        tightJetID = (NEMF<0.90 && NumNeutralParticle>10 && eta>3.0 );
-    }
-
-    if(id == 0) return tightLepVetoJetID;
-    else if(id == 1) return tightJetID;
-    else return looseJetID;
-}
-*/

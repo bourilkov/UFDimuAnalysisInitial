@@ -67,14 +67,10 @@ void EleCollectionCleaner::getValidElectrons(VarSet& vars, std::vector<TLorentzV
             continue;
 
         // isolation
-        if(!((vars.recoElectrons->at(j).sumChargedHadronPtR03+ TMath::Max(0.0,vars.recoElectrons->at(j).sumNeutralHadronEtR03+
-              vars.recoElectrons->at(j).sumPhotonEtR03 - 0.5*vars.recoElectrons->at(j).sumPUPtR03))/vars.recoElectrons->at(j).pt 
-               <= cElectronSelectionIsoMax))
+        if(!(vars.recoElectrons->at(j).iso() <= cElectronSelectionIsoMax))
             continue;
 
         // passes all selections, add to valid extra electrons
-        TLorentzVector electron4vec; 
-        electron4vec.SetPtEtaPhiM(vars.recoElectrons->at(j).pt,vars.recoElectrons->at(j).eta,vars.recoElectrons->at(j).phi,MASS_ELECTRON);
-        electronvec.push_back(electron4vec);
+        electronvec.push_back(vars.recoElectrons->at(j).get4vec());
     }
 }

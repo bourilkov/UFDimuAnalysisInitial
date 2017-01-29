@@ -172,7 +172,7 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
         float dEta = leadJet.Eta() - subleadJet.Eta();
         float dijetMass = dijet.M();
 
-        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.met.pt < cMETMax)
+        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht.pt < cMETMax)
         {
             categoryMap["c_2_Jet"].inCategory = true;
             if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; return; }
@@ -631,7 +631,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
            if(categoryMap["c_0b_VlH"].inCategory)
            {
                //std::cout << "    pass 0b_VlH..." << std::endl;
-               if(vars.met.pt >= c_0b_VlH_MET_min)
+               if(vars.mht.pt >= c_0b_VlH_MET_min)
                {
                     if(vars.validElectrons.size() == c_0b_VlH_We_num_e && vars.validExtraMuons.size() == c_0b_VlH_We_num_mu)    
                         categoryMap["c_0b_VlH_We"].inCategory = true;
@@ -696,7 +696,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
                if(categoryMap["c_0b_nonVlH_01j"].inCategory)
                {
                    //std::cout << "    pass 0b_nonVlH_01j..." << std::endl;
-                   if(vars.met.pt > c_0b_nonVlH_01j_MET_min_ZvvH)
+                   if(vars.mht.pt > c_0b_nonVlH_01j_MET_min_ZvvH)
                        categoryMap["c_0b_nonVlH_01j_ZvvH"].inCategory = true; 
 
                    else if(vars.dimuCand.pt_PF >= c_0b_nonVlH_01j_dimuPt_min_gfTight)

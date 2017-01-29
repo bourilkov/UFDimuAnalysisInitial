@@ -58,13 +58,10 @@ void MuonCollectionCleaner::getValidMuons(VarSet& vars, std::vector<TLorentzVect
             continue;
 
         // isolation
-        if(!((vars.recoMuons->at(j).sumChargedHadronPtR03 + TMath::Max(0.0,vars.recoMuons->at(j).sumNeutralHadronEtR03+vars.recoMuons->at(j).sumPhotonEtR03
-          - 0.5*vars.recoMuons->at(j).sumPUPtR03))/vars.recoMuons->at(j).pt <= cMuonSelectionIsoMax))
+        if(!(vars.recoMuons->at(j).iso() <= cMuonSelectionIsoMax))
             continue;
 
         // passes all selections, add to valid extra muons
-        TLorentzVector mu4vec; 
-        mu4vec.SetPtEtaPhiM(vars.recoMuons->at(j).pt,vars.recoMuons->at(j).eta,vars.recoMuons->at(j).phi,MASS_MUON);
-        muvec.push_back(mu4vec);
+        muvec.push_back(vars.recoMuons->at(j).get4vec());
     }
 }

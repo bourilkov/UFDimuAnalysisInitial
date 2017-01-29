@@ -4,6 +4,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
  
+#pragma link C++ class ParticleInfo+; 
+//#pragma link C++ class std::vector<ParticleInfo>+; 
+
 #pragma link C++ class MuonInfo+; 
 #pragma link C++ class std::vector<MuonInfo>+; 
 
@@ -16,8 +19,8 @@
 #pragma link C++ class EventInfo+; 
 #pragma link C++ class std::vector<EventInfo>+; 
 
-#pragma link C++ class SlimJetInfo+; 
-#pragma link C++ class std::vector<SlimJetInfo>+; 
+//#pragma link C++ class SlimJetInfo+; 
+//#pragma link C++ class std::vector<SlimJetInfo>+; 
 
 #pragma link C++ class JetInfo+; 
 #pragma link C++ class std::vector<JetInfo>+; 

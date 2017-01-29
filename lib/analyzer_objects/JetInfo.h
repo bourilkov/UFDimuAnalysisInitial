@@ -4,24 +4,9 @@
 
 #include <vector>
 #include "TMath.h"
+#include "ParticleInfo.h"
 
-struct SlimJetInfo {
-
-  Float_t pt      ;
-  Float_t eta     ;
-  Float_t phi     ;
-  Float_t mass    ;
-  Int_t   partonID;
-
-  Float_t jecFactor;
-  Float_t jecUnc   ;
-
-  Float_t CSV ;
-  Float_t puID;
-
-};
-
-struct JetInfo {
+struct JetInfo : public ParticleInfo{
 
   Float_t px      ;
   Float_t py      ;
@@ -77,6 +62,11 @@ struct JetInfo {
   Float_t puID;  // PUID
 
   void init();
+  Float_t getMass();
+  TLorentzVector get4vec();
+  TString outputInfo();
+  Double_t iso();
+
 
 };
 

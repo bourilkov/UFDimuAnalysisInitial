@@ -295,172 +295,6 @@ void Run1EventSelectionCuts::makeCutSet()
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// _______________________SynchEventSelection____________________________//
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-// Some event selection criteria for the Synchronization exercise 
-
-SynchEventSelectionCuts::SynchEventSelectionCuts()
-{
-// Default values for the event selection for the synchronization exercise
-
-    cDimuMassMin = 100;         // >
-    cDimuMassMax = 110;         // <
-    cTrigMuPtMin = 24;          // >
-    cTrigMuEtaMax = 2.4;        // <
-    cPVzMax = 24;               // < 
-    cNDFpv = 4;                 // >
-    cNPV = 0;                   // > 
-    cNJets = 2;                 // <= 
-    cutset.cuts = std::vector<CutInfo>(5, CutInfo());
-    makeCutSet();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-SynchEventSelectionCuts::SynchEventSelectionCuts(float dimuMassMin, float dimuMassMax, float trigMuPtMin, float trigMuEtaMax, float PVzMax, int NDFpv, int NPV, int nJets)
-{
-// Default values for the event selection for the synchronization exercise
-
-    cDimuMassMin = dimuMassMin;       // >
-    cDimuMassMax = dimuMassMax;       // <
-    cTrigMuPtMin = trigMuPtMin;       // >
-    cTrigMuEtaMax = trigMuEtaMax;     // <
-    cPVzMax = PVzMax;                 // < 
-    cNDFpv = NDFpv;                   // >
-    cNPV = NPV;                       // > 
-    cNJets = nJets;                   // <=
-    cutset.cuts = std::vector<CutInfo>(5, CutInfo());
-    makeCutSet();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-bool SynchEventSelectionCuts::evaluate(VarSet& vars)
-{
-    // Make sure passed is true at first and the value is reset
-    cutset.resetCuts();
-
-    // keep track of the values that were cut on
-    cutset.cuts[0].value = vars.recoMuons->at(0).charge != vars.recoMuons->at(1).charge;
-    cutset.cuts[1].value = vars.dimuCand.mass_PF;
-    cutset.cuts[2].value = 1;
-    cutset.cuts[3].value = 1;
-    cutset.cuts[4].value = vars.validJets.size();
-
-    // if the event fails a single cut return false
-    // Require oppositely charged muons in the event
-    if(!(vars.recoMuons->at(0).charge != vars.recoMuons->at(1).charge) && cutset.cuts[0].on){ cutset.cuts[0].passed = false; return false;}
-
-    // Look at a certain mass range for synchronization purposes
-    if(!(vars.dimuCand.mass_PF > cDimuMassMin && vars.dimuCand.mass_PF < cDimuMassMax) && cutset.cuts[1].on){ cutset.cuts[1].passed = false; return false;}
-
-    // One muon in the pair must pass one of the HLT triggers. This muon have the appropriate pt and eta.
-    // Should probably make this into a function so that we can look at a larger number of triggers without cluttering this too much.
-    if(!cutset.cuts[2].on) ;
-    else if(vars.recoMuons->at(0).isHltMatched[4] && vars.recoMuons->at(0).pt > cTrigMuPtMin && TMath::Abs(vars.recoMuons->at(0).eta) < cTrigMuEtaMax) ; 
-    else if(vars.recoMuons->at(0).isHltMatched[5] && vars.recoMuons->at(0).pt > cTrigMuPtMin && TMath::Abs(vars.recoMuons->at(0).eta) < cTrigMuEtaMax) ;
-    else if(vars.recoMuons->at(1).isHltMatched[4] && vars.recoMuons->at(1).pt > cTrigMuPtMin && TMath::Abs(vars.recoMuons->at(1).eta) < cTrigMuEtaMax) ; 
-    else if(vars.recoMuons->at(1).isHltMatched[5] && vars.recoMuons->at(1).pt > cTrigMuPtMin && TMath::Abs(vars.recoMuons->at(1).eta) < cTrigMuEtaMax) ; 
-    else 
-    {
-        cutset.cuts[2].value = 0;
-        cutset.cuts[2].passed = false;
-        return false;                                                                                                   // no muon passed a trigger
-    }
-
-    // Vertex selection
-    if(!passesVertexSelection(vars.vertices) && cutset.cuts[3].on)
-    { 
-        cutset.cuts[3].passed = false;
-        cutset.cuts[3].value = 0;
-        return false;
-    }
-
-    // nJets selection
-    if(!(vars.validJets.size() <= cNJets) && cutset.cuts[4].on){ cutset.cuts[4].passed = false;  return false;}
-
-    // Passed all the cuts
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-bool SynchEventSelectionCuts::passesVertexSelection(std::vector<VertexInfo>* vertices) 
-{
-// For synchronization we have to check that at least one vertex meets certain criteria.
-
-    if(!(vertices->size() > cNPV)) return false;
-
-    bool passesZreq = false;
-    bool passesNDFreq = false;
-    for(int v=0; v < vertices->size(); ++v)
-    {   
-        if(TMath::Abs(vertices->at(v).z) < cPVzMax) passesZreq = true;
-        if(vertices->at(v).ndof > cNDFpv) passesNDFreq = true;
- 
-        // There is at least one vertex that passes the Z req and at least one that passes the NDF req 
-        // Maybe the condition should be that there is at least one that passes the Z req AND NDF req
-        if(passesZreq && passesNDFreq) return true;
-    }   
-    return false;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-TString SynchEventSelectionCuts::string()
-{
-    return TString("Synch Event Selection Cuts");
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-void SynchEventSelectionCuts::makeCutSet()
-{
-    cutset.cuts[0].name = "recoMuons->at(0).charge != recoMuons->at(1).charge";
-    cutset.cuts[0].tstring = "recoMuons->at(0).charge != recoMuons->at(1).charge";
-    cutset.cuts[0].bins = 2;
-    cutset.cuts[0].min = 0;
-    cutset.cuts[0].max = 2;
-
-    cutset.cuts[1].name = "dimuCand.mass_PF";
-    cutset.cuts[1].tstring.Form("dimuCand.mass_PF > %f && dimuCand.mass_PF < %f", cDimuMassMin, cDimuMassMax);
-    cutset.cuts[1].bins = 140;
-    cutset.cuts[1].min = 60;
-    cutset.cuts[1].max = 200;
-
-    cutset.cuts[2].name = "passes HLT Trigger Selection";
-    cutset.cuts[2].tstring.Form("recoMu.isHltMatched[4||5] && recoMu.pt > %5.2f && TMath::Abs(recoMu.eta) < %4.2f", cTrigMuPtMin, cTrigMuEtaMax);
-    cutset.cuts[2].bins = 2;
-    cutset.cuts[2].min = 0;
-    cutset.cuts[2].max = 2;
-
-    cutset.cuts[3].name = "passes Vertex Selection";
-    cutset.cuts[3].tstring.Form("v in V s.t. abs(vertices.z[v]) < %4.2f && v in V s.t. vertices.ndf[v] > %d", cPVzMax, cNDFpv);
-    cutset.cuts[3].bins = 2;
-    cutset.cuts[3].min = 0;
-    cutset.cuts[3].max = 2;
-
-    cutset.cuts[4].name = "nValidJets";
-    cutset.cuts[4].tstring.Form("validJets.size() <= %d", cNJets);
-    cutset.cuts[4].bins = 10;
-    cutset.cuts[4].min = 0;
-    cutset.cuts[4].max = 10;
-}
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 // _______________________Run1EventSelectionSig__________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -759,13 +593,11 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     }
     if(cutset.cuts[7].on)
     {
-        if(!((vars.recoMuons->at(0).sumChargedHadronPtR03 + TMath::Max(0.0,vars.recoMuons->at(0).sumNeutralHadronEtR03+
-              vars.recoMuons->at(0).sumPhotonEtR03 - 0.5*vars.recoMuons->at(0).sumPUPtR03))/vars.recoMuons->at(0).pt <= cMaxRelIso) ) return false;
+        if(!(vars.recoMuons->at(0).iso() <= cMaxRelIso) ) return false;
     }
     if(cutset.cuts[8].on)
     {
-        if(!((vars.recoMuons->at(1).sumChargedHadronPtR03 + TMath::Max(0.0,vars.recoMuons->at(1).sumNeutralHadronEtR03+
-              vars.recoMuons->at(1).sumPhotonEtR03 - 0.5*vars.recoMuons->at(1).sumPUPtR03))/vars.recoMuons->at(1).pt <= cMaxRelIso) ) return false;
+        if(!(vars.recoMuons->at(1).iso() <= cMaxRelIso) ) return false;
     }
     return true;
 }

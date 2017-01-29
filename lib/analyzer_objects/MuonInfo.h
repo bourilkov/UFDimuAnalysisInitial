@@ -4,8 +4,9 @@
 
 #include <vector>
 #include "TMath.h"
+#include "ParticleInfo.h"
 
-struct MuonInfo {
+struct MuonInfo : public ParticleInfo{
 
   Bool_t isTracker   ;
   Bool_t isStandAlone;
@@ -78,6 +79,11 @@ struct MuonInfo {
   Float_t hltPhi      [nTrig];
 
   void init();
+  Float_t getMass();
+  TLorentzVector get4vec();
+  TString outputInfo();
+  Double_t iso();
+
 
 };
 
