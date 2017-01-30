@@ -1,0 +1,13 @@
+* EventSelection
+    - pass/fail events based upon event information
+
+* MuonSelection
+    - pass/fail events based upon information from the muons that make up the candidate pair
+
+* CategorySelection
+    - Filter the events that passed the above selections into different categories
+    - Usually doesn't throw any events out, just categorizes them
+
+* collection_cleaning
+    - Clean the muon, electron, tau, and jet collections
+    - keep the good objects, toss the bad ones

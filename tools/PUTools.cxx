@@ -24,7 +24,7 @@ void PUTools::savePUHisto(Sample* s, TString savedir)
     for(unsigned int i=0; i<s->N; i++)
     {   
         s->getEntry(i);
-        pileuphist->Fill(s->vars.nPU, s->vars.genWeight);
+        pileuphist->Fill(s->vars.nPU, s->vars.gen_wgt);
     }   
 
     TFile* savefile = new TFile(savedir+"PUCalib_"+s->name+".root", "RECREATE");

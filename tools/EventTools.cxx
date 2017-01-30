@@ -211,9 +211,9 @@ void EventTools::outputEvent(VarSet& vars)
          JetCollectionCleaner js;
          std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
          std::cout << std::endl;
-         std::cout << "  dimuCand.mass: " << vars.dimuCand.mass << std::endl;
-         std::cout << "  dimuCand.mass_PF: " << vars.dimuCand.mass_PF << std::endl;
-         std::cout << "  dimuCand.pt: " << vars.dimuCand.pt << std::endl;
+         std::cout << "  dimuCand->mass: " << vars.dimuCand->mass << std::endl;
+         std::cout << "  dimuCand->mass_PF: " << vars.dimuCand->mass_PF << std::endl;
+         std::cout << "  dimuCand->pt: " << vars.dimuCand->pt << std::endl;
          std::cout << std::endl;
          std::cout << "  recoMuons->at(0): " << vars.recoMuons->at(0).outputInfo() << std::endl;
          std::cout << std::endl;

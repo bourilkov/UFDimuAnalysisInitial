@@ -5,49 +5,19 @@
 
 #include "Cut.h"
 
-class Run1EventSelectionCuts80X : public Cut
+class Run2EventSelectionCuts80X : public Cut
 {
-// CMSSW 8_0_X is missing HLT Info so we can't use HLT in event selection
-// We have to apply other cuts and scale for trigger efficiency
-
+// if data apply hlt trigger matching
+// if MC do not apply hlt trigger matching
     public:
-        Run1EventSelectionCuts80X();
-        Run1EventSelectionCuts80X(bool isData);
-        Run1EventSelectionCuts80X(float trigMuPtMin, float dimuMassMin);
-        Run1EventSelectionCuts80X(bool isData, float trigMuPtMin, float dimuMassMin);
+        Run2EventSelectionCuts80X();
+        Run2EventSelectionCuts80X(bool isData);
+        Run2EventSelectionCuts80X(float trigMuPtMin, float dimuMassMin);
+        Run2EventSelectionCuts80X(bool isData, float trigMuPtMin, float dimuMassMin);
 
         bool isData = 0;
         float cTrigMuPtMin;        // >
         float cDimuMassMin;        // >
-
-        void makeCutSet();
-        bool evaluate(VarSet& vars);
-        TString string();
-};
-
-class Run1EventSelectionCuts : public Cut
-{
-    public:
-        Run1EventSelectionCuts();
-        Run1EventSelectionCuts(float trigMuPtMin, float dimuMassMin);
-
-        float cTrigMuPtMin;        // >
-        float cDimuMassMin;        // >
-
-        void makeCutSet();
-        bool evaluate(VarSet& vars);
-        TString string();
-};
-
-class Run1EventSelectionSigCuts : public Cut
-{
-    public:
-        Run1EventSelectionSigCuts();
-        Run1EventSelectionSigCuts(float trigMuPtMin, float dimuMassMin, float dimuMassMax);
-
-        float cTrigMuPtMin;        // >
-        float cDimuMassMin;        // >
-        float cDimuMassMax;        // <
 
         void makeCutSet();
         bool evaluate(VarSet& vars);

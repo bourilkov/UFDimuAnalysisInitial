@@ -1,0 +1,11 @@
+Some miscellaneous tools to help with different things.
+
+*EventTools
+  - mostly has tools to input event info from csv or output event info to csv
+
+* PUTools
+  - make the PU histos for MC samples required for pileup reweighting
+
+* ParticleTools
+  - mostly tools to deal with gen muons
+  - these probably wouldn't be necessary if we saved the gen muons in a better way

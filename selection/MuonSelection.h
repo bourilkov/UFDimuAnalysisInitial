@@ -5,11 +5,11 @@
 
 #include "Cut.h"
 
-class SynchMuonSelectionCuts : public Cut
+class Run2MuonSelectionCuts : public Cut
 {
     public:
-        SynchMuonSelectionCuts();
-        SynchMuonSelectionCuts(float minPt, float maxEta, float maxRelIso);
+        Run2MuonSelectionCuts();
+        Run2MuonSelectionCuts(float minPt, float maxEta, float maxRelIso);
 
         float cMinPt;               // >
         float cMaxEta;              // <
@@ -17,23 +17,6 @@ class SynchMuonSelectionCuts : public Cut
 
         void makeCutSet();
         bool evaluate(VarSet& vars);
-        bool evaluate(std::vector<MuonInfo>* recoMuons, int m);
-        TString string();
-};
-
-class Run1MuonSelectionCuts : public Cut
-{
-    public:
-        Run1MuonSelectionCuts();
-        Run1MuonSelectionCuts(float minPt, float maxEta, float maxRelIso);
-
-        float cMinPt;               // >
-        float cMaxEta;              // <
-        float cMaxRelIso;           // <
-
-        void makeCutSet();
-        bool evaluate(VarSet& vars);
-        bool evaluate(std::vector<MuonInfo>* recoMuons, int m);
         TString string();
 };
 

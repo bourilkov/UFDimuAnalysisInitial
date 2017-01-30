@@ -348,9 +348,10 @@ int main(int argc, char* argv[])
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
 
-    int whichCategories = 1;  // run1categories = 1, run2categories = 2
+    int whichCategories = 1;  // run2categories = 1, run2categories = 2
     int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
-    int nthreads = 11;        // number of threads to use in parallelization
+    //int nthreads = 11;        // number of threads to use in parallelization
+    int nthreads = 1;         // number of threads to use in parallelization
     bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
@@ -379,9 +380,7 @@ int main(int argc, char* argv[])
     // Use this to plot some things if we wish
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
 
-    //float luminosity = 3990;     // pb-1
-    float luminosity = 33598;      // pb-1
-    //float luminosity = 27217;    // pb-1
+    float luminosity = 36814;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
     float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
@@ -394,42 +393,46 @@ int main(int argc, char* argv[])
     getSamples(luminosity, samples);
 
     ///////////////////////////////////////////////////////////////////
-    // PREPROCESSING---------------------------------------------------
+    // PREPROCESSING: Get PU weights ----------------------------------
     ///////////////////////////////////////////////////////////////////
 
     // Loop through all of the samples to do some pre-processing
-    std::cout << std::endl;
-    std::cout << "======== Preprocess the samples... " << std::endl;
-    std::cout << std::endl;
+    // Add to the vector we loop over to categorize
+    
+    //std::cout << std::endl;
+    //std::cout << "======== Preprocess the samples... " << std::endl;
+    //std::cout << std::endl;
 
     //makePUHistos(samples);
     
-    for(auto &i : samples)
-    {
-        // Output some info about the current file
-        std::cout << "  /// Preprocessing " << i.second->name << std::endl;
-        std::cout << std::endl;
-        std::cout << "    sample name:       " << i.second->name << std::endl;
-        std::cout << "    sample file:       " << i.second->filename << std::endl;
-        std::cout << "    pileup file:       " << i.second->pileupfile << std::endl;
-        std::cout << "    nOriginal:         " << i.second->nOriginal << std::endl;
-        std::cout << "    N:                 " << i.second->N << std::endl;
-        std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
-        std::cout << std::endl;
+    //for(auto &i : samples)
+    //{
+    //    // Output some info about the current file
+    //    std::cout << "  /// Preprocessing " << i.second->name << std::endl;
+    //    std::cout << std::endl;
+    //    std::cout << "    sample name:       " << i.second->name << std::endl;
+    //    std::cout << "    sample file:       " << i.second->filename << std::endl;
+    //    std::cout << "    pileup file:       " << i.second->pileupfile << std::endl;
+    //    std::cout << "    nOriginal:         " << i.second->nOriginal << std::endl;
+    //    std::cout << "    N:                 " << i.second->N << std::endl;
+    //    std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
+    //    std::cout << std::endl;
 
-        if(!i.second->sampleType.EqualTo("data"))
-        {
-            // Pileup reweighting
-            std::cout << "    +++ PU Reweighting " << i.second->name << "..."  << std::endl;
-            std::cout << std::endl;
+    //    if(!i.second->sampleType.EqualTo("data"))
+    //    {
+    //        // Pileup reweighting
+    //        std::cout << "    +++ PU Reweighting " << i.second->name << "..."  << std::endl;
+    //        std::cout << std::endl;
 
-            // Every data sample has the pileup hist for the entire lumi
-            i.second->lumiWeights = new reweight::LumiReWeighting(i.second->pileupfile.Data(), samples["RunB"]->pileupfile.Data(), "pileup", "pileup");
-            std::cout << "        " << i.first << "->lumiWeights: " << i.second->lumiWeights << std::endl;
-            std::cout << std::endl;
-        }
-        samplevec.push_back(i.second);
-    }
+    //        // Every data sample has the pileup hist for the entire lumi
+    //        i.second->lumiWeights = new reweight::LumiReWeighting(i.second->pileupfile.Data(), samples["RunB"]->pileupfile.Data(), "pileup", "pileup");
+    //        std::cout << "        " << i.first << "->lumiWeights: " << i.second->lumiWeights << std::endl;
+    //        std::cout << std::endl;
+    //    }
+    //    samplevec.push_back(i.second);
+    //}
+
+    samplevec.push_back(samples["GGF_AWB"]);
 
     // Sort the samples by xsec. Useful when making the histogram stack.
     std::sort(samplevec.begin(), samplevec.end(), [](Sample* a, Sample* b){ return a->xsec < b->xsec; }); 
@@ -475,9 +478,9 @@ int main(int argc, char* argv[])
       MuonCollectionCleaner     muonCollectionCleaner;
       EleCollectionCleaner      eleCollectionCleaner;
 
-      Run1MuonSelectionCuts     run1MuonSelection;
-      Run1EventSelectionCuts80X run1EventSelectionData(true);
-      Run1EventSelectionCuts80X run1EventSelectionMC;
+      Run2MuonSelectionCuts     run2MuonSelection;
+      Run2EventSelectionCuts80X run2EventSelectionData(true);
+      Run2EventSelectionCuts80X run2EventSelectionMC;
 
       Categorizer* categorySelection = 0;
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
@@ -524,16 +527,16 @@ int main(int argc, char* argv[])
 
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
-      TBranch* dimuCandBranch  = s->tree->GetBranch("pairs");
-      TBranch* recoMuonsBranch = s->tree->GetBranch("muons");
-      TBranch* pfJetsBranch    = s->tree->GetBranch("jets");
-      TBranch* mhtBranch       = s->tree->GetBranch("mht");
-      TBranch* eventInfoBranch = s->tree->GetBranch("event");
-      TBranch* nVerticesBranch = s->tree->GetBranch("nVertices");
+      TBranch* recoDimuCandsBranch  = s->tree->GetBranch("pairs");
+      TBranch* recoMuonsBranch      = s->tree->GetBranch("muons");
+      TBranch* jetsBranch           = s->tree->GetBranch("jets");
+      TBranch* mhtBranch            = s->tree->GetBranch("mht");
+      TBranch* eventInfoBranch      = s->tree->GetBranch("event");
+      TBranch* nVerticesBranch      = s->tree->GetBranch("nVertices");
 
-      dimuCandBranch->SetAddress(&s->vars.dimuCand);
+      recoDimuCandsBranch->SetAddress(&s->vars.recoDimuCands);
       recoMuonsBranch->SetAddress(&s->vars.recoMuons);
-      pfJetsBranch->SetAddress(&s->vars.jets);
+      jetsBranch->SetAddress(&s->vars.jets);
       mhtBranch->SetAddress(&s->vars.mht);
       eventInfoBranch->SetAddress(&s->vars.eventInfo);
       nVerticesBranch->SetAddress(&s->vars.nVertices);
@@ -550,13 +553,20 @@ int main(int argc, char* argv[])
       // extra branches needed for MC samples
       TBranch* nPUBranch = 0;
       TBranch* genWeightBranch = 0;
+      TBranch* puWeightBranch = 0;
+      TBranch* effWeightBranch = 0;
 
       if(!isData)
       { 
           nPUBranch       = s->tree->GetBranch("nPU");
           genWeightBranch = s->tree->GetBranch("GEN_wgt");
-          genWeightBranch->SetAddress(&s->vars.genWeight);
+          puWeightBranch  = s->tree->GetBranch("PU_wgt");
+          effWeightBranch = s->tree->GetBranch("IsoMu_eff_3");
+
+          genWeightBranch->SetAddress(&s->vars.gen_wgt);
           nPUBranch->SetAddress(&s->vars.nPU);
+          puWeightBranch->SetAddress(&s->vars.pu_wgt);
+          effWeightBranch->SetAddress(&s->vars.eff_wgt);
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -567,19 +577,23 @@ int main(int argc, char* argv[])
       {
 
         // only load essential information for the first set of cuts 
-        dimuCandBranch->GetEntry(i);
+        recoDimuCandsBranch->GetEntry(i);
         recoMuonsBranch->GetEntry(i);
+
+        // insert loop over pairs
+        if(s->vars.recoDimuCands->size() >= 1) s->vars.dimuCand = &s->vars.recoDimuCands->at(0);
+        else continue;
 
         ///////////////////////////////////////////////////////////////////
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
 
 
-        if(!run1EventSelectionData.evaluate(s->vars) && isData)
+        if(!run2EventSelectionData.evaluate(s->vars) && isData)
         { 
             continue; 
         }
-        if(!run1EventSelectionMC.evaluate(s->vars) && !isData)
+        if(!run2EventSelectionMC.evaluate(s->vars) && !isData)
         { 
             continue; 
         }
@@ -587,14 +601,13 @@ int main(int argc, char* argv[])
         { 
             continue; 
         }
-        if(!run1MuonSelection.evaluate(s->vars)) 
+        if(!run2MuonSelection.evaluate(s->vars)) 
         {
             continue; 
         }
 
-
-        // Load the rest of the information needed for run1 categories
-        pfJetsBranch->GetEntry(i);
+        // Load the rest of the information needed for run2 categories
+        jetsBranch->GetEntry(i);
         mhtBranch->GetEntry(i);
         nVerticesBranch->GetEntry(i);
         //eventInfoBranch->GetEntry(i);
@@ -603,6 +616,8 @@ int main(int argc, char* argv[])
         {
             genWeightBranch->GetEntry(i);
             nPUBranch->GetEntry(i);
+            puWeightBranch->GetEntry(i);
+            effWeightBranch->GetEntry(i);
         }
 
         if(whichCategories == 1) 
@@ -615,7 +630,7 @@ int main(int argc, char* argv[])
         if(whichCategories == 2)
         {
             // load extra branches needed by run 2 categories
-            recoElectronsBranch->GetEntry(i);
+            //recoElectronsBranch->GetEntry(i);
 
             // clear vectors for the valid collections
             s->vars.validMuons.clear();
@@ -645,10 +660,10 @@ int main(int argc, char* argv[])
             if(c.second.hide) continue;
             if(!c.second.inCategory) continue;
 
-            // dimuCand.recoCandMass
+            // dimuCand->recoCandMass
             if(varname.EqualTo("dimu_mass")) 
             {
-                float varvalue = s->vars.dimuCand.mass_PF;
+                float varvalue = s->vars.dimuCand->mass_PF;
                 // blind the signal region for data but not for MC
                 if(!(isData && varvalue >= 110 && varvalue < 140))
                 {
@@ -662,7 +677,7 @@ int main(int argc, char* argv[])
             if(varname.EqualTo("dimu_pt"))
             {
                 // if the event is in the current category then fill the category's histogram for the given sample and variable
-                c.second.histoMap[hkey]->Fill(s->vars.dimuCand.pt_PF, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.dimuCand->pt_PF, s->getWeight());
                 continue;
             }
 
@@ -852,7 +867,7 @@ int main(int argc, char* argv[])
                  if(s->vars.validJets.size() >= 2)
                  {
                      TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
-                     float dEta = dijet.Eta() - s->vars.dimuCand.eta;
+                     float dEta = dijet.Eta() - s->vars.dimuCand->eta;
                      c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
                  }
                  continue;
@@ -939,31 +954,31 @@ int main(int argc, char* argv[])
         if(c.second.hide) continue;
 
         // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-        TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
-        TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
-        TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
+        //TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
+        //TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
+        //TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
 
-        netlist->Add(hNetSignal);
-        netlist->Add(hNetBkg);
-        netlist->Add(hNetData);
+        //netlist->Add(hNetSignal);
+        //netlist->Add(hNetBkg);
+        //netlist->Add(hNetData);
 
-        TList* sortedlist = getSortedMC(c.second.histoList, samplevec);
-        sortedlist->Add(hNetData);
+        //TList* sortedlist = getSortedMC(c.second.histoList, samplevec);
+        //sortedlist->Add(hNetData);
 
-        // Create the stack and ratio plot    
-        TString cname = c.first+"_stack";
-        //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
-                                  //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        // stack signal, bkg, and data
-        TCanvas* stack = dps->stackedHistogramsAndRatio(sortedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
-        varstacklist->Add(stack);
+        //// Create the stack and ratio plot    
+        //TString cname = c.first+"_stack";
+        ////stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
+        //                          //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
+        //// stack signal, bkg, and data
+        //TCanvas* stack = dps->stackedHistogramsAndRatio(sortedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
+        //varstacklist->Add(stack);
 
         // lists will contain signal, bg, and data histos for every category
         signallist->Add(c.second.signalList);
-        bglist->Add(c.second.bkgList);
-        datalist->Add(c.second.dataList);
+        //bglist->Add(c.second.bkgList);
+        //datalist->Add(c.second.dataList);
        
-        stack->SaveAs("imgs/"+cname+".png");
+        //stack->SaveAs("imgs/"+cname+".png");
     }
     std::cout << std::endl;
     TString savename = Form("validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);

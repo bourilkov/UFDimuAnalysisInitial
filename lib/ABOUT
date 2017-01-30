@@ -1,0 +1,43 @@
+* Sample
+  - keep track of information for a sample and perform basic functions
+      % is it a signal, background, or data sample?
+      % keep track of the file and ttree for the sample
+  - Sample->vars has all of the objects (muons, jets, etc) for the events, e.g. Sample->vars.recoMuons
+  - has functions to calculate things like the weight for the sample in the histogram
+  - has a PU Reweighting object for the sample as well
+
+* VarSet.h
+  - has all of the objects for an event in a sample
+      % Sample->vars is a VarSet with all of the info needed for cuts, plotting
+      % s->vars->recoMuons->at(0).pt for instance
+  - passed into Cut.evaluate(s->vars) or CategorySelection.evaluate(s->vars) to select or categorize the event
+
+* DiMuPlottingSystem
+  - functions for plotting
+  - plot stacks, add histograms, rebin ratio plots so each bin has low uncertainty, etc 
+
+* Cut
+  - Abstract class used by ../selection/, serves as an interface to apply pass/fail selections on the events
+  - ../selection/EventSelection and ../selection/MuonSelection implement the interface
+  - evaluate(&VarSet) looks at the variable info for the event to determine if it passes or fails
+      % e.g. EventSelection->evaluate(Sample->vars) or MuonSelection->evaluate(Sample->vars)
+  - has a CutSet class to keep track of all of the cut information
+
+*CutSet
+  - basically a vector of CutInfo objects, one for each cut in the Cut class
+  - does some book keeping 
+    % keep track of binning, name for each cut, cut value, and the string representation for each
+      # The string representations can be used with TTree draw
+
+  - Anways this has some nice functionality
+    % Turn specific cuts on and of
+    % concatenate the set of cuts into a single string to use with TTree->Draw or just to output to terminal
+
+*analyzer_objects
+  - The objects that the analyzer stored into the TTree
+  - Grab them from the ttree each event and put them into sample->vars
+  - muons, jets, electrons, taus, gen muons, gen jets, etc
+  - std::vector<ObjectInfo>'s were stored into the ttree
+  - analyzer_objects/linkdef/Linkdef.h is needed by the makefile to tell ROOT how to get the objects out of the TTree
+      % ../bin/makefile uses Linkdef.h and the analyzer_objets to make them usable in ROOT and our executables
+      % create executables in ../bin, compile them with the makefile there

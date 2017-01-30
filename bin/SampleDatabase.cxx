@@ -79,6 +79,11 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     samples["GGF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_GGF.root"; //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
 
+    TString ggAWBfilename   = TString("HToMuMu_NTuple_1.root");
+    samples["GGF_AWB"] = new Sample(ggAWBfilename, "GGF_AWB", "signal");
+    samples["GGF_AWB"]->pileupfile = "";      //nPU
+    samples["GGF_AWB"]->xsec = 43.62*0.00022; // pb
+
     ///////////////////////////////////////////////////////////////////
     // Output Sample Info ---------------------------------------------
     ///////////////////////////////////////////////////////////////////

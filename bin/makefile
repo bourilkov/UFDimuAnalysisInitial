@@ -19,7 +19,7 @@ MAIN = categorize
 MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
 MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.out 
-MAINDEPS   = ${THREADDIR}ThreadPool.hxx 
+MAINDEPS   = ${THREADDIR}ThreadPool.hxx  ${LIBDIR}VarSet.h SampleDatabase.cxx
 DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx
 
 # ANALYZER objects that were stored into the ttree need to be linked to ROOT
