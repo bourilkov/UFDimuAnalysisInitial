@@ -36,8 +36,10 @@ int main(int argc, char* argv[])
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
     std::map<TString, Sample*> samples;
-    getSamples(33598, samples);
-    Sample* s = samples["GGF_AWB"];
+    getSamples(36814, samples);
+    //Sample* s = samples["GGF_AWB"];
+    Sample* s = samples["DYJetsToLL_AWB"];
+    //Sample* s = samples["DYJetsToLL_AWB_M100to200"];
 
    //////////////////////////////////////////////////////////
    // LOOP TTREE -------------------------------------------
@@ -54,24 +56,28 @@ int main(int argc, char* argv[])
     TBranch* nMuonsBranch = s->tree->GetBranch("nMuons");
     nMuonsBranch->SetAddress(&nMuons);
 
-    for(unsigned int i=0; i<10; i++)
+    for(unsigned int i=0; i<s->N; i++)
     {
        nMuonsBranch->GetEntry(i);
-       std::cout << i << " nMuons          : " << nMuons << std::endl;
+       if(i%1000==0) std::cout << i << " nMuons          : " << nMuons << std::endl;
        recoDimuonsBranch->GetEntry(i);
        recoMuonsBranch->GetEntry(i);
-       std::cout << i << " recoMuons->size(): " << s->vars.recoMuons->size() << std::endl;
+       if(i%1000==0) std::cout << i << " recoMuons->size(): " << s->vars.recoMuons->size() << std::endl;
   
        for(auto& dimu: (*s->vars.recoDimuCands))
        {
            s->vars.dimuCand = &dimu;
-           std::cout << i << " dimu.mass       : " << dimu.mass << std::endl;
-           std::cout << i << " dimu.mass_      : " << s->vars.dimuCand->mass << std::endl;
-           std::cout << i << " dimu.address    : " << &dimu << std::endl;
-           std::cout << i << " dimu.address_p  : " << s->vars.dimuCand << std::endl;
+           if(i%1000==0) std::cout << i << " dimu.mass       : " << dimu.mass << std::endl;
+           if(i%1000==0) std::cout << i << " dimu.mass_      : " << s->vars.dimuCand->mass << std::endl;
+           if(i%1000==0) std::cout << i << " dimu.address    : " << &dimu << std::endl;
+           if(i%1000==0) std::cout << i << " dimu.address_p  : " << s->vars.dimuCand << std::endl;
 
-           std::cout << i << " pt1: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu1).pt << std::endl;
-           std::cout << i << " pt2: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu2).pt << std::endl;
+           if(i%1000==0) std::cout << i << " pt1: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu1).pt << std::endl;
+           if(i%1000==0) std::cout << i << " pt2: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu2).pt << std::endl;
        }
     }
+
+    // test to see if it racks up memory without this
+    //delete s->vars.recoDimuCands;
+    //delete s->vars.recoMuons;
 }

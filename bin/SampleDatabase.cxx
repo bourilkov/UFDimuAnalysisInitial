@@ -15,6 +15,8 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
+    
+    TString sampledir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
 
     // ================================================================
     // Data -----------------------------------------------------------
@@ -47,19 +49,37 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     // DYJetsToLL -----------------------------------------------------
     // ================================================================
 
-    TString dyfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/dy/CMSSW_8_0_X/stage_1_dy_jetsToLL_ALL_etm.root");
-    samples["DYJetsToLL"] = new Sample(dyfilename, "DYJetsToLL", "background");
-    samples["DYJetsToLL"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_DYJetsToLL.root"; //nPU
-    samples["DYJetsToLL"]->xsec = 6025.2; // pb
+    float dyxsec_m50 = 6025.2; //5765;           // pb // old value = 6025.2
+    float dy_m100to200_factor = 1.235; 
+
+    TString dyfile   = TString(sampledir+"dy/DYJetsToLL_M-50_amcatnlo.root");
+    samples["DYJetsToLL"] = new Sample(dyfile, "DYJetsToLL", "background");
+    samples["DYJetsToLL"]->pileupfile = ""; //nPU
+    samples["DYJetsToLL"]->xsec = dyxsec_m50; 
+
+    dyfile   = TString(sampledir+"dy/DYJetsToLL_M-50_madgraph.root");
+    samples["DYJetsToLL_madgraph"] = new Sample(dyfile, "DYJetsToLL_madgraph", "background");
+    samples["DYJetsToLL_madgraph"]->pileupfile = ""; //nPU
+    samples["DYJetsToLL_madgraph"]->xsec = dyxsec_m50;
+
+    dyfile   = TString(sampledir+"dy/DYJetsToLL_M-100to200_amcatnlo.root");
+    samples["DYJetsToLL_M100to200"] = new Sample(dyfile, "DYJetsToLL_M100to200", "background");
+    samples["DYJetsToLL_M100to200"]->pileupfile = ""; //nPU
+    samples["DYJetsToLL_M100to200"]->xsec = dyxsec_m50; // 7117
+
+    dyfile = TString(sampledir+"/DYJetsToLL_M-100to200_amcatnlo_SpringPU.root");
+    samples["DYJetsToLL_M100to200_SpringPU"] = new Sample(dyfile, "DYJetsToLL_M100to200_SpringPU", "background");
+    samples["DYJetsToLL_M100to200_SpringPU"]->pileupfile = ""; //nPU
+    samples["DYJetsToLL_M100to200_SpringPU"]->xsec = dyxsec_m50; // 7117
 
     // ================================================================
     // TTJets ---------------------------------------------------------
     // ================================================================
 
-    TString ttbarfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/bg/ttbar/CMSSW_8_0_X/stage_1_ttJets_ALL_etm.root");
-    samples["TTJets"] = new Sample(ttbarfilename, "TTJets", "background");
-    samples["TTJets"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_TTJets.root"; //nPU
-    samples["TTJets"]->xsec = 831.76; // pb
+    TString ttbarfilename   = TString(sampledir+"ttjets/TTJetsToLL_amcatnlo.root");
+    samples["TTJetsToLL"] = new Sample(ttbarfilename, "TTJetsToLL", "background");
+    samples["TTJetsToLL"]->pileupfile = ""; //nPU
+    samples["TTJetsToLL"]->xsec = 85.656; // pb
 
     // ================================================================
     // VBF ---------------------------------------------------------
@@ -74,15 +94,10 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     // GGF ---------------------------------------------------------
     // ================================================================
 
-    TString ggfilename   = TString("/cms/data/store/user/t2/users/acarnes/h2mumu/samples/stage1/mc/signal/CMSSW_8_0_X/stage_1_gg_HToMuMu_ALL_etm.root");
-    samples["GGF"] = new Sample(ggfilename, "GGF", "signal");
-    samples["GGF"]->pileupfile = "./pu_reweight_trees/8_0_X/PUCalib_GGF.root"; //nPU
+    TString ggfilename   = TString("HToMuMu_NTuple_1.root");
+    samples["GGF"] = new Sample(ggAWBfilename, "GGF_AWB", "signal");
+    samples["GGF"]->pileupfile = "";      //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
-
-    TString ggAWBfilename   = TString("HToMuMu_NTuple_1.root");
-    samples["GGF_AWB"] = new Sample(ggAWBfilename, "GGF_AWB", "signal");
-    samples["GGF_AWB"]->pileupfile = "";      //nPU
-    samples["GGF_AWB"]->xsec = 43.62*0.00022; // pb
 
     ///////////////////////////////////////////////////////////////////
     // Output Sample Info ---------------------------------------------
