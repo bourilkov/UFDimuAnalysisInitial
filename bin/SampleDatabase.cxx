@@ -95,7 +95,7 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     // ================================================================
 
     TString ggfilename   = TString("HToMuMu_NTuple_1.root");
-    samples["GGF"] = new Sample(ggAWBfilename, "GGF_AWB", "signal");
+    samples["GGF"] = new Sample(ggfilename, "GGF_AWB", "signal");
     samples["GGF"]->pileupfile = "";      //nPU
     samples["GGF"]->xsec = 43.62*0.00022; // pb
 
