@@ -350,7 +350,6 @@ int main(int argc, char* argv[])
 
     int whichCategories = 1;  // run2categories = 1, run2categories = 2
     int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
-    //int nthreads = 11;        // number of threads to use in parallelization
     int nthreads = 1;         // number of threads to use in parallelization
     bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
@@ -383,7 +382,7 @@ int main(int argc, char* argv[])
     float luminosity = 36814;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
-    float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 100;   // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -405,34 +404,34 @@ int main(int argc, char* argv[])
 
     //makePUHistos(samples);
     
-    //for(auto &i : samples)
-    //{
-    //    // Output some info about the current file
-    //    std::cout << "  /// Preprocessing " << i.second->name << std::endl;
-    //    std::cout << std::endl;
-    //    std::cout << "    sample name:       " << i.second->name << std::endl;
-    //    std::cout << "    sample file:       " << i.second->filename << std::endl;
-    //    std::cout << "    pileup file:       " << i.second->pileupfile << std::endl;
-    //    std::cout << "    nOriginal:         " << i.second->nOriginal << std::endl;
-    //    std::cout << "    N:                 " << i.second->N << std::endl;
-    //    std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
-    //    std::cout << std::endl;
+    for(auto &i : samples)
+    {
+        // Output some info about the current file
+        std::cout << "  /// Using the following samples " << i.second->name << std::endl;
+        std::cout << std::endl;
+        std::cout << "    sample name:       " << i.second->name << std::endl;
+        std::cout << "    sample file:       " << i.second->filename << std::endl;
+        std::cout << "    pileup file:       " << i.second->pileupfile << std::endl;
+        std::cout << "    nOriginal:         " << i.second->nOriginal << std::endl;
+        std::cout << "    N:                 " << i.second->N << std::endl;
+        std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
+        std::cout << std::endl;
 
-    //    if(!i.second->sampleType.EqualTo("data"))
-    //    {
-    //        // Pileup reweighting
-    //        std::cout << "    +++ PU Reweighting " << i.second->name << "..."  << std::endl;
-    //        std::cout << std::endl;
+        samplevec.push_back(i.second);
 
-    //        // Every data sample has the pileup hist for the entire lumi
-    //        i.second->lumiWeights = new reweight::LumiReWeighting(i.second->pileupfile.Data(), samples["RunB"]->pileupfile.Data(), "pileup", "pileup");
-    //        std::cout << "        " << i.first << "->lumiWeights: " << i.second->lumiWeights << std::endl;
-    //        std::cout << std::endl;
-    //    }
-    //    samplevec.push_back(i.second);
-    //}
+        // Pileup Reweighting now available in the TTree info, no need to calculate
+        //if(!i.second->sampleType.EqualTo("data"))
+        //{
+        //    // Pileup reweighting
+        //    std::cout << "    +++ PU Reweighting " << i.second->name << "..."  << std::endl;
+        //    std::cout << std::endl;
 
-    samplevec.push_back(samples["GGF_AWB"]);
+        //    // Every data sample has the pileup hist for the entire lumi
+        //    i.second->lumiWeights = new reweight::LumiReWeighting(i.second->pileupfile.Data(), samples["RunB"]->pileupfile.Data(), "pileup", "pileup");
+        //    std::cout << "        " << i.first << "->lumiWeights: " << i.second->lumiWeights << std::endl;
+        //    std::cout << std::endl;
+        //}
+    }
 
     // Sort the samples by xsec. Useful when making the histogram stack.
     std::sort(samplevec.begin(), samplevec.end(), [](Sample* a, Sample* b){ return a->xsec < b->xsec; }); 
@@ -588,7 +587,6 @@ int main(int argc, char* argv[])
         // CUTS  ----------------------------------------------------------
         ///////////////////////////////////////////////////////////////////
 
-
         if(!run2EventSelectionData.evaluate(s->vars) && isData)
         { 
             continue; 
@@ -597,7 +595,7 @@ int main(int argc, char* argv[])
         { 
             continue; 
         }
-        if(!s->vars.recoMuons->at(0).isTightID || !s->vars.recoMuons->at(1).isTightID)
+        if(!s->vars.recoMuons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.recoMuons->at(s->vars.dimuCand->iMu2).isTightID)
         { 
             continue; 
         }
@@ -644,14 +642,13 @@ int main(int argc, char* argv[])
             jetCollectionCleaner.getValidBJets(s->vars, s->vars.validBJets);
             muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons);
             eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
-
-            for(unsigned int m=2; m<s->vars.validMuons.size(); m++)
-                s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
+          
+            //for(unsigned int m=0; m<s->vars.validMuons.size(); m++)
+            //    s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
         }
 
         // Figure out which category the event belongs to
         categorySelection->evaluate(s->vars);
-
 
         // Look at each category
         for(auto &c : categorySelection->categoryMap)
@@ -858,7 +855,7 @@ int main(int argc, char* argv[])
             // MHT
             if(varname.EqualTo("MHT"))
             {
-                c.second.histoMap[hkey]->Fill(s->vars.mht.pt, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.mht->pt, s->getWeight());
             }
 
             // dEta_jj_mumu
@@ -888,7 +885,7 @@ int main(int argc, char* argv[])
       for(auto &c : categorySelection->categoryMap)
       {
           c.second.histoMap[hkey]->Scale(s->getScaleFactor(luminosity));
-          if(!isData) c.second.histoMap[hkey]->Scale(triggerSF);
+          //if(!isData) c.second.histoMap[hkey]->Scale(triggerSF);
       }
 
       return categorySelection;
@@ -954,31 +951,31 @@ int main(int argc, char* argv[])
         if(c.second.hide) continue;
 
         // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-        //TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
-        //TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
-        //TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
+        TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
+        TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
+        TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
 
-        //netlist->Add(hNetSignal);
-        //netlist->Add(hNetBkg);
-        //netlist->Add(hNetData);
+        netlist->Add(hNetSignal);
+        netlist->Add(hNetBkg);
+        netlist->Add(hNetData);
 
-        //TList* sortedlist = getSortedMC(c.second.histoList, samplevec);
-        //sortedlist->Add(hNetData);
+        TList* sortedlist = getSortedMC(c.second.histoList, samplevec);
+        sortedlist->Add(hNetData);
 
-        //// Create the stack and ratio plot    
-        //TString cname = c.first+"_stack";
-        ////stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
-        //                          //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        //// stack signal, bkg, and data
-        //TCanvas* stack = dps->stackedHistogramsAndRatio(sortedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
-        //varstacklist->Add(stack);
+        // Create the stack and ratio plot    
+        TString cname = c.first+"_stack";
+        //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
+                                  //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
+        // stack signal, bkg, and data
+        TCanvas* stack = dps->stackedHistogramsAndRatio(sortedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
+        varstacklist->Add(stack);
 
         // lists will contain signal, bg, and data histos for every category
         signallist->Add(c.second.signalList);
-        //bglist->Add(c.second.bkgList);
-        //datalist->Add(c.second.dataList);
+        bglist->Add(c.second.bkgList);
+        datalist->Add(c.second.dataList);
        
-        //stack->SaveAs("imgs/"+cname+".png");
+        stack->SaveAs("imgs/"+cname+".png");
     }
     std::cout << std::endl;
     TString savename = Form("validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);

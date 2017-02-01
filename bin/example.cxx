@@ -38,43 +38,57 @@ int main(int argc, char* argv[])
     std::map<TString, Sample*> samples;
     getSamples(36814, samples);
     //Sample* s = samples["GGF_AWB"];
-    Sample* s = samples["DYJetsToLL_AWB"];
+    Sample* s = samples["WminusH"];
     //Sample* s = samples["DYJetsToLL_AWB_M100to200"];
 
    //////////////////////////////////////////////////////////
    // LOOP TTREE -------------------------------------------
    ///////////////////////////////////////////////////////// 
 
+    TBranch* jetsBranch = s->tree->GetBranch("jets");
+    TBranch* mhtBranch = s->tree->GetBranch("mht");
     TBranch* recoMuonsBranch = s->tree->GetBranch("muons");
     TBranch* recoDimuonsBranch = s->tree->GetBranch("pairs");
+    TBranch* nMuonsBranch = s->tree->GetBranch("nMuons");
     std::cout << "Got Branches." << std::endl;
-    recoMuonsBranch->SetAddress(&s->vars.recoMuons);
-
-    recoDimuonsBranch->SetAddress(&s->vars.recoDimuCands);
 
     Int_t nMuons;
-    TBranch* nMuonsBranch = s->tree->GetBranch("nMuons");
+    jetsBranch->SetAddress(&s->vars.jets);
+    mhtBranch->SetAddress(&s->vars.mht);
+    recoMuonsBranch->SetAddress(&s->vars.recoMuons);
+    recoDimuonsBranch->SetAddress(&s->vars.recoDimuCands);
     nMuonsBranch->SetAddress(&nMuons);
+    std::cout << "Set Branches." << std::endl;
 
-    for(unsigned int i=0; i<s->N; i++)
+
+    for(unsigned int i=0; i<100; i++)
     {
+       std::cout << i << " get nMuons" << std::endl;
        nMuonsBranch->GetEntry(i);
-       if(i%1000==0) std::cout << i << " nMuons          : " << nMuons << std::endl;
+       std::cout << i << " get recoDimuons" << std::endl;
        recoDimuonsBranch->GetEntry(i);
+       std::cout << i << " get recoMuons" << std::endl;
        recoMuonsBranch->GetEntry(i);
-       if(i%1000==0) std::cout << i << " recoMuons->size(): " << s->vars.recoMuons->size() << std::endl;
+       std::cout << i << " get recoJets" << std::endl;
+       jetsBranch->GetEntry(i);
+       std::cout << i << " get mht" << std::endl;
+       mhtBranch->GetEntry(i);
+       std::cout << i << " recoMuons->size(): " << s->vars.recoMuons->size() << std::endl;
+       std::cout << i << " jets->size(): " << s->vars.jets->size() << std::endl;
+       std::cout << i << " mht.pt: " << s->vars.mht->pt << std::endl;
   
        for(auto& dimu: (*s->vars.recoDimuCands))
        {
            s->vars.dimuCand = &dimu;
-           if(i%1000==0) std::cout << i << " dimu.mass       : " << dimu.mass << std::endl;
-           if(i%1000==0) std::cout << i << " dimu.mass_      : " << s->vars.dimuCand->mass << std::endl;
-           if(i%1000==0) std::cout << i << " dimu.address    : " << &dimu << std::endl;
-           if(i%1000==0) std::cout << i << " dimu.address_p  : " << s->vars.dimuCand << std::endl;
-
-           if(i%1000==0) std::cout << i << " pt1: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu1).pt << std::endl;
-           if(i%1000==0) std::cout << i << " pt2: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu2).pt << std::endl;
+           std::cout << i << " dimu.mass_      : " << s->vars.dimuCand->mass << std::endl;
+           std::cout << i << " pt1: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu1).pt << std::endl;
+           std::cout << i << " pt2: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu2).pt << std::endl;
        }
+
+       for(auto& j: (*s->vars.jets))
+           std::cout << i << " jet: " << j.outputInfo() << std::endl;
+
+       std::cout << std::endl;
     }
 
     // test to see if it racks up memory without this

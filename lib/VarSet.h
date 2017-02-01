@@ -21,8 +21,8 @@ class VarSet
         ~VarSet(){};
 
         // reco weights
-        Float_t eff_wgt;
-        Float_t pu_wgt;
+        float eff_wgt;
+        float pu_wgt;
 
         // reco info
         Int_t nVertices;
@@ -30,7 +30,7 @@ class VarSet
         PairInfo* dimuCand = 0; // this is a pointer to one of the dimu candidates in the vector
                                 // we don't want to copy the object for ~40 million events
                                 // the other objects/primitives are loaded via TBranch->Get();
-        MhtInfo mht;
+        MhtInfo* mht = 0;
 
         std::vector<PairInfo>* recoDimuCands = 0;
         std::vector<MuonInfo>* recoMuons = 0;
@@ -50,10 +50,10 @@ class VarSet
         _TrackInfo genM1GpreFSR, genM1GpostFSR, genM2GpreFSR, genM2GpostFSR; // muons from virtual photon
         _TrackInfo genM1ZpreFSR, genM1ZpostFSR, genM2ZpreFSR, genM2ZpostFSR; // muons from Z
 
-        Int_t nPU;
+        int nPU;
 
         // gen weights
-        Int_t gen_wgt;
+        int gen_wgt;
  
 };
 
