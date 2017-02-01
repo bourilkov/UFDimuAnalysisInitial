@@ -20,7 +20,7 @@ MAIN = categorize
 
 MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
-MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.out 
+MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.oo 
 MAINDEPS   = ${THREADDIR}ThreadPool.hxx  ${LIBDIR}VarSet.h SampleDatabase.cxx
 DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx
 
@@ -41,9 +41,9 @@ ${MAIN}: $(MAINRULES1) $(MAINRULES2) $(MAINRULES3)
 %.o: %.cxx %.h $(DEPS)
 	$(CC) $(CFLAGS) $< -o $@ 
 
-#MAIN has to MAIN.h and needs to be compiled with its own dependencies, so we have a different rule
-%.out: %.cxx $(MAINDEPS)
-	$(CC) $(CFLAGS) $< -o $@ 
+#MAIN has no MAIN.h and needs to be compiled with its own dependencies, so we have a different rule
+${MAIN}.oo: ${MAIN}.cxx $(MAINDEPS)
+	$(CC) $(CFLAGS) ${MAIN}.cxx -o ${MAIN}.oo 
 
 # Creates a dictionary out of the analyzer objects in OBJDIR and Linkdef.h
 # Then creates a shared library object from the dictionary, which we link to our executable
