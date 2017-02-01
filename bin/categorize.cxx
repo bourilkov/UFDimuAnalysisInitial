@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
     float luminosity = 36814;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
-    float reductionFactor = 100;   // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 10;    // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------

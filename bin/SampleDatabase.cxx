@@ -130,17 +130,17 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     // SingleTop ------------------------------------------------------
     // ================================================================
 
-    TString tbarwfilename   = TString(sampledir+"singletop/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_neg.root");
-    std::cout << tbarwfilename << std::endl;
-    samples["tbarW"] = new Sample(tbarwfilename, "tbarW", "background");
-    samples["tbarW"]->pileupfile = ""; //nPU
-    samples["tbarW"]->xsec = 35.85; // pb
+    //TString tbarwfilename   = TString(sampledir+"singletop/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_neg.root");
+    //std::cout << tbarwfilename << std::endl;
+    //samples["tbarW"] = new Sample(tbarwfilename, "tbarW", "background");
+    //samples["tbarW"]->pileupfile = ""; //nPU
+    //samples["tbarW"]->xsec = 35.85; // pb
 
-    TString twfilename   = TString(sampledir+"singletop/ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_pos.root");
-    std::cout << twfilename << std::endl;
-    samples["tW"] = new Sample(twfilename, "tW", "background");
-    samples["tW"]->pileupfile = ""; //nPU
-    samples["tW"]->xsec = 35.85; // pb
+    //TString twfilename   = TString(sampledir+"singletop/ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_pos.root");
+    //std::cout << twfilename << std::endl;
+    //samples["tW"] = new Sample(twfilename, "tW", "background");
+    //samples["tW"]->pileupfile = ""; //nPU
+    //samples["tW"]->xsec = 35.85; // pb
 
     //TString twzfilename   = TString(sampledir+"singletop/ST_tWll_5f_LO_13TeV-MadGraph-pythia8_tZW.root");
     //samples["tWZ"] = new Sample(twzfilename, "tWZ", "background");
@@ -157,17 +157,17 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     // TTV ---------------------------------------------------------
     // ================================================================
     
-    TString ttwfilename   = TString(sampledir+"ttv/TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_ttW.root");
-    std::cout << ttwfilename << std::endl;
-    samples["ttW"] = new Sample(ttwfilename, "ttW", "background");
-    samples["ttW"]->pileupfile = ""; //nPU
-    samples["ttW"]->xsec = 0.2043; // pb
+    //TString ttwfilename   = TString(sampledir+"ttv/TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_ttW.root");
+    //std::cout << ttwfilename << std::endl;
+    //samples["ttW"] = new Sample(ttwfilename, "ttW", "background");
+    //samples["ttW"]->pileupfile = ""; //nPU
+    //samples["ttW"]->xsec = 0.2043; // pb
 
-    TString ttzfilename   = TString(sampledir+"ttv/TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8_ttZ.root");
-    std::cout << ttzfilename << std::endl;
-    samples["ttZ"] = new Sample(ttzfilename, "ttZ", "background");
-    samples["ttZ"]->pileupfile = ""; //nPU
-    samples["ttZ"]->xsec = 0.2529; // pb
+    //TString ttzfilename   = TString(sampledir+"ttv/TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8_ttZ.root");
+    //std::cout << ttzfilename << std::endl;
+    //samples["ttZ"] = new Sample(ttzfilename, "ttZ", "background");
+    //samples["ttZ"]->pileupfile = ""; //nPU
+    //samples["ttZ"]->xsec = 0.2529; // pb
 
     // ================================================================
     // Diboson ------------------------------------------------------
@@ -184,17 +184,17 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     //samples["WZTo2L2Q"]->pileupfile = ""; //nPU
     //samples["WZTo2L2Q"]->xsec = ; // pb
 
-    TString wz2filename   = TString(sampledir+"diboson/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_WZ_3l_AMC.root");
-    std::cout << wz2filename << std::endl;
-    samples["WZTo3LNu"] = new Sample(wz2filename, "WZTo3LNu", "background");
-    samples["WZTo3LNu"]->pileupfile = ""; //nPU
-    samples["WZTo3LNu"]->xsec = 2.113; // pb
+    //TString wz2filename   = TString(sampledir+"diboson/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_WZ_3l_AMC.root");
+    //std::cout << wz2filename << std::endl;
+    //samples["WZTo3LNu"] = new Sample(wz2filename, "WZTo3LNu", "background");
+    //samples["WZTo3LNu"]->pileupfile = ""; //nPU
+    //samples["WZTo3LNu"]->xsec = 2.113; // pb
 
-    TString zz2l2nufilename   = TString(sampledir+"diboson/ZZTo2L2Nu_13TeV_powheg_pythia8_ZZ_2l_2v.root");
-    std::cout << zz2l2nufilename << std::endl;
-    samples["ZZTo2L2Nu"] = new Sample(zz2l2nufilename, "ZZTo2L2Nu", "background");
-    samples["ZZTo2L2Nu"]->pileupfile = ""; //nPU
-    samples["ZZTo2L2Nu"]->xsec = 0.564; // pb
+    //TString zz2l2nufilename   = TString(sampledir+"diboson/ZZTo2L2Nu_13TeV_powheg_pythia8_ZZ_2l_2v.root");
+    //std::cout << zz2l2nufilename << std::endl;
+    //samples["ZZTo2L2Nu"] = new Sample(zz2l2nufilename, "ZZTo2L2Nu", "background");
+    //samples["ZZTo2L2Nu"]->pileupfile = ""; //nPU
+    //samples["ZZTo2L2Nu"]->xsec = 0.564; // pb
 
     //TString zz2l2qfilename   = TString(sampledir+"diboson/ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_ZZ_2l_2q.root");
     //std::cout << zz2l2qfilename << std::endl;
