@@ -20,6 +20,7 @@ struct MhtInfo {
 
   void init();
 
+  ClassDef(MhtInfo, 1)
 };
 
 #endif  // #ifndef MHT_INFO

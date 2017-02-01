@@ -40,7 +40,6 @@ Sample::Sample(TString ifilename, TString iname)
     xsec = -999; 
     lumi = -999;
     
-    setBranchAddresses();
     calculateNoriginal();
 }
 
@@ -62,7 +61,6 @@ Sample::Sample(TString ifilename, TString iname, TString isampleType)
     xsec = -999; 
     lumi = -999;
     
-    setBranchAddresses();
     calculateNoriginal();
 }
 
@@ -87,10 +85,51 @@ Sample::~Sample() {
 // _______________________Other Functions________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-void Sample::setBranchAddresses()
+void Sample::setBranchAddresses(int whichCategories)
 {
-    //tree->SetBranchStatus("*", 0);
+      std::cout << "  /// Getting main reco branches " << name << std::endl;
+      // Link only to the branches we need to save a lot of time
+      // run 1 category info 
+      branches.recoDimuCands  = tree->GetBranch("pairs");
+      branches.recoMuons      = tree->GetBranch("muons");
+      branches.jets           = tree->GetBranch("jets");
+      branches.mht            = tree->GetBranch("mht");
+      branches.eventInfo      = tree->GetBranch("event");
+      branches.nVertices      = tree->GetBranch("nVertices");
+
+      std::cout << "  /// Setting main reco branch addresses " << name << std::endl;
+      branches.recoDimuCands->SetAddress(&vars.recoDimuCands);
+      branches.recoMuons->SetAddress(&vars.recoMuons);
+      branches.jets->SetAddress(&vars.jets);
+      branches.mht->SetAddress(&vars.mht);
+      branches.eventInfo->SetAddress(&vars.eventInfo);
+      branches.nVertices->SetAddress(&vars.nVertices);
+
+      // extra branches needed for run 2 categories
+      if(whichCategories == 2)
+      {    
+          std::cout << "  /// Getting/setting electrons branch " << name << std::endl;
+          branches.recoElectrons = tree->GetBranch("eles");
+          branches.recoElectrons->SetAddress(&vars.recoElectrons);
+      }
+
+      // extra branches needed for MC samples
+      if(!sampleType.EqualTo("data"))
+      {
+          std::cout << "  /// Getting MC branches " << name << std::endl;
+          branches.nPU     = tree->GetBranch("nPU");
+          branches.gen_wgt = tree->GetBranch("GEN_wgt");
+          branches.pu_wgt  = tree->GetBranch("PU_wgt");
+          branches.eff_wgt = tree->GetBranch("IsoMu_eff_3");
+
+          std::cout << "  /// Setting MC branches " << name << std::endl;
+          branches.gen_wgt->SetAddress(&vars.gen_wgt);
+          branches.nPU->SetAddress(&vars.nPU);
+          branches.pu_wgt->SetAddress(&vars.pu_wgt);
+          branches.eff_wgt->SetAddress(&vars.eff_wgt);
+      }
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
@@ -119,7 +158,20 @@ void Sample::calculateNoriginal()
 
 int Sample::getEntry(int i)
 {
-    tree->GetEntry(i);
+    if(branches.nVertices != 0) branches.nVertices->GetEntry(i);
+    if(branches.eventInfo != 0) branches.eventInfo->GetEntry(i);
+    if(branches.mht != 0) branches.mht->GetEntry(i);
+
+    if(branches.recoDimuCands != 0) branches.recoDimuCands->GetEntry(i);
+    if(branches.recoMuons != 0) branches.recoMuons->GetEntry(i);
+    if(branches.recoElectrons != 0) branches.recoElectrons->GetEntry(i);
+    if(branches.jets != 0) branches.jets->GetEntry(i);
+
+    if(branches.eff_wgt != 0) branches.eff_wgt->GetEntry(i);
+    if(branches.pu_wgt != 0) branches.pu_wgt->GetEntry(i);
+    if(branches.nPU != 0) branches.nPU->GetEntry(i);
+    if(branches.gen_wgt != 0) branches.gen_wgt->GetEntry(i);
+
     return i;
 }
 

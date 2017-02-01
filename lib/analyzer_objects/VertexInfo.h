@@ -19,7 +19,7 @@ struct VertexInfo {
   Float_t normChi2;
 
   void init();
-  
+  ClassDef(VertexInfo, 1) 
 };
 
 

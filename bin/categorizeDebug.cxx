@@ -418,6 +418,7 @@ int main(int argc, char* argv[])
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
 
+        i.second->setBranchAddresses(whichCategories);
         samplevec.push_back(i.second);
 
         // Pileup Reweighting now available in the TTree info, no need to calculate
@@ -465,7 +466,7 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [&mtx, varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << std::endl;
@@ -530,53 +531,6 @@ int main(int argc, char* argv[])
 
       }
 
-      std::cout << "  /// Getting branches " << s->name << std::endl;
-      // Link only to the branches we need to save a lot of time
-      // run 1 category info 
-      TBranch* recoDimuCandsBranch  = s->tree->GetBranch("pairs");
-      TBranch* recoMuonsBranch      = s->tree->GetBranch("muons");
-      TBranch* jetsBranch           = s->tree->GetBranch("jets");
-      TBranch* mhtBranch            = s->tree->GetBranch("mht");
-      TBranch* eventInfoBranch      = s->tree->GetBranch("event");
-      TBranch* nVerticesBranch      = s->tree->GetBranch("nVertices");
-
-      std::cout << "  /// Setting branch addresses " << s->name << std::endl;
-      recoDimuCandsBranch->SetAddress(&s->vars.recoDimuCands);
-      recoMuonsBranch->SetAddress(&s->vars.recoMuons);
-      jetsBranch->SetAddress(&s->vars.jets);
-      mhtBranch->SetAddress(&s->vars.mht);
-      eventInfoBranch->SetAddress(&s->vars.eventInfo);
-      nVerticesBranch->SetAddress(&s->vars.nVertices);
-
-      // extra branches needed for run 2 categories
-      TBranch* recoElectronsBranch  = 0;
-
-      if(whichCategories == 2)
-      {
-          std::cout << "  /// Run2 category branches " << s->name << std::endl;
-          recoElectronsBranch = s->tree->GetBranch("eles");
-          recoElectronsBranch->SetAddress(&s->vars.recoElectrons);
-      }
-
-      // extra branches needed for MC samples
-      TBranch* nPUBranch = 0;
-      TBranch* genWeightBranch = 0;
-      TBranch* puWeightBranch = 0;
-      TBranch* effWeightBranch = 0;
-
-      if(!isData)
-      { 
-          std::cout << "  /// MC branches " << s->name << std::endl;
-          nPUBranch       = s->tree->GetBranch("nPU");
-          genWeightBranch = s->tree->GetBranch("GEN_wgt");
-          puWeightBranch  = s->tree->GetBranch("PU_wgt");
-          effWeightBranch = s->tree->GetBranch("IsoMu_eff_3");
-
-          genWeightBranch->SetAddress(&s->vars.gen_wgt);
-          nPUBranch->SetAddress(&s->vars.nPU);
-          puWeightBranch->SetAddress(&s->vars.pu_wgt);
-          effWeightBranch->SetAddress(&s->vars.eff_wgt);
-      }
 
       ///////////////////////////////////////////////////////////////////
       // LOOP OVER EVENTS -----------------------------------------------
@@ -587,8 +541,8 @@ int main(int argc, char* argv[])
       {
 
         // only load essential information for the first set of cuts 
-        recoDimuCandsBranch->GetEntry(i);
-        recoMuonsBranch->GetEntry(i);
+        s->branches.recoDimuCands->GetEntry(i);
+        s->branches.recoMuons->GetEntry(i);
 
         // insert loop over pairs
         if(s->vars.recoDimuCands->size() >= 1) s->vars.dimuCand = &s->vars.recoDimuCands->at(0);
@@ -616,17 +570,17 @@ int main(int argc, char* argv[])
         }
 
         // Load the rest of the information needed for run2 categories
-        jetsBranch->GetEntry(i);
-        mhtBranch->GetEntry(i);
-        nVerticesBranch->GetEntry(i);
+        s->branches.jets->GetEntry(i);
+        s->branches.mht->GetEntry(i);
+        s->branches.nVertices->GetEntry(i);
         //eventInfoBranch->GetEntry(i);
 
         if(!isData)
         {
-            genWeightBranch->GetEntry(i);
-            nPUBranch->GetEntry(i);
-            puWeightBranch->GetEntry(i);
-            effWeightBranch->GetEntry(i);
+            s->branches.gen_wgt->GetEntry(i);
+            s->branches.nPU->GetEntry(i);
+            s->branches.pu_wgt->GetEntry(i);
+            s->branches.eff_wgt->GetEntry(i);
         }
 
         if(whichCategories == 1) 

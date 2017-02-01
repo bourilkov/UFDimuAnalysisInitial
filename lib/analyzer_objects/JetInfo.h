@@ -67,7 +67,7 @@ struct JetInfo : public ParticleInfo{
   TString outputInfo();
   Double_t iso();
 
-
+  ClassDef(JetInfo, 1)
 };
 
 

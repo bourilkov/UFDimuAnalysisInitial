@@ -18,6 +18,7 @@ struct GenJetInfo {
 
   void init();
 
+  ClassDef(GenJetInfo, 1)
 };
 
 

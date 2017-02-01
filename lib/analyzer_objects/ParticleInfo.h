@@ -13,7 +13,7 @@ struct ParticleInfo {
   virtual TLorentzVector get4vec() = 0;
   virtual TString outputInfo() = 0;
   virtual Double_t iso() = 0;
-
+  ClassDef(ParticleInfo, 1)
 };
 
 #endif                                                                                                               

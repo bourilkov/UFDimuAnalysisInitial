@@ -16,6 +16,7 @@ struct MetInfo {
 
   void init();
 
+  ClassDef(MetInfo, 1)
 };
 
 #endif  // #ifndef MET_INFO

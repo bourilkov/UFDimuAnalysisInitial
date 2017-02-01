@@ -26,6 +26,8 @@ struct SlimJetInfo : public ParticleInfo{
   TLorentzVector get4vec();
   TString outputInfo();
   Double_t iso();
+
+  ClassDef(SlimJetInfo, 1)
 };
 
 

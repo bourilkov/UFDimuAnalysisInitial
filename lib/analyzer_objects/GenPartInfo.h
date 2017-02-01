@@ -16,7 +16,7 @@ struct GenPartInfo {
   Float_t phi;  // phi
 
   void init();
-
+  ClassDef(GenPartInfo, 1)
 };
 
 

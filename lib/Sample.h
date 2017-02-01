@@ -11,6 +11,7 @@
 
 #include "LumiReweightingStandAlone.h"
 #include "VarSet.h"
+#include "BranchSet.h"
 
 class Sample
 {
@@ -39,13 +40,14 @@ class Sample
         float lumi;            // the luminosity of the data or effective luminosity of MC
 
         VarSet vars;           // all of the variables from the ttree
+        BranchSet branches;    // all of the branches from the ttree, which we link to the vars
 
         int getEntry(int i);                    // load the ith event from the ttree into vars
         int getEntry(int i, TEntryList* list);  // load ith event from the list into vars
                                                 // the ith event in the list maps to the jth tree entry
 
-        void calculateNoriginal(); // calculate nOriginal and nOriginalWeighted
-        void setBranchAddresses(); // link the values in the tree to vars
+        void calculateNoriginal();                    // calculate nOriginal and nOriginalWeighted
+        void setBranchAddresses(int whichCategories); // link the values in the tree to vars
         float getWeight();         // get the weight for the histogram based upon the pileup weight and the MC gen weight
 
         // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 

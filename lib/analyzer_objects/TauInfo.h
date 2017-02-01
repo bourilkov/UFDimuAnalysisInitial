@@ -20,7 +20,7 @@ struct TauInfo {
   Bool_t isPF;
 
   void init();
-
+  ClassDef(TauInfo, 1)
 };
 
 

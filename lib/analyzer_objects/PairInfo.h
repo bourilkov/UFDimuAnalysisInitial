@@ -45,6 +45,7 @@ struct PairInfo {
 
   void init();
 
+  ClassDef(PairInfo, 1)
 };
 
 

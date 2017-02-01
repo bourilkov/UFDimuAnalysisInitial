@@ -15,6 +15,7 @@ struct EventInfo {
 
   void init();
 
+  ClassDef(EventInfo, 1)
 };
 
 #endif  // #ifndef EVENT_INFO
