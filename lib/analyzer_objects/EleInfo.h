@@ -37,7 +37,7 @@ struct EleInfo : public ParticleInfo{
   TString outputInfo();
   Double_t iso();
 
-  ClassDef(EleInfo, 1)
+  ClassDef(EleInfo, 2)
 };
 
 

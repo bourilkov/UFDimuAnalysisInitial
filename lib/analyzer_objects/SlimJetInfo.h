@@ -27,7 +27,7 @@ struct SlimJetInfo : public ParticleInfo{
   TString outputInfo();
   Double_t iso();
 
-  ClassDef(SlimJetInfo, 1)
+  ClassDef(SlimJetInfo, 2)
 };
 
 

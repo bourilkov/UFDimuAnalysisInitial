@@ -28,7 +28,8 @@ std::vector<Sample*>& getSamples(float luminosity, std::map<TString, Sample*>& s
     // ================================================================
 
     /////// INDIVIDUAL RUNS /////////////////////////////////////////////////////
-    std::vector<TString> runs = {"B", "C", "D", "E", "F", "G", "H"};
+    // Should split F, G, H in half
+    std::vector<TString> runs = {"B", "C", "D", "E", "F_1", "F_2", "G_1", "G_2", "H_1", "H_2"};
     for(auto X: runs)
     {
       TString datafilenameX = TString(sampledir+"data/SingleMuon_SingleMu_2016"+X+".root");

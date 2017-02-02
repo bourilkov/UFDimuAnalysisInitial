@@ -87,7 +87,6 @@ Sample::~Sample() {
 
 void Sample::setBranchAddresses(int whichCategories)
 {
-      std::cout << "  /// Getting main reco branches " << name << std::endl;
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
       branches.recoDimuCands  = tree->GetBranch("pairs");
@@ -97,7 +96,6 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.eventInfo      = tree->GetBranch("event");
       branches.nVertices      = tree->GetBranch("nVertices");
 
-      std::cout << "  /// Setting main reco branch addresses " << name << std::endl;
       branches.recoDimuCands->SetAddress(&vars.recoDimuCands);
       branches.recoMuons->SetAddress(&vars.recoMuons);
       branches.jets->SetAddress(&vars.jets);
@@ -108,7 +106,6 @@ void Sample::setBranchAddresses(int whichCategories)
       // extra branches needed for run 2 categories
       if(whichCategories == 2)
       {    
-          std::cout << "  /// Getting/setting electrons branch " << name << std::endl;
           branches.recoElectrons = tree->GetBranch("eles");
           branches.recoElectrons->SetAddress(&vars.recoElectrons);
       }
@@ -116,13 +113,11 @@ void Sample::setBranchAddresses(int whichCategories)
       // extra branches needed for MC samples
       if(!sampleType.EqualTo("data"))
       {
-          std::cout << "  /// Getting MC branches " << name << std::endl;
           branches.nPU     = tree->GetBranch("nPU");
           branches.gen_wgt = tree->GetBranch("GEN_wgt");
           branches.pu_wgt  = tree->GetBranch("PU_wgt");
           branches.eff_wgt = tree->GetBranch("IsoMu_eff_3");
 
-          std::cout << "  /// Setting MC branches " << name << std::endl;
           branches.gen_wgt->SetAddress(&vars.gen_wgt);
           branches.nPU->SetAddress(&vars.nPU);
           branches.pu_wgt->SetAddress(&vars.pu_wgt);

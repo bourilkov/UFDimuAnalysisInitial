@@ -84,7 +84,7 @@ struct MuonInfo : public ParticleInfo{
   TString outputInfo();
   Double_t iso();
 
-  ClassDef(MuonInfo, 1)
+  ClassDef(MuonInfo, 2)
 };
 
 

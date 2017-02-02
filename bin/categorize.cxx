@@ -351,7 +351,7 @@ int main(int argc, char* argv[])
 
     int whichCategories = 1;  // run2categories = 1, run2categories = 2
     int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
-    int nthreads = 5;         // number of threads to use in parallelization
+    int nthreads = 14;        // number of threads to use in parallelization
     bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
@@ -383,7 +383,7 @@ int main(int argc, char* argv[])
     float luminosity = 36814;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
-    float reductionFactor = 100;   // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -393,22 +393,22 @@ int main(int argc, char* argv[])
     getSamples(luminosity, samples);
 
     ///////////////////////////////////////////////////////////////////
-    // PREPROCESSING: Get PU weights ----------------------------------
+    // PREPROCESSING: SetBranchAddresses-------------------------------
     ///////////////////////////////////////////////////////////////////
 
     // Loop through all of the samples to do some pre-processing
     // Add to the vector we loop over to categorize
     
-    //std::cout << std::endl;
-    //std::cout << "======== Preprocess the samples... " << std::endl;
-    //std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "======== Preprocess the samples... " << std::endl;
+    std::cout << std::endl;
 
     //makePUHistos(samples);
     
     for(auto &i : samples)
     {
         // Output some info about the current file
-        std::cout << "  /// Using the following samples " << i.second->name << std::endl;
+        std::cout << "  /// Using sample " << i.second->name << std::endl;
         std::cout << std::endl;
         std::cout << "    sample name:       " << i.second->name << std::endl;
         std::cout << "    sample file:       " << i.second->filename << std::endl;
@@ -418,6 +418,7 @@ int main(int argc, char* argv[])
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
 
+        i.second->setBranchAddresses(whichCategories);
         samplevec.push_back(i.second);
 
         // Pileup Reweighting now available in the TTree info, no need to calculate
@@ -465,11 +466,10 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [&mtx, varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
-      std::cout << std::endl;
-      std::cout << "  /// Processing " << s->name << std::endl;
+      std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       ///////////////////////////////////////////////////////////////////
       // INIT Cuts and Categories ---------------------------------------
@@ -483,8 +483,6 @@ int main(int argc, char* argv[])
       Run2MuonSelectionCuts     run2MuonSelection;
       Run2EventSelectionCuts80X run2EventSelectionData(true);
       Run2EventSelectionCuts80X run2EventSelectionMC;
-
-      std::cout << "  /// Setting up categorizer " << s->name << std::endl;
 
       Categorizer* categorySelection = 0;
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
@@ -505,7 +503,6 @@ int main(int argc, char* argv[])
       // Keep track of which histogram to fill in the category
       TString hkey = s->name;
 
-      std::cout << "  /// Initializing histograms " << s->name << std::endl;
       // Different categories for the analysis
       for(auto &c : categorySelection->categoryMap)
       {
@@ -530,65 +527,16 @@ int main(int argc, char* argv[])
 
       }
 
-      std::cout << "  /// Getting branches " << s->name << std::endl;
-      // Link only to the branches we need to save a lot of time
-      // run 1 category info 
-      TBranch* recoDimuCandsBranch  = s->tree->GetBranch("pairs");
-      TBranch* recoMuonsBranch      = s->tree->GetBranch("muons");
-      TBranch* jetsBranch           = s->tree->GetBranch("jets");
-      TBranch* mhtBranch            = s->tree->GetBranch("mht");
-      TBranch* eventInfoBranch      = s->tree->GetBranch("event");
-      TBranch* nVerticesBranch      = s->tree->GetBranch("nVertices");
-
-      std::cout << "  /// Setting branch addresses " << s->name << std::endl;
-      recoDimuCandsBranch->SetAddress(&s->vars.recoDimuCands);
-      recoMuonsBranch->SetAddress(&s->vars.recoMuons);
-      jetsBranch->SetAddress(&s->vars.jets);
-      mhtBranch->SetAddress(&s->vars.mht);
-      eventInfoBranch->SetAddress(&s->vars.eventInfo);
-      nVerticesBranch->SetAddress(&s->vars.nVertices);
-
-      // extra branches needed for run 2 categories
-      TBranch* recoElectronsBranch  = 0;
-
-      if(whichCategories == 2)
-      {
-          std::cout << "  /// Run2 category branches " << s->name << std::endl;
-          recoElectronsBranch = s->tree->GetBranch("eles");
-          recoElectronsBranch->SetAddress(&s->vars.recoElectrons);
-      }
-
-      // extra branches needed for MC samples
-      TBranch* nPUBranch = 0;
-      TBranch* genWeightBranch = 0;
-      TBranch* puWeightBranch = 0;
-      TBranch* effWeightBranch = 0;
-
-      if(!isData)
-      { 
-          std::cout << "  /// MC branches " << s->name << std::endl;
-          nPUBranch       = s->tree->GetBranch("nPU");
-          genWeightBranch = s->tree->GetBranch("GEN_wgt");
-          puWeightBranch  = s->tree->GetBranch("PU_wgt");
-          effWeightBranch = s->tree->GetBranch("IsoMu_eff_3");
-
-          genWeightBranch->SetAddress(&s->vars.gen_wgt);
-          nPUBranch->SetAddress(&s->vars.nPU);
-          puWeightBranch->SetAddress(&s->vars.pu_wgt);
-          effWeightBranch->SetAddress(&s->vars.eff_wgt);
-      }
 
       ///////////////////////////////////////////////////////////////////
       // LOOP OVER EVENTS -----------------------------------------------
       ///////////////////////////////////////////////////////////////////
 
-      std::cout << "  /// Loop over events " << s->name << std::endl;
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
-
         // only load essential information for the first set of cuts 
-        recoDimuCandsBranch->GetEntry(i);
-        recoMuonsBranch->GetEntry(i);
+        s->branches.recoDimuCands->GetEntry(i);
+        s->branches.recoMuons->GetEntry(i);
 
         // insert loop over pairs
         if(s->vars.recoDimuCands->size() >= 1) s->vars.dimuCand = &s->vars.recoDimuCands->at(0);
@@ -616,17 +564,17 @@ int main(int argc, char* argv[])
         }
 
         // Load the rest of the information needed for run2 categories
-        jetsBranch->GetEntry(i);
-        mhtBranch->GetEntry(i);
-        nVerticesBranch->GetEntry(i);
+        s->branches.jets->GetEntry(i);
+        s->branches.mht->GetEntry(i);
+        s->branches.nVertices->GetEntry(i);
         //eventInfoBranch->GetEntry(i);
 
         if(!isData)
         {
-            genWeightBranch->GetEntry(i);
-            nPUBranch->GetEntry(i);
-            puWeightBranch->GetEntry(i);
-            effWeightBranch->GetEntry(i);
+            s->branches.gen_wgt->GetEntry(i);
+            s->branches.nPU->GetEntry(i);
+            s->branches.pu_wgt->GetEntry(i);
+            s->branches.eff_wgt->GetEntry(i);
         }
 
         if(whichCategories == 1) 
@@ -899,6 +847,7 @@ int main(int argc, char* argv[])
           //if(!isData) c.second.histoMap[hkey]->Scale(triggerSF);
       }
 
+      std::cout << Form("  /// Done processing %s \n", s->name.Data());
       return categorySelection;
 
     }; // done defining makeHistoForSample

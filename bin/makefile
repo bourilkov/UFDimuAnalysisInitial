@@ -14,8 +14,8 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = example
-#MAIN = categorize
-MAIN = categorizeDebug
+MAIN = categorize
+#MAIN = categorizeDebug
 #MAIN = dycompare
 
 MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  

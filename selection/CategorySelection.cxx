@@ -22,11 +22,11 @@
 void CategorySelectionRun1::initCategoryMap()
 {
 // Initialize the categories
-    categoryMap["c_ALL"] = Category("c_ALL", true);
+    categoryMap["c_ALL"] = Category("c_ALL");
 
     // intermediate categories to make things easier
-    categoryMap["c_2_Jet"] = Category("c_2_Jet", true);
-    categoryMap["c_01_Jet"] = Category("c_01_Jet", true);
+    categoryMap["c_2_Jet"] = Category("c_2_Jet");
+    categoryMap["c_01_Jet"] = Category("c_01_Jet");
 
     categoryMap["c_2_Jet_VBF_Tight"] = Category("c_2_Jet_VBF_Tight");
     categoryMap["c_2_Jet_VBF_Loose"] = Category("c_2_Jet_VBF_Loose");

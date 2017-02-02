@@ -602,7 +602,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     std::cout << std::endl;
     std::cout << "########## Numerator integral for " << numerator->GetName() << "  : " << numerator->Integral() << std::endl;
     std::cout << "########## Denominator integral for " << denominator->GetName() << ": " << denominator->Integral() << std::endl;
-    std::cout << "########## Scale factor for MC stack: " << scale << std::endl;
+    std::cout << "$$$$$$$$$$ Scale factor for MC stack: " << scale << std::endl;
     //hadd->Scale(scale);
 
     hratio->SetLineColor(kBlack);
@@ -642,10 +642,6 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetXaxis()->SetTitleOffset(4.);
     hratio->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
     hratio->GetXaxis()->SetLabelSize(15);
-
-    std::cout << std::endl;
-    std::cout << "########## ratio integral for " << name << ": " << hratio->Integral() << std::endl; 
-    std::cout << std::endl;
 
     if(!fit) hratio->SetStats(0);
 
