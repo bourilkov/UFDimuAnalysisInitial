@@ -27,40 +27,26 @@ Sample::Sample()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Sample::Sample(TString ifilename, TString iname)
+Sample::Sample(std::vector<TString> ifilenames, TString iname, TString isampleType)
 {
-    filename = ifilename;
+    filenames = ifilenames;
     name = iname;
+    if (isampleType != "NONE")
+      sampleType = isampleType;
+
     treename = TString("dimuons/tree");
-    file = new TFile(filename);
-    tree = (TTree*)file->Get(treename);
-    N = tree->GetEntries();
+    chain = new TChain(treename);
+    for (int i = 0; i < filenames.size(); i++) {
+      chain->Add(filenames.at(i));
+      std::cout << i+1 << ", ";
+    }
+    N = chain->GetEntries();
 
     lumiWeights = 0;
     xsec = -999; 
     lumi = -999;
     
-    calculateNoriginal();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-Sample::Sample(TString ifilename, TString iname, TString isampleType)
-{
-    filename = ifilename;
-    name = iname;
-    sampleType = isampleType;
-    treename = TString("dimuons/tree");
-    file = new TFile(filename);
-    tree = (TTree*)file->Get(treename);
-    N = tree->GetEntries();
-
-    lumiWeights = 0;
-    xsec = -999; 
-    lumi = -999;
-    
+    setBranchAddresses();
     calculateNoriginal();
 }
 
@@ -70,11 +56,11 @@ Sample::Sample(TString ifilename, TString iname, TString isampleType)
 
 Sample::~Sample() {
   // free pointed to memory!
-  if (tree != 0) {
-    delete tree;
+  if (chain != 0) {
+    delete chain;
   }
-  if (file !=0) {
-    delete file;
+  if (files.size() !=0) {
+    files.clear();
   }
   if (lumiWeights !=0) {
     delete lumiWeights;
@@ -89,12 +75,12 @@ void Sample::setBranchAddresses(int whichCategories)
 {
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
-      branches.recoDimuCands  = tree->GetBranch("pairs");
-      branches.recoMuons      = tree->GetBranch("muons");
-      branches.jets           = tree->GetBranch("jets");
-      branches.mht            = tree->GetBranch("mht");
-      branches.eventInfo      = tree->GetBranch("event");
-      branches.nVertices      = tree->GetBranch("nVertices");
+      branches.recoDimuCands  = chain->GetBranch("pairs");
+      branches.recoMuons      = chain->GetBranch("muons");
+      branches.jets           = chain->GetBranch("jets");
+      branches.mht            = chain->GetBranch("mht");
+      branches.eventInfo      = chain->GetBranch("event");
+      branches.nVertices      = chain->GetBranch("nVertices");
 
       branches.recoDimuCands->SetAddress(&vars.recoDimuCands);
       branches.recoMuons->SetAddress(&vars.recoMuons);
@@ -106,17 +92,17 @@ void Sample::setBranchAddresses(int whichCategories)
       // extra branches needed for run 2 categories
       if(whichCategories == 2)
       {    
-          branches.recoElectrons = tree->GetBranch("eles");
+          branches.recoElectrons = chain->GetBranch("eles");
           branches.recoElectrons->SetAddress(&vars.recoElectrons);
       }
 
       // extra branches needed for MC samples
       if(!sampleType.EqualTo("data"))
       {
-          branches.nPU     = tree->GetBranch("nPU");
-          branches.gen_wgt = tree->GetBranch("GEN_wgt");
-          branches.pu_wgt  = tree->GetBranch("PU_wgt");
-          branches.eff_wgt = tree->GetBranch("IsoMu_eff_3");
+          branches.nPU     = chain->GetBranch("nPU");
+          branches.gen_wgt = chain->GetBranch("GEN_wgt");
+          branches.pu_wgt  = chain->GetBranch("PU_wgt");
+          branches.eff_wgt = chain->GetBranch("IsoMu_eff_3");
 
           branches.gen_wgt->SetAddress(&vars.gen_wgt);
           branches.nPU->SetAddress(&vars.nPU);
@@ -124,27 +110,30 @@ void Sample::setBranchAddresses(int whichCategories)
           branches.eff_wgt->SetAddress(&vars.eff_wgt);
       }
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
 void Sample::calculateNoriginal()
 {
-// Calculate the number of original events using the meta data tree
-// Calculate the weighted number of original events as well
-    TTree* metadata = (TTree*)file->Get("dimuons/metadata");
-    metadata->Draw("sumEventWeights>>eweights_"+name);
-    TH1F* sumEventWeightsHist = (TH1F*) gDirectory->Get("eweights_"+name); 
-
-    // There are many ttrees combined so the histogram has a numEvents entry for each
-    // file. The total number is equal to the average number times the total number of entries.
-    nOriginalWeighted = sumEventWeightsHist->GetEntries()*sumEventWeightsHist->GetMean();
-
-    metadata->Draw("originalNumEvents>>nevents_"+name);
-    TH1F* nEventsHist = (TH1F*) gDirectory->Get("nevents_"+name); 
-    nOriginal = nEventsHist->GetEntries()*nEventsHist->GetMean();
-    if(metadata !=0) delete metadata;
+  gROOT->SetBatch(1); // Don't draw TCanvas
+  // Calculate the number of original events using the meta data tree
+  // Calculate the weighted number of original events as well
+  TChain* metadata = new TChain("dimuons/metadata");
+  for (auto f_name : filenames) {
+    metadata->Add(f_name);
+  }
+  metadata->Draw("sumEventWeights>>eweights_"+name);
+  TH1F* sumEventWeightsHist = (TH1F*) gDirectory->Get("eweights_"+name); 
+  
+  // There are many ttrees combined so the histogram has a numEvents entry for each
+  // file. The total number is equal to the average number times the total number of entries.
+  nOriginalWeighted = sumEventWeightsHist->GetEntries()*sumEventWeightsHist->GetMean();
+  
+  metadata->Draw("originalNumEvents>>nevents_"+name);
+  TH1F* nEventsHist = (TH1F*) gDirectory->Get("nevents_"+name); 
+  nOriginal = nEventsHist->GetEntries()*nEventsHist->GetMean();
+  if(metadata !=0) delete metadata;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -176,9 +165,9 @@ int Sample::getEntry(int i)
 
 int Sample::getEntry(int i, TEntryList* list)
 {
-    int treenum = list->GetEntry(i);
-    tree->GetEntry(treenum);
-    return treenum;
+    int chainnum = list->GetEntry(i);
+    chain->GetEntry(chainnum);
+    return chainnum;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
