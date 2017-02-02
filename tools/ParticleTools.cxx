@@ -15,8 +15,8 @@
 
 TString ParticleTools::output4vecInfo(TLorentzVector& v)
 {
-    TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %11.5f", 
-                      v.Pt(), v.Eta(), v.Phi(), v.M());
+    TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %11.5f", v.Pt(), v.Eta(), v.Phi(), v.M());
+    return s;
 }
 
 //////////////////////////////////////////////////////////////////

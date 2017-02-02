@@ -60,20 +60,48 @@ int main(int argc, char* argv[])
     recoDimuonsBranch->SetAddress(&s->vars.recoDimuCands);
     nMuonsBranch->SetAddress(&nMuons);
     std::cout << "Set Branches." << std::endl;
+    CollectionCleaner c;
 
 
-    for(unsigned int i=0; i<100; i++)
+    for(unsigned int i=0; i<10; i++)
     {
-       std::cout << i << " get nMuons" << std::endl;
        nMuonsBranch->GetEntry(i);
-       std::cout << i << " get recoDimuons" << std::endl;
        recoDimuonsBranch->GetEntry(i);
-       std::cout << i << " get recoMuons" << std::endl;
        recoMuonsBranch->GetEntry(i);
-       std::cout << i << " get recoJets" << std::endl;
        jetsBranch->GetEntry(i);
-       std::cout << i << " get mht" << std::endl;
        mhtBranch->GetEntry(i);
+
+       std::vector<TLorentzVector> muons;
+       std::vector<TLorentzVector> jets;
+
+
+       std::cout << "Muons before cleaning... " << std::endl;
+       for(auto& m: (*s->vars.recoMuons))
+       {
+           std::cout << i << " muon: " << m.outputInfo() << std::endl;
+           muons.push_back(m.get4vec());
+       }
+       std::cout << std::endl;
+
+       std::cout << "Jets before cleaning... " << std::endl;
+       for(auto& j: (*s->vars.jets))
+       {
+           std::cout << i << " jet: " << j.outputInfo() << std::endl;
+           jets.push_back(j.get4vec());
+       }
+
+       std::cout << std::endl;
+
+       c.cleanByDR(jets, muons, 0.3);
+
+       std::cout << "Jets after cleaning... " << std::endl;
+       for(auto& j: jets)
+       {
+           std::cout << i << " jet: " << ParticleTools::output4vecInfo(j) << std::endl;
+       }
+
+       std::cout << std::endl;
+
        std::cout << i << " recoMuons->size(): " << s->vars.recoMuons->size() << std::endl;
        std::cout << i << " jets->size(): " << s->vars.jets->size() << std::endl;
        std::cout << i << " mht.pt: " << s->vars.mht->pt << std::endl;
@@ -85,9 +113,6 @@ int main(int argc, char* argv[])
            std::cout << i << " pt1: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu1).pt << std::endl;
            std::cout << i << " pt2: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu2).pt << std::endl;
        }
-
-       for(auto& j: (*s->vars.jets))
-           std::cout << i << " jet: " << j.outputInfo() << std::endl;
 
        std::cout << std::endl;
     }

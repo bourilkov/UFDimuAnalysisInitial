@@ -5,8 +5,9 @@
 
 #include "VarSet.h"
 #include <vector>
+#include "CollectionCleaner.hxx"
 
-class EleCollectionCleaner
+class EleCollectionCleaner : public CollectionCleaner
 {
     public:
         EleCollectionCleaner();

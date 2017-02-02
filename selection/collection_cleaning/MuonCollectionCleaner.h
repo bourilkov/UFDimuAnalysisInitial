@@ -5,8 +5,9 @@
 
 #include "VarSet.h"
 #include <vector>
+#include "CollectionCleaner.hxx"
 
-class MuonCollectionCleaner
+class MuonCollectionCleaner : public CollectionCleaner
 {
     public:
         MuonCollectionCleaner();

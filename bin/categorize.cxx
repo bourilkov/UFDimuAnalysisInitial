@@ -93,7 +93,7 @@ UInt_t getNumCPUs()
 void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& max, TString& varname)
 {
     // dimu_mass
-    if(varNumber == 0)
+    if(varNumber <= 0)
     {
         if(binning == 0)
         {
@@ -121,7 +121,9 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
             max = 200;
         }
 
-        varname = "dimu_mass";
+        if(varNumber == 0)  varname = "dimu_mass_PF";
+        if(varNumber == -1) varname = "dimu_mass_Roch";
+        if(varNumber == -2) varname = "dimu_mass_KaMu";
     }
 
     // dimu_pt 
@@ -350,7 +352,7 @@ int main(int argc, char* argv[])
     TH1::SetDefaultSumw2();
 
     int whichCategories = 1;  // run2categories = 1, run2categories = 2
-    int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
+    int varNumber = -2;       // the variable to plot, 0 is dimu_mass for instance
     int nthreads = 14;        // number of threads to use in parallelization
     bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
@@ -466,7 +468,7 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varNumber, varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
@@ -538,306 +540,323 @@ int main(int argc, char* argv[])
         s->branches.recoDimuCands->GetEntry(i);
         s->branches.recoMuons->GetEntry(i);
 
-        // insert loop over pairs
-        if(s->vars.recoDimuCands->size() >= 1) s->vars.dimuCand = &s->vars.recoDimuCands->at(0);
-        else continue;
+        // loop and find a good dimuon candidate
+        if(s->vars.recoDimuCands->size() < 1) continue;
+        bool found_good_dimuon = false;
 
-        ///////////////////////////////////////////////////////////////////
-        // CUTS  ----------------------------------------------------------
-        ///////////////////////////////////////////////////////////////////
-
-        if(!run2EventSelectionData.evaluate(s->vars) && isData)
-        { 
-            continue; 
-        }
-        if(!run2EventSelectionMC.evaluate(s->vars) && !isData)
-        { 
-            continue; 
-        }
-        if(!s->vars.recoMuons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.recoMuons->at(s->vars.dimuCand->iMu2).isTightID)
-        { 
-            continue; 
-        }
-        if(!run2MuonSelection.evaluate(s->vars)) 
+        // find the first good dimuon candidate and fill info
+        for(auto& dimu: (*s->vars.recoDimuCands))
         {
-            continue; 
-        }
+          s->vars.dimuCand = &dimu; 
 
-        // Load the rest of the information needed for run2 categories
-        s->branches.jets->GetEntry(i);
-        s->branches.mht->GetEntry(i);
-        s->branches.nVertices->GetEntry(i);
-        //eventInfoBranch->GetEntry(i);
+          ///////////////////////////////////////////////////////////////////
+          // CUTS  ----------------------------------------------------------
+          ///////////////////////////////////////////////////////////////////
 
-        if(!isData)
-        {
-            s->branches.gen_wgt->GetEntry(i);
-            s->branches.nPU->GetEntry(i);
-            s->branches.pu_wgt->GetEntry(i);
-            s->branches.eff_wgt->GetEntry(i);
-        }
+          if(!run2EventSelectionData.evaluate(s->vars) && isData)
+          { 
+              continue; 
+          }
+          if(!run2EventSelectionMC.evaluate(s->vars) && !isData)
+          { 
+              continue; 
+          }
+          if(!s->vars.recoMuons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.recoMuons->at(s->vars.dimuCand->iMu2).isTightID)
+          { 
+              continue; 
+          }
+          if(!run2MuonSelection.evaluate(s->vars)) 
+          {
+              continue; 
+          }
 
-        if(whichCategories == 1) 
-        {
-            s->vars.validJets.clear();
-            jetCollectionCleaner.getValidJetsdR(s->vars, s->vars.validJets);
-        }
-        //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
+          // dimuon event passes selections, set flag to true so that we only fill info for
+          // the first good dimu candidate
+          found_good_dimuon = true; 
 
-        if(whichCategories == 2)
-        {
-            // load extra branches needed by run 2 categories
-            //recoElectronsBranch->GetEntry(i);
+          // Load the rest of the information needed for run2 categories
+          s->branches.jets->GetEntry(i);
+          s->branches.mht->GetEntry(i);
+          s->branches.nVertices->GetEntry(i);
+          //eventInfoBranch->GetEntry(i);
 
-            // clear vectors for the valid collections
-            s->vars.validMuons.clear();
-            s->vars.validExtraMuons.clear();
-            s->vars.validElectrons.clear();
-            s->vars.validJets.clear();
-            s->vars.validBJets.clear();
+          if(!isData)
+          {
+              s->branches.gen_wgt->GetEntry(i);
+              s->branches.nPU->GetEntry(i);
+              s->branches.pu_wgt->GetEntry(i);
+              s->branches.eff_wgt->GetEntry(i);
+          }
 
-            // load valid collections from s->vars raw collections
-            jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets);
-            jetCollectionCleaner.getValidBJets(s->vars, s->vars.validBJets);
-            muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons);
-            eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
-          
-            //for(unsigned int m=0; m<s->vars.validMuons.size(); m++)
-            //    s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
-        }
+          if(whichCategories == 1) 
+          {
+              s->vars.validJets.clear();
+              jetCollectionCleaner.getValidJetsdR(s->vars, s->vars.validJets);
+          }
+          //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
-        // Figure out which category the event belongs to
-        categorySelection->evaluate(s->vars);
+          if(whichCategories == 2)
+          {
+              // load extra branches needed by run 2 categories
+              //recoElectronsBranch->GetEntry(i);
 
-        // Look at each category
-        for(auto &c : categorySelection->categoryMap)
-        {
-            // skip categories
-            if(c.second.hide) continue;
-            if(!c.second.inCategory) continue;
+              // clear vectors for the valid collections
+              s->vars.validMuons.clear();
+              s->vars.validExtraMuons.clear();
+              s->vars.validElectrons.clear();
+              s->vars.validJets.clear();
+              s->vars.validBJets.clear();
 
-            // dimuCand->recoCandMass
-            if(varname.EqualTo("dimu_mass")) 
-            {
-                float varvalue = s->vars.dimuCand->mass_PF;
-                // blind the signal region for data but not for MC
-                if(!(isData && varvalue >= 110 && varvalue < 140))
-                {
-                    // if the event is in the current category then fill the category's histogram for the given sample and variable
-                    c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
-                    //std::cout << "    " << c.first << ": " << varvalue;
-                }
-               continue;
-            }
+              // load valid collections from s->vars raw collections
+              jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets);
+              jetCollectionCleaner.getValidBJets(s->vars, s->vars.validBJets);
+              muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons);
+              eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
+            
+              //for(unsigned int m=0; m<s->vars.validMuons.size(); m++)
+              //    s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
+          }
 
-            if(varname.EqualTo("dimu_pt"))
-            {
-                // if the event is in the current category then fill the category's histogram for the given sample and variable
-                c.second.histoMap[hkey]->Fill(s->vars.dimuCand->pt_PF, s->getWeight());
-                continue;
-            }
+          // Figure out which category the event belongs to
+          categorySelection->evaluate(s->vars);
 
-            if(varname.EqualTo("mu_pt"))
-            {
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).pt, s->getWeight());
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).pt, s->getWeight());
-                continue;
-            }
+          // Look at each category
+          for(auto &c : categorySelection->categoryMap)
+          {
+              // skip categories
+              if(c.second.hide) continue;
+              if(!c.second.inCategory) continue;
 
-            // recoMu_Eta
-            if(varname.EqualTo("mu_eta"))
-            {
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).eta, s->getWeight());
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).eta, s->getWeight());
-                continue;
-            }
+              // dimuCand->recoCandMass
+              if(varNumber<=0) 
+              {
+                  float varvalue = s->vars.dimuCand->mass_PF;
+                  if(varNumber == -1) varvalue = s->vars.dimuCand->mass_Roch;
+                  if(varNumber == -2) varvalue = s->vars.dimuCand->mass_KaMu;
+                  
+                  if(varvalue < min || varvalue > max) continue;
 
-            // NPV
-            if(varname.EqualTo("NPV"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.nVertices, s->getWeight());
+                  // blind the signal region for data but not for MC
+                  if(!(isData && varvalue >= 110 && varvalue < 140))
+                  {
+                      // if the event is in the current category then fill the category's histogram for the given sample and variable
+                      c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
+                      //std::cout << "    " << c.first << ": " << varvalue;
+                  }
                  continue;
-            }
+              }
 
-            // jet_pt
-            if(varname.EqualTo("jet_pt"))
-            {
-                 for(unsigned int j=0; j<s->vars.validJets.size(); j++)
-                     c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Pt(), s->getWeight());
-                 continue;
-            }
+              if(varname.EqualTo("dimu_pt"))
+              {
+                  // if the event is in the current category then fill the category's histogram for the given sample and variable
+                  c.second.histoMap[hkey]->Fill(s->vars.dimuCand->pt_PF, s->getWeight());
+                  continue;
+              }
 
-            // jet_eta
-            if(varname.EqualTo("jet_eta"))
-            {
-                 for(unsigned int j=0; j<s->vars.validJets.size(); j++)
-                     c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Eta(), s->getWeight());
-                 continue;
-            }
+              if(varname.EqualTo("mu_pt"))
+              {
+                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).pt, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).pt, s->getWeight());
+                  continue;
+              }
 
-            // N_valid_jets
-            if(varname.EqualTo("N_valid_jets"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
-                 continue;
-            }
+              // recoMu_Eta
+              if(varname.EqualTo("mu_eta"))
+              {
+                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).eta, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).eta, s->getWeight());
+                  continue;
+              }
 
-            // m_jj
-            if(varname.EqualTo("m_jj"))
-            {
-                 if(s->vars.validJets.size() >= 2)
-                 {
-                     TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
-                     c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
-                 }
-                 continue;
-            }
+              // NPV
+              if(varname.EqualTo("NPV"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.nVertices, s->getWeight());
+                   continue;
+              }
 
-            // dEta_jj
-            if(varname.EqualTo("dEta_jj"))
-            {
-                 if(s->vars.validJets.size() >= 2)
-                 {
-                     float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
-                     c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
-                 }
-                 continue;
-            }
+              // jet_pt
+              if(varname.EqualTo("jet_pt"))
+              {
+                   for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                       c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Pt(), s->getWeight());
+                   continue;
+              }
 
-            // N_valid_muons
-            if(varname.EqualTo("N_valid_muons"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.validMuons.size(), s->getWeight());
-                 continue;
-            }
+              // jet_eta
+              if(varname.EqualTo("jet_eta"))
+              {
+                   for(unsigned int j=0; j<s->vars.validJets.size(); j++)
+                       c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Eta(), s->getWeight());
+                   continue;
+              }
 
-            // N_valid_extra_muons
-            if(varname.EqualTo("N_valid_extra_muons"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
-                 continue;
-            }
+              // N_valid_jets
+              if(varname.EqualTo("N_valid_jets"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
+                   continue;
+              }
 
-            // extra_muon_pt
-            if(varname.EqualTo("extra_muon_pt"))
-            {
-                for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
-                    c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Pt(), s->getWeight());
-                continue;
-            }
+              // m_jj
+              if(varname.EqualTo("m_jj"))
+              {
+                   if(s->vars.validJets.size() >= 2)
+                   {
+                       TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
+                       c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
+                   }
+                   continue;
+              }
 
-            // extra_muon_eta
-            if(varname.EqualTo("extra_muon_eta"))
-            {
-                for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
-                    c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Eta(), s->getWeight());
-                continue;
-            }
+              // dEta_jj
+              if(varname.EqualTo("dEta_jj"))
+              {
+                   if(s->vars.validJets.size() >= 2)
+                   {
+                       float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
+                       c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
+                   }
+                   continue;
+              }
 
-            // N_valid_electrons
-            if(varname.EqualTo("N_valid_electrons"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
-                 continue;
-            }
+              // N_valid_muons
+              if(varname.EqualTo("N_valid_muons"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.validMuons.size(), s->getWeight());
+                   continue;
+              }
 
-            // electron_pt
-            if(varname.EqualTo("electron_pt"))
-            {
-                for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
-                    c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Pt(), s->getWeight());
-                continue;
-            }
-            // electron_eta
-            if(varname.EqualTo("electron_eta"))
-            {
-                for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
-                    c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Eta(), s->getWeight());
-                continue;
-            }
+              // N_valid_extra_muons
+              if(varname.EqualTo("N_valid_extra_muons"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
+                   continue;
+              }
 
-            // N_valid_extra_leptons
-            if(varname.EqualTo("N_valid_extra_leptons"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
-                 continue;
-            }
+              // extra_muon_pt
+              if(varname.EqualTo("extra_muon_pt"))
+              {
+                  for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
+                      c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Pt(), s->getWeight());
+                  continue;
+              }
 
-            // N_valid_bjets
-            if(varname.EqualTo("N_valid_bjets"))
-            {
-                 c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
-                 continue;
-            }
+              // extra_muon_eta
+              if(varname.EqualTo("extra_muon_eta"))
+              {
+                  for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
+                      c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Eta(), s->getWeight());
+                  continue;
+              }
 
-            // bjet_pt
-            if(varname.EqualTo("bjet_pt"))
-            {
-                for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
-                    c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Pt(), s->getWeight());
-                continue;
-            }
+              // N_valid_electrons
+              if(varname.EqualTo("N_valid_electrons"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
+                   continue;
+              }
 
-            // bjet_eta 
-            if(varname.EqualTo("bjet_eta"))
-            {
-                for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
-                    c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Eta(), s->getWeight());
-                continue;
-            }
-            // m_bb
-            if(varname.EqualTo("m_bb"))
-            {
-                 if(s->vars.validBJets.size() >= 2)
-                 {
-                     TLorentzVector dijet = s->vars.validBJets[0] + s->vars.validBJets[1];
-                     c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
-                 }
-                 continue;
-            }
+              // electron_pt
+              if(varname.EqualTo("electron_pt"))
+              {
+                  for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
+                      c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Pt(), s->getWeight());
+                  continue;
+              }
+              // electron_eta
+              if(varname.EqualTo("electron_eta"))
+              {
+                  for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
+                      c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Eta(), s->getWeight());
+                  continue;
+              }
 
-            // mT_b_MET
-            //if(varname.EqualTo("mT_b_MET"))
-            //{
-            //     if(s->vars.validBJets.size() > 0)
-            //     {
-            //         TLorentzVector mht(s->vars.mht.px, s->vars.mht.py, 0, s->vars.met.sumEt);
-            //         TLorentzVector bjet = s->vars.validBJets[0];
-            //         TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
-            //         TLorentzVector bmet_t = met + bjet_t;
+              // N_valid_extra_leptons
+              if(varname.EqualTo("N_valid_extra_leptons"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
+                   continue;
+              }
 
-            //         c.second.histoMap[hkey]->Fill(bmet_t.M(), s->getWeight());
-            //     }
-            //     continue;
-            //}
+              // N_valid_bjets
+              if(varname.EqualTo("N_valid_bjets"))
+              {
+                   c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
+                   continue;
+              }
 
-            // MHT
-            if(varname.EqualTo("MHT"))
-            {
-                c.second.histoMap[hkey]->Fill(s->vars.mht->pt, s->getWeight());
-            }
+              // bjet_pt
+              if(varname.EqualTo("bjet_pt"))
+              {
+                  for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
+                      c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Pt(), s->getWeight());
+                  continue;
+              }
 
-            // dEta_jj_mumu
-            if(varname.EqualTo("dEta_jj_mumu"))
-            {
-                 if(s->vars.validJets.size() >= 2)
-                 {
-                     TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
-                     float dEta = dijet.Eta() - s->vars.dimuCand->eta;
-                     c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
-                 }
-                 continue;
-            }
+              // bjet_eta 
+              if(varname.EqualTo("bjet_eta"))
+              {
+                  for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
+                      c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Eta(), s->getWeight());
+                  continue;
+              }
+              // m_bb
+              if(varname.EqualTo("m_bb"))
+              {
+                   if(s->vars.validBJets.size() >= 2)
+                   {
+                       TLorentzVector dijet = s->vars.validBJets[0] + s->vars.validBJets[1];
+                       c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
+                   }
+                   continue;
+              }
 
-        } // end category loop
+              // mT_b_MET
+              //if(varname.EqualTo("mT_b_MET"))
+              //{
+              //     if(s->vars.validBJets.size() > 0)
+              //     {
+              //         TLorentzVector mht(s->vars.mht.px, s->vars.mht.py, 0, s->vars.met.sumEt);
+              //         TLorentzVector bjet = s->vars.validBJets[0];
+              //         TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
+              //         TLorentzVector bmet_t = met + bjet_t;
 
-        if(false)
-          // ouput pt, mass info etc for the event
-          EventTools::outputEvent(s->vars, *categorySelection);
+              //         c.second.histoMap[hkey]->Fill(bmet_t.M(), s->getWeight());
+              //     }
+              //     continue;
+              //}
 
-        // Reset the flags in preparation for the next event
-        categorySelection->reset();
+              // MHT
+              if(varname.EqualTo("MHT"))
+              {
+                  c.second.histoMap[hkey]->Fill(s->vars.mht->pt, s->getWeight());
+              }
 
+              // dEta_jj_mumu
+              if(varname.EqualTo("dEta_jj_mumu"))
+              {
+                   if(s->vars.validJets.size() >= 2)
+                   {
+                       TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
+                       float dEta = dijet.Eta() - s->vars.dimuCand->eta;
+                       c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
+                   }
+                   continue;
+              }
+
+          } // end category loop
+
+          if(false)
+            // ouput pt, mass info etc for the event
+            EventTools::outputEvent(s->vars, *categorySelection);
+
+          // Reset the flags in preparation for the next event
+          categorySelection->reset();
+
+          if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
+
+        } // end dimu cand loop
       } // end event loop
 
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
@@ -935,7 +954,7 @@ int main(int argc, char* argv[])
         bglist->Add(c.second.bkgList);
         datalist->Add(c.second.dataList);
        
-        stack->SaveAs("imgs/"+cname+".png");
+        stack->SaveAs("imgs/"+varname+"_"+cname+".png");
     }
     std::cout << std::endl;
     TString savename = Form("validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);

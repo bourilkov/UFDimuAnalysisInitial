@@ -5,8 +5,9 @@
 
 #include "VarSet.h"
 #include <vector>
+#include "CollectionCleaner.hxx"
 
-class TauCollectionCleaner
+class TauCollectionCleaner : public CollectionCleaner
 {
     public:
         TauCollectionCleaner();
