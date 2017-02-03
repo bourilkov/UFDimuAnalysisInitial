@@ -732,6 +732,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
 
 ZCalibration::ZCalibration()
 {
+    massname = "mass";
     xname = "phi_plus";
     massmin = 86.2;
     massmax = 96.2;
@@ -751,9 +752,11 @@ ZCalibration::ZCalibration()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-ZCalibration::ZCalibration(TString xname, Float_t fitsig, Float_t massmin, Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins)
+ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                           Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins)
 {
     this->xname = xname;
+    this->massname = massname;
     this->massmin = massmin;
     this->massmax = massmax;
     this->massbins = massbins;
@@ -801,7 +804,7 @@ void ZCalibration::init()
         TString range = Form("_%5.2f_to_%5.2f", binning[i], binning[i+1]);
         TString title = basename+range;
         histos.push_back(new TH1D(title, title, massbins, massmin, massmax));
-        histos[i]->GetXaxis()->SetTitle("Dimuon Mass (GeV)");
+        histos[i]->GetXaxis()->SetTitle(massname);
     }
 }
 
@@ -911,18 +914,26 @@ void ZCalibration::fit()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TGraphErrors* ZCalibration::plot()
+void ZCalibration::plot()
 {
     fit();
-    massvsx = new TGraphErrors();
+    mean_vs_x = new TGraphErrors();
+    resolution_vs_x = new TGraphErrors();
     for(unsigned int i=0; i<vfis.size(); i++)
     {
-        massvsx->SetPoint(i, vfis[i].x, vfis[i].vmean);
-        massvsx->SetPointError(i, vfis[i].x_err, vfis[i].vmean_err);
+        mean_vs_x->SetPoint(i, vfis[i].x, vfis[i].vmean);
+        mean_vs_x->SetPointError(i, vfis[i].x_err, vfis[i].vmean_err);
+
+        resolution_vs_x->SetPoint(i, vfis[i].x, vfis[i].vsigma);
+        resolution_vs_x->SetPointError(i, vfis[i].x_err, vfis[i].vsigma_err);
     }
-    massvsx->SetTitle("graph_"+xname);
-    massvsx->SetName("graph_"+xname);
-    massvsx->GetXaxis()->SetTitle(xname);
-    massvsx->GetYaxis()->SetTitle("Z Peak Voigtian Mean Mass (GeV)");
-    return massvsx;
+    mean_vs_x->SetTitle(massname+"_fit_mean_vs_"+xname);
+    mean_vs_x->SetName("mean_"+massname+"_"+xname);
+    mean_vs_x->GetXaxis()->SetTitle(xname);
+    mean_vs_x->GetYaxis()->SetTitle(massname+"_mean");
+
+    resolution_vs_x->SetTitle(massname+"_fit_resolution_vs_"+xname);
+    resolution_vs_x->SetName("resolution_"+massname+"_"+xname);
+    resolution_vs_x->GetXaxis()->SetTitle(xname);
+    resolution_vs_x->GetYaxis()->SetTitle(massname+"_resolution");
 }

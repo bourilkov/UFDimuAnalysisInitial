@@ -57,13 +57,15 @@ class ZCalibration
         // ====================================================
 
         ZCalibration();
-        ZCalibration(TString xname, Float_t fitsig, Float_t massmin, Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins);
+        ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                     Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins);
         ~ZCalibration();
 
         // ====================================================
         // Variables ------------------------------------------
         // ====================================================
         TString xname;
+        TString massname;
 
         Float_t xmin;
         Float_t xmax;
@@ -78,7 +80,9 @@ class ZCalibration
         std::vector<Float_t> binning;
         std::vector<TH1D*> histos;
         std::vector<VoigtFitInfo> vfis;
-        TGraphErrors* massvsx;
+
+        TGraphErrors* mean_vs_x = 0;
+        TGraphErrors* resolution_vs_x = 0;
 
         // ====================================================
         // Functions-------------------------------------------
@@ -89,7 +93,7 @@ class ZCalibration
         int whichTH1D(Float_t xvalue);
         VoigtFitInfo fit(TH1D* inhist, Float_t x, Float_t x_err);
         void fit();
-        TGraphErrors* plot();
+        void plot();
 };
 
 class DiMuPlottingSystem

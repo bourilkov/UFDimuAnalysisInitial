@@ -347,6 +347,7 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
 
 int main(int argc, char* argv[])
 {
+    gROOT->SetBatch();
     // save the errors for the histogram correctly so they depend upon 
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
