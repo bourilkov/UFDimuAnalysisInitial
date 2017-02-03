@@ -670,7 +670,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
         while(!converged) 
         {
           if(ntries >= 50) break;
-          std::cout << "==== Fitting " << name << " ====" << std::endl;
+          std::cout << Form("==== Fitting %s ==== \n", name.Data());
           hratio->Fit(fitname);
 
           TString sconverge = gMinuit->fCstatu.Data();
@@ -779,7 +779,7 @@ ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Floa
 void ZCalibration::init()
 {
     TString basename = "Z_Peak_Calibration_";
-    basename+=xname;
+    basename+=massname+"_"+xname;
 
     binning.push_back(xmin);
     Float_t interval = (xmax - xmin)/xbins;
@@ -793,6 +793,7 @@ void ZCalibration::init()
     }
 
     // print binning for debugging
+    //std::cout << "printing binning..." << std::endl;
     //for(unsigned int i=0; i<binning.size(); i++)
     //{
     //    std::cout << binning[i] << std::endl;
@@ -875,12 +876,12 @@ VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
     while(!converged) 
     {
       if(ntries >= 50) break;
-      std::cout << "==== " << inhist->GetTitle() << " ====" << std::endl;
+      //std::cout << Form("==== Fitting %s ==== \n", inhist->GetTitle());
       fit->SetParameter(1, inhist->GetRMS());
-      inhist->Fit(fitname);
+      inhist->Fit(fitname, "q");
 
       // Fit to a width of fitsig sigmas
-      inhist->Fit(fitname,"","", fit->GetParameter(1) - fitsig*fit->GetParameter(2), fit->GetParameter(1) + fitsig*fit->GetParameter(2));
+      inhist->Fit(fitname,"q","", fit->GetParameter(1) - fitsig*fit->GetParameter(2), fit->GetParameter(1) + fitsig*fit->GetParameter(2));
       TString sconverge = gMinuit->fCstatu.Data();
       converged = sconverge.Contains(TString("CONVERGED"));
       ntries++; 

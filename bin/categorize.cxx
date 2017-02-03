@@ -31,6 +31,7 @@
 #include "TLorentzVector.h"
 #include "TSystem.h"
 #include "TBranchElement.h"
+#include "TROOT.h"
 //#include "TStreamerInfo.h"
 
 //////////////////////////////////////////////////////////////////
@@ -370,9 +371,6 @@ int main(int argc, char* argv[])
         if(i==5) ss >> binning;
         if(i==6) ss >> fitratio;
     }   
-    std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
-    std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
-
     // Not sure that we need a map if we have a vector
     // Should use this as the main database and choose from it to make the vector
     std::map<TString, Sample*> samples;
@@ -452,6 +450,10 @@ int main(int argc, char* argv[])
 
     // set nbins, min, max, and var to plot based upon terminal varNumbers: varNumber and binning
     initPlotSettings(varNumber, binning, bins, min, max, varname);
+
+    std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
+    std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
+    std::cout << "@@@ nSamples used  : " << samplevec.size() << std::endl;
 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;

@@ -59,7 +59,7 @@ class ZCalibration
         ZCalibration();
         ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
                      Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins);
-        ~ZCalibration();
+        ~ZCalibration(){};
 
         // ====================================================
         // Variables ------------------------------------------
@@ -126,7 +126,6 @@ class DiMuPlottingSystem
 
         static void arrangeStatBox(TCanvas* c, int i);
         static void arrangeLegend(TCanvas* c, int i);
-
 };
 
 #endif

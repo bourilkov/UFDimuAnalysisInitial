@@ -6,9 +6,11 @@
 #include "MuonSelection.h"
 #include "CategorySelection.h"
 #include "SampleDatabase.cxx"
+#include "ThreadPool.hxx"
 
 #include "TLorentzVector.h"
 #include "TSystem.h"
+#include "TROOT.h"
 
 #include <sstream>
 #include <map>
@@ -75,6 +77,7 @@ UInt_t getNumCPUs()
 
 int main(int argc, char* argv[])
 {
+    gROOT->SetBatch();
     int varNumber = 0;
     for(int i=1; i<argc; i++)
     {   
@@ -83,6 +86,7 @@ int main(int argc, char* argv[])
         if(i==1) ss >> varNumber;
     }   
 
+    float nthreads = 7;
     float luminosity = 36814;
     float reductionFactor = 1;
     std::map<TString, Sample*> samples;
@@ -136,13 +140,29 @@ int main(int argc, char* argv[])
         i.second->setBranchAddresses(1);
         samplevec.push_back(i.second);
     }
-  
+
     // Sort the samples by xsec. Useful when making the histogram stack.
     //std::sort(samplevec.begin(), samplevec.end(), [](Sample* a, Sample* b){ return a->xsec < b->xsec; }); 
-    auto makeHistoForSample = [varNumber, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
+    
+    std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
+    std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
+    std::cout << "@@@ nSamples used  : " << samplevec.size() << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "======== Plot Configs ========" << std::endl;
+    std::cout << "xvar         : " << xname << std::endl;
+    std::cout << "xmin         : " << xmin << std::endl;
+    std::cout << "xmax         : " << xmax << std::endl;
+    std::cout << "xbins        : " << xbins << std::endl;
+    std::cout << std::endl;
+    std::cout << "massmin      : " << massmin << std::endl;
+    std::cout << "massmax      : " << massmax << std::endl;
+    std::cout << "massbins     : " << massbins << std::endl;
+    std::cout << std::endl;
+  
+    auto makePlotsForSample = [varNumber, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
-      std::cout << std::endl;
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       // cuts to apply to the events in the sample
@@ -150,9 +170,9 @@ int main(int argc, char* argv[])
       Run2EventSelectionCuts80X run2EventSelectionData(true);
 
       // will probably want one for each type of mass
-      ZCalibration* zcal_pf = new ZCalibration(xname, "mass_PF", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      ZCalibration* zcal_roch = new ZCalibration(xname, "mass_Roch", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      ZCalibration* zcal_kamu = new ZCalibration(xname, "mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      ZCalibration* zcal_pf   = new ZCalibration(xname, s->name+"_mass_PF", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      ZCalibration* zcal_roch = new ZCalibration(xname, s->name+"_mass_Roch", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      ZCalibration* zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
 
       ///////////////////////////////////////////////////////////////////
       // HISTOGRAMS TO FILL ---------------------------------------------
@@ -237,32 +257,56 @@ int main(int argc, char* argv[])
 
         } // end dimucand loop
       } // end events loop
+      
+      std::vector<ZCalibration*> returnVector;
+      returnVector.push_back(zcal_pf);
+      returnVector.push_back(zcal_roch);
+      returnVector.push_back(zcal_kamu);
+ 
+      std::cout << Form("  /// Done processing %s \n", s->name.Data());
+      return returnVector;
 
-      // need to return all the zcals
-      return zcal_pf;
     };
 
- 
-    // Access plots in zcal pointer
+   ///////////////////////////////////////////////////////////////////
+   // SAMPLE PARALLELIZATION------ ----------------------------------
+   ///////////////////////////////////////////////////////////////////
+
+    TList* netlist = new TList();
+    ThreadPool pool(nthreads);
+    std::vector< std::future< std::vector<ZCalibration*> > > results;
+
+    TStopwatch timerWatch;
+    timerWatch.Start();
+
+    for(auto &s : samplevec)
+        results.push_back(pool.enqueue(makePlotsForSample, s));
+
+    for(auto && result: results)
+    {
+        std::vector<ZCalibration*> vec = result.get();
+        for(auto& zcal: vec)
+        {
+            zcal->plot();
+
+            // Add all of the plots to the tlist
+            for(unsigned int i=0; i<zcal->histos.size(); i++)
+                netlist->Add(zcal->histos[i]);
+            
+            netlist->Add(zcal->mean_vs_x);
+            netlist->Add(zcal->resolution_vs_x);
+        }
+    }
 
     // Create the stack and ratio plot    
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/"+xname+"_data_8_0_X.root", "RECREATE");
-    TDirectory* graphs = savefile->mkdir("graphs");
-    TDirectory* hists = savefile->mkdir("hists");
-
-    //// save the different histos in the appropriate directories in the tfile
-    //hists->cd();
-    //for(unsigned int i=0; i<zcal->histos.size(); i++)
-    //    zcal->histos[i]->Write();
-
-    //graphs->cd();
-    //zcal->plot();
-    //zcal.mean_vs_x->Write();
-    //zcal.resolution_vs_x->Write();
-
+    TFile* savefile = new TFile("zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
+    netlist->Write();
     savefile->Close();
+
+    timerWatch.Stop();
+    std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
 
     return 0;
 }
