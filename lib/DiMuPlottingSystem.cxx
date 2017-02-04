@@ -804,6 +804,8 @@ void ZCalibration::init()
     {
         TString range = Form("_%5.2f_to_%5.2f", binning[i], binning[i+1]);
         TString title = basename+range;
+        title.ReplaceAll(" ","");
+        title.ReplaceAll(".","p");
         histos.push_back(new TH1D(title, title, massbins, massmin, massmax));
         histos[i]->GetXaxis()->SetTitle(massname);
     }
@@ -857,7 +859,9 @@ VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
     // Display fit info on canvas.
     gStyle->SetOptFit(0011);
     // Fit things.
-    TString fitname = TString("fit_")+xname+Form("_%5.2f", x);
+    TString fitname = TString("fit_")+massname+"_"+xname+Form("_%5.2f", x);
+    fitname.ReplaceAll(" ", "");
+    fitname.ReplaceAll(".", "p");
     TF1* fit = new TF1(fitname, "[0]*TMath::Voigt(x - [1], [2], [3])", 87, 95);
     fit->SetParNames("Constant", "Mean", "Sigma", "Gamma");
     

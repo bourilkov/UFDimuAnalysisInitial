@@ -86,9 +86,9 @@ int main(int argc, char* argv[])
         if(i==1) ss >> varNumber;
     }   
 
-    float nthreads = 7;
+    float nthreads = 1;
     float luminosity = 36814;
-    float reductionFactor = 1;
+    float reductionFactor = 10;
     std::map<TString, Sample*> samples;
     std::vector<Sample*> samplevec;
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
     for(auto &i : samples)
     {
         if(i.second->sampleType != "data") continue;
+        if(i.second->name != "RunF" && i.second->name != "RunG") continue;
 
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
@@ -258,11 +259,20 @@ int main(int argc, char* argv[])
         } // end dimucand loop
       } // end events loop
       
-      std::vector<ZCalibration*> returnVector;
-      returnVector.push_back(zcal_pf);
-      returnVector.push_back(zcal_roch);
-      returnVector.push_back(zcal_kamu);
+      std::vector<ZCalibration*>* returnVector = new std::vector<ZCalibration*>();
+      returnVector->push_back(zcal_pf);
+      returnVector->push_back(zcal_roch);
+      returnVector->push_back(zcal_kamu);
  
+      std::cout << Form("  /// Checking histos within thread %s \n", s->name.Data());
+      for(auto& zcal: (*returnVector))
+      {
+        for(unsigned int i=0; i<zcal->histos.size(); i++)
+        {
+            std::cout << zcal->histos[i]->GetName() << ": " << zcal->histos[i]->Integral() << std::endl;
+        }
+      }
+
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
       return returnVector;
 
@@ -274,7 +284,7 @@ int main(int argc, char* argv[])
 
     TList* netlist = new TList();
     ThreadPool pool(nthreads);
-    std::vector< std::future< std::vector<ZCalibration*> > > results;
+    std::vector< std::future< std::vector<ZCalibration*>* > > results;
 
     TStopwatch timerWatch;
     timerWatch.Start();
@@ -282,27 +292,45 @@ int main(int argc, char* argv[])
     for(auto &s : samplevec)
         results.push_back(pool.enqueue(makePlotsForSample, s));
 
-    for(auto && result: results)
-    {
-        std::vector<ZCalibration*> vec = result.get();
-        for(auto& zcal: vec)
-        {
-            zcal->plot();
-
-            // Add all of the plots to the tlist
-            for(unsigned int i=0; i<zcal->histos.size(); i++)
-                netlist->Add(zcal->histos[i]);
-            
-            netlist->Add(zcal->mean_vs_x);
-            netlist->Add(zcal->resolution_vs_x);
-        }
-    }
-
     // Create the stack and ratio plot    
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
     TFile* savefile = new TFile("zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
-    netlist->Write();
+    savefile->cd();
+
+    for(auto && result: results)
+    {
+        for(auto zcal: (*result.get()))
+        {
+            std::cout << "Checking histos before plotting... " << std::endl;
+            for(unsigned int i=0; i<zcal->histos.size(); i++)
+            {
+                std::cout << zcal->histos[i]->GetName() << ": " << zcal->histos[i]->Integral() << std::endl;
+            }
+            std::cout << "Fitting histos, e.g. " << std::endl;
+            zcal->plot();
+            std::cout << "Done fitting histos, e.g. " << std::endl;
+
+            // Add all of the plots to the tlist
+            std::cout << "Adding histos, e.g. " << zcal->histos[0]->GetName() << std::endl;
+            for(unsigned int i=0; i<zcal->histos.size(); i++)
+            {
+                std::cout << zcal->histos[i]->GetName() << ": " << zcal->histos[i]->Integral() << std::endl;
+                zcal->histos[i]->Write();
+            }
+            
+            std::cout << "Adding plots ... " << std::endl;
+            std::cout << "mean" << std::endl;
+            std::cout << "mean: " << zcal->mean_vs_x->GetName() << std::endl;
+            std::cout << "resolution" << std::endl;
+            std::cout << "res:  " << zcal->resolution_vs_x->GetName() << std::endl;
+            zcal->mean_vs_x->Write();
+            zcal->resolution_vs_x->Write();
+            std::cout << "Done adding plots ... " << std::endl;
+        }
+    }
+
+    savefile->Write();
     savefile->Close();
 
     timerWatch.Stop();
