@@ -120,17 +120,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
   TObject* object = 0;
   int i=0;
 
-  std::vector<int> colors;
-  colors.push_back(2);
-  colors.push_back(4);
-  colors.push_back(6);
-  colors.push_back(7);
-  colors.push_back(36);
-  colors.push_back(50);
-  colors.push_back(30);
-  colors.push_back(9);
-  colors.push_back(29);
-  colors.push_back(3);
+  std::vector<int> colors = {2, 4, 6, 7, 8, 36, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91};
 
   float max = -9999;
   float min = 9999;
@@ -247,27 +237,18 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
   float minimum = 999999999;
   float minMax = 999999999;
 
-  std::vector<int> colors;
-  colors.push_back(2);
-  colors.push_back(4);
-  colors.push_back(6);
-  colors.push_back(7);
-  colors.push_back(36);
-  colors.push_back(50);
-  colors.push_back(30);
-  colors.push_back(9);
-  colors.push_back(29);
-  colors.push_back(3);
+  std::vector<int> colors = {2, 4, 6, 7, 8, 36, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91};
 
   while ((object = next()))
   {
       TH1D* hist = (TH1D*) object;
+      //std::cout << Form("%d: Adding %s to the stack \n", i, hist->GetName());
       hist->SetStats(0);
       hist->SetFillColor(colors[i]);
       hist->SetLineColor(colors[i]);
 
       // Print name + num events in legend
-      TString legend_entry = TString(hist->GetName());
+      TString legend_entry = TString(hist->GetTitle());
       //legend_entry.Form("%s %d", v[i]->GetName(), (int)v[i]->GetEntries());
       //std::cout << v[i]->GetName() << ": " << v[i]->GetEntries() << std::endl;
       //std::cout << legend_entry << std::endl;

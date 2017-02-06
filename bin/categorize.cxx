@@ -38,14 +38,66 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-TList* getSortedMC(TList* list, std::vector<Sample*>& sampleVec)
+TList* groupMC(TList* list, TString categoryName)
 {
-// Sorts according to the xsec of the sample
+// Group backgrounds into categories so there aren't a million of them in the legend
 
-    // map sample name to sorted vector location
+    categoryName+="_";
+
+    TList* grouped_list = new TList();
+    TList* drell_yan_list = new TList();
+    TList* ttbar_list = new TList();
+    TList* diboson_list = new TList();
+
+    // strip data and get a sorted vector of mc samples
+    for(unsigned int i=0; i<list->GetSize(); i++)
+    {
+        TH1D* hist = (TH1D*)list->At(i); 
+        TString name = hist->GetName();
+        // the sampleName is after the last underscore: categoryName_SampleName
+        TString sampleName = name.ReplaceAll(categoryName, "");
+
+        // filter out the data, since we add that to the end of this list later
+        if(sampleName.Contains("Run") || sampleName.Contains("Data")) continue;
+        else // group the monte carlo 
+        {            
+            if(sampleName.Contains("H2Mu")) grouped_list->Add(hist); // go ahead and add the signal to the final list
+            else if(sampleName.Contains("ZJets")) drell_yan_list->Add(hist);
+            else if(sampleName.Contains("tt") || sampleName.Contains("tW") || sampleName.Contains("tZ")) ttbar_list->Add(hist);
+            else diboson_list->Add(hist);
+        }
+    }
+    // Don't forget to group VH together and retitle other signal samples
+    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan", categoryName+"Drell_Yan");
+    TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop", categoryName+"TTbar_plus_SingleTop");
+    TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus", categoryName+"Diboson_plus");
+
+    grouped_list->Add(diboson_histo);
+    grouped_list->Add(ttbar_histo);
+    grouped_list->Add(drell_yan_histo);
+
+    return grouped_list;
+}
+
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+TList* getSortedMC(TList* list, std::vector<Sample*>& sampleVec, TString categoryName)
+{
+// Sorts according to the xsec of the sample, using sampleVec
+// where sampleVec was sorted according to std::sort(sampleVec, byXsec[]{...}; )
+
+    categoryName+="_";
+
+    // map sample name to sorted vector location, since we already know the order
+    // via sampleVec
     std::map<TString, unsigned int> xsecMap;
     for(unsigned int i=0; i< sampleVec.size(); i++)
+    {
         xsecMap[sampleVec[i]->name] = i;
+    }
 
     // strip data and get a sorted vector of mc samples
     std::vector<TH1D*> mcVec(sampleVec.size());
@@ -54,13 +106,16 @@ TList* getSortedMC(TList* list, std::vector<Sample*>& sampleVec)
     {
         TH1D* hist = (TH1D*)list->At(i); 
         TString name = hist->GetName();
-        int uscore = name.Last('_');
-        TString sampleName = name(uscore+1,name.Length());
+        // the sampleName is after the last underscore: categoryName_SampleName
+        TString sampleName = name.ReplaceAll(categoryName, "");
 
+        // Just count the number of data samples
         if(sampleName.Contains("Run") || sampleName.Contains("Data"))
             ndata++;
-        else
+        else // put the mc histogram in its sorted location
+        {            
             mcVec[xsecMap[sampleName]] = hist;    
+        }
     }
 
     // put the sorted mc into a list
@@ -354,8 +409,8 @@ int main(int argc, char* argv[])
     TH1::SetDefaultSumw2();
 
     int whichCategories = 1;  // run2categories = 1, run2categories = 2
-    int varNumber = -2;       // the variable to plot, 0 is dimu_mass for instance
-    int nthreads = 14;        // number of threads to use in parallelization
+    int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
+    int nthreads = 10;        // number of threads to use in parallelization
     bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
@@ -384,7 +439,7 @@ int main(int argc, char* argv[])
     float luminosity = 36814;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
-    float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 10;    // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -408,11 +463,13 @@ int main(int argc, char* argv[])
     
     for(auto &i : samples)
     {
+
+        //if(i.second->sampleType != "signal" && i.second->name != "ZJets_AMC" && i.second->name != "tt_ll_AMC" && i.second->sampleType != "data") continue;
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
         std::cout << std::endl;
         std::cout << "    sample name:       " << i.second->name << std::endl;
-        std::cout << "    sample file:       " << i.second->filename << std::endl;
+        std::cout << "    sample file:       " << i.second->filenames[0] << std::endl;
         std::cout << "    pileup file:       " << i.second->pileupfile << std::endl;
         std::cout << "    nOriginal:         " << i.second->nOriginal << std::endl;
         std::cout << "    N:                 " << i.second->N << std::endl;
@@ -904,6 +961,7 @@ int main(int argc, char* argv[])
             if(category.second.hide) continue;
             for(auto& h: category.second.histoMap) // loop through each histogram in the category
             {
+                // std::cout << Form("%s: %f", h.first.Data(), h.second->Integral()) << std::endl;
                 // h.first is the sample name, category.histoMap<samplename, TH1D*>
                 Sample* s = samples[h.first];
 
@@ -927,6 +985,7 @@ int main(int argc, char* argv[])
     TList* datalist = new TList();       // list to save all of the data histos
     TList* netlist = new TList();        // list to save all of the net histos
 
+    std::cout << "About to loop through cAll" << std::endl;
     for(auto &c : cAll->categoryMap)
     {
         // some categories are intermediate and we don't want to save the plots for those
@@ -937,30 +996,39 @@ int main(int argc, char* argv[])
         TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
         TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
 
-        netlist->Add(hNetSignal);
-        netlist->Add(hNetBkg);
-        netlist->Add(hNetData);
+        TList* groupedlist = groupMC(c.second.histoList, c.first);
+        groupedlist->Add(hNetData);
 
-        TList* sortedlist = getSortedMC(c.second.histoList, samplevec);
-        sortedlist->Add(hNetData);
+        //TIter next(groupedlist);
+        //TObject* object = 0;
+
+        //while ((object = next()))
+        //{
+        //    TH1D* h = (TH1D*) object;
+        //    std::cout << Form("aboutToStack:: %s in sortedlist \n", h->GetName());
+        //}   
 
         // Create the stack and ratio plot    
         TString cname = c.first+"_stack";
         //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
                                   //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
         // stack signal, bkg, and data
-        TCanvas* stack = dps->stackedHistogramsAndRatio(sortedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
+        TCanvas* stack = dps->stackedHistogramsAndRatio(groupedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
         varstacklist->Add(stack);
 
         // lists will contain signal, bg, and data histos for every category
         signallist->Add(c.second.signalList);
         bglist->Add(c.second.bkgList);
         datalist->Add(c.second.dataList);
+
+        netlist->Add(hNetSignal);
+        netlist->Add(hNetBkg);
+        netlist->Add(groupedlist);
        
         stack->SaveAs("imgs/"+varname+"_"+cname+".png");
     }
     std::cout << std::endl;
-    TString savename = Form("validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);
+    TString savename = Form("rootfiles/validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

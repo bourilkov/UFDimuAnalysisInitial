@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
     // Create the stack and ratio plot    
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
+    TFile* savefile = new TFile("rootfiles/zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
     savefile->cd();
 
     for(auto && result: results)
