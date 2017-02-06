@@ -32,36 +32,43 @@
 
 int main(int argc, char* argv[])
 {
-    gROOT->SetBatch();
+
+  std::cout << "Inside example.cxx" << std::endl;
+  
     // save the errors for the histogram correctly so they depend upon 
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
     std::map<TString, Sample*> samples;
-    getSamples(36814, samples);
+    std::cout << "\nAbout to get the samples" << std::endl;
+    
+    GetSamples(samples, "CERN", "RunB");
+    GetSamples(samples, "CERN", "tt_ll_MG");
+    
+    // GetSamples(samples, "CERN", "DATA");
+    // GetSamples(samples, "CERN", "SIGNAL");
+    // GetSamples(samples, "CERN", "ZJets");
+    // GetSamples(samples, "CERN", "ttbar");
+
+    std::cout << "\nGot the samples" << std::endl;
     //Sample* s = samples["GGF_AWB"];
-    Sample* s = samples["WminusH"];
+    // Sample* s = samples["DYJetsToLL_AWB"];
     //Sample* s = samples["DYJetsToLL_AWB_M100to200"];
+    Sample* s = samples["RunB"];
+
+    std::cout << "Defined the sample" << std::endl;
 
    //////////////////////////////////////////////////////////
-   // LOOP TTREE -------------------------------------------
+   // LOOP TCHAIN -------------------------------------------
    ///////////////////////////////////////////////////////// 
 
-    TBranch* jetsBranch = s->tree->GetBranch("jets");
-    TBranch* mhtBranch = s->tree->GetBranch("mht");
-    TBranch* recoMuonsBranch = s->tree->GetBranch("muons");
-    TBranch* recoDimuonsBranch = s->tree->GetBranch("pairs");
-    TBranch* nMuonsBranch = s->tree->GetBranch("nMuons");
-    std::cout << "Got Branches." << std::endl;
-
+    // Get branches, set addresses
     Int_t nMuons;
-    jetsBranch->SetAddress(&s->vars.jets);
-    mhtBranch->SetAddress(&s->vars.mht);
+    TBranch* nMuonsBranch = s->chain->GetBranch("nMuons");
+    TBranch* recoMuonsBranch = s->chain->GetBranch("muons");
+    TBranch* recoDimuonsBranch = s->chain->GetBranch("pairs");
     recoMuonsBranch->SetAddress(&s->vars.recoMuons);
     recoDimuonsBranch->SetAddress(&s->vars.recoDimuCands);
     nMuonsBranch->SetAddress(&nMuons);
-    std::cout << "Set Branches." << std::endl;
-    CollectionCleaner c;
-
 
     for(unsigned int i=0; i<10; i++)
     {

@@ -391,7 +391,7 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    getSamples(luminosity, samples);
+    GetSamples(samples, "UF");
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------

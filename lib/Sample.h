@@ -7,7 +7,9 @@
 #include "TH1F.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TChain.h"
 #include "TEntryList.h"
+#include "TROOT.h"
 
 #include "LumiReweightingStandAlone.h"
 #include "VarSet.h"
@@ -17,14 +19,14 @@ class Sample
 {
     public:
         Sample();
-        Sample(TString infilename, TString name);
-        Sample(TString infilename, TString name, TString sampleType);
+	Sample(std::vector<TString> infilenames, TString name, TString sampleType="NONE");
         ~Sample();
 
         TString name;
         TString filename;
+	std::vector<TString> filenames;
         TString treename;
-        TTree* tree;
+	TChain* chain;
         reweight::LumiReWeighting* lumiWeights;  // Information for pileup reweighting 
 
         TString dir;           // DAS directory
@@ -47,14 +49,14 @@ class Sample
                                                 // the ith event in the list maps to the jth tree entry
 
         void calculateNoriginal();                    // calculate nOriginal and nOriginalWeighted
-        void setBranchAddresses(int whichCategories); // link the values in the tree to vars
+        void setBranchAddresses(int whichCategories=1); // link the values in the tree to vars
         float getWeight();         // get the weight for the histogram based upon the pileup weight and the MC gen weight
 
         // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
         float getScaleFactor(float luminosity); 
 
     protected:
-        TFile* file;           // the file with the ttree
+	std::vector<TFile*> files; // files with the ttree
 
 };
 

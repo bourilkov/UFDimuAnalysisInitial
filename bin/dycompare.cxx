@@ -37,12 +37,11 @@ int main(int argc, char* argv[])
   TH1::SetDefaultSumw2();
   std::map<TString, Sample*> sampleMap;
   std::vector<Sample*> sampleVec;
-  getSamples(36814, sampleMap);
-  //Sample* s = samples["GGF_AWB"];
-  sampleVec.push_back(sampleMap["DYJetsToLL_AWB"]);
-  //sampleVec.push_back(sampleMap["DYJetsToLL_AWBi_madgraph"]);
-  sampleVec.push_back(sampleMap["DYJetsToLL_AWB_M100to200"]);
-  sampleVec.push_back(sampleMap["DYJetsToLL_AWB_M100to200_SpringPU"]);
+  GetSamples(sampleMap, "UF", "ZJets");
+  sampleVec.push_back(sampleMap["ZJets_AMC"]);
+  //sampleVec.push_back(sampleMap["ZJets_MG"]);
+  sampleVec.push_back(sampleMap["ZJets_hiM"]);
+  sampleVec.push_back(sampleMap["ZJets_hiM_SpringPU"]);
 
   // store histograms
   std::map<TString, TH1F*> histMap;
@@ -51,9 +50,9 @@ int main(int argc, char* argv[])
   {
     std::cout << "/// Looping over " << s->name << std::endl;
 
-    TBranch* recoMuonsBranch = s->tree->GetBranch("muons");
-    TBranch* recoDimuonsBranch = s->tree->GetBranch("pairs");
-    TBranch* genWeightBranch = s->tree->GetBranch("GEN_wgt");
+    TBranch* recoMuonsBranch = s->chain->GetBranch("muons");
+    TBranch* recoDimuonsBranch = s->chain->GetBranch("pairs");
+    TBranch* genWeightBranch = s->chain->GetBranch("GEN_wgt");
 
     recoMuonsBranch->SetAddress(&s->vars.recoMuons);
     recoDimuonsBranch->SetAddress(&s->vars.recoDimuCands);

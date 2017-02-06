@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    getSamples(luminosity, samples);
+    GetSamples(samples, "UF");
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -125,7 +125,6 @@ int main(int argc, char* argv[])
     for(auto &i : samples)
     {
         if(i.second->sampleType != "data") continue;
-        if(i.second->name != "RunF" && i.second->name != "RunG") continue;
 
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
