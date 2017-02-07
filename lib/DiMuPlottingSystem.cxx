@@ -110,8 +110,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
   
   // Wide rectangle top right
   TLegend* l = new TLegend(0.47, 0.56, 0.88, 0.88, "", "brNDC");
-  TCanvas* c = new TCanvas();
-  c->SetName(name);
+  TCanvas* c = new TCanvas(name);
   c->SetTitle(title);
   c->SetGridx(1);
   c->SetGridy(1);
@@ -120,7 +119,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
   TObject* object = 0;
   int i=0;
 
-  std::vector<int> colors = {2, 4, 6, 7, 8, 36, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91};
+  std::vector<int> colors = {1, 2, 4, 7, 8, 36, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91};
 
   float max = -9999;
   float min = 9999;
@@ -158,7 +157,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
 
           stack->Add(hist);
           
-          TString legend_entry = TString(hist->GetName());
+          TString legend_entry = TString(hist->GetTitle());
           l->AddEntry(hist, legend_entry, "f");
 
           if(object == ilist->Last())
@@ -182,19 +181,24 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
           if(object == ilist->First())
           {
               multigraph = new TMultiGraph();
-              multigraph->SetTitle(title+"_"+xaxistitle+"_"+yaxistitle);
+              multigraph->SetTitle(title);
           }
 
           graph = (TGraph*) object;
           graph->SetLineColor(colors[i]);
+          graph->SetLineWidth(3);
 
           multigraph->Add(graph);
 
-          TString legend_entry = TString(graph->GetName());
+          TString legend_entry = TString(graph->GetTitle());
           l->AddEntry(graph, legend_entry, "l");
 
           if(object == ilist->Last())
+          {
               multigraph->Draw("a");
+              multigraph->GetXaxis()->SetTitle(xaxistitle);
+              multigraph->GetYaxis()->SetTitle(yaxistitle);
+          }
       }
 
       i++;
@@ -237,7 +241,7 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
   float minimum = 999999999;
   float minMax = 999999999;
 
-  std::vector<int> colors = {2, 4, 6, 7, 8, 36, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91};
+  std::vector<int> colors = {58, 2, 8, 36, 91, 46, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91};
 
   while ((object = next()))
   {
@@ -803,6 +807,7 @@ int ZCalibration::whichTH1D(Float_t xvalue)
 
     if(xvalue == xmin) bin = 0;
     if(xvalue == xmax) bin = binning.size()-2;
+    if(xvalue < xmax && bin > binning.size()-2) bin = binning.size()-2;
 
     if(xvalue < xmin || xvalue > xmax) bin = -9999;
 
@@ -816,6 +821,11 @@ int ZCalibration::whichTH1D(Float_t xvalue)
 void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
 {
     int h = whichTH1D(xvalue);
+    if(h>=histos.size())
+    {
+        std::cout << Form("whichHist: %d, histos.size(): %d, binning.size(): %d, xmin: %f, xmax: %12.10f, xvalue: %12.10f, massvalue: %f \n", 
+                           h, histos.size(), binning.size(), xmin, xmax, xvalue, massvalue); 
+    }
     if(h>=0) 
         histos[h]->Fill(massvalue);
 }

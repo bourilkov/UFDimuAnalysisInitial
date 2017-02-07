@@ -21,48 +21,6 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massmax, int& massbins, 
-                      float& xmin, float& xmax, int& xbins, TString& xname)
-{
-    massmin = 82.2;
-    massmax = 100.2;
-    massbins = 62;
-    xbins = 25;
-    fitsig = 1;
-
-    if(varNumber == 0)
-    {
-        xname = "phi_plus";
-        xmin = -3.14;
-        xmax = 3.14;
-    }
-
-    if(varNumber == 1)
-    {
-        xname = "phi_minus";
-        xmin = -3.14;
-        xmax = 3.14;
-    }
-
-    if(varNumber == 2)
-    {
-        xname = "eta_plus";
-        xmin = -2.4;
-        xmax = 2.4;
-    }
-
-    if(varNumber == 3)
-    {
-        xname = "eta_minus";
-        xmin = -2.4;
-        xmax = 2.4;
-    }
-}
-
-//////////////////////////////////////////////////////////////////
-//---------------------------------------------------------------
-//////////////////////////////////////////////////////////////////
-
 UInt_t getNumCPUs()
 {
   SysInfo_t s;
@@ -86,8 +44,7 @@ int main(int argc, char* argv[])
         if(i==1) ss >> varNumber;
     }   
 
-    float nthreads = 6;
-    float luminosity = 36814;
+    float nthreads = 7;
     float reductionFactor = 1;
     std::map<TString, Sample*> samples;
     std::vector<Sample*> samplevec;
@@ -97,10 +54,10 @@ int main(int argc, char* argv[])
     // Plot Settings Depending on Input--------------------------------
     ///////////////////////////////////////////////////////////////////
     
-    TString xname;
-    float fitsig, massmin, massmax, xmin, xmax;
-    int massbins, xbins;
-    initPlotSettings(varNumber, fitsig, massmin, massmax, massbins, xmin, xmax, xbins, xname);
+    TString massname = "dimu_mass";
+    float massmin = 60;
+    float massmax = 200;
+    int massbins = 140;
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -125,7 +82,7 @@ int main(int argc, char* argv[])
     for(auto &i : samples)
     {
         if(i.second->sampleType != "data") continue;
-        if(i.second->name == "RunH") continue;
+        //if(i.second->name == "RunH") continue;
 
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
@@ -151,17 +108,12 @@ int main(int argc, char* argv[])
 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
-    std::cout << "xvar         : " << xname << std::endl;
-    std::cout << "xmin         : " << xmin << std::endl;
-    std::cout << "xmax         : " << xmax << std::endl;
-    std::cout << "xbins        : " << xbins << std::endl;
-    std::cout << std::endl;
     std::cout << "massmin      : " << massmin << std::endl;
     std::cout << "massmax      : " << massmax << std::endl;
     std::cout << "massbins     : " << massbins << std::endl;
     std::cout << std::endl;
   
-    auto makePlotsForSample = [varNumber, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
+    auto makePlotsForSample = [massname, massbins, massmin, massmax, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
@@ -170,10 +122,19 @@ int main(int argc, char* argv[])
       Run2MuonSelectionCuts     run2MuonSelection;
       Run2EventSelectionCuts80X run2EventSelectionData(true);
 
-      // will probably want one for each type of mass
-      ZCalibration* zcal_pf   = new ZCalibration(xname, s->name+"_mass_PF", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      ZCalibration* zcal_roch = new ZCalibration(xname, s->name+"_mass_Roch", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      ZCalibration* zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      // turn off charge matching
+      run2EventSelectionData.cutset.cuts[0].on = false;
+
+      // turn off isolation
+      run2MuonSelection.cutset.cuts[2].on = false;
+      run2MuonSelection.cutset.cuts[5].on = false;
+
+      TH1D* tight_histo  = new TH1D(s->name+"_tight_muon_id", "tight muon id", massbins, massmin, massmax);
+      TH1D* medium_histo = new TH1D(s->name+"_medium_muon_id", "loose muon id", massbins, massmin, massmax);
+
+      std::map<TString, TH1D*> returnMap;
+      returnMap[s->name+"_tight_muon_id"] = tight_histo;
+      returnMap[s->name+"_medium_muon_id"] = medium_histo;
 
       ///////////////////////////////////////////////////////////////////
       // HISTOGRAMS TO FILL ---------------------------------------------
@@ -189,25 +150,31 @@ int main(int argc, char* argv[])
         s->branches.recoDimuCands->GetEntry(i);
         s->branches.recoMuons->GetEntry(i);
 
-        // need a dimuon candidate to fill the zmass
+        // require exactly two muons
+        if(s->vars.recoMuons->size() != 2) continue;
         if(s->vars.recoDimuCands->size() < 1) continue;
-        if(s->vars.recoMuons->size() < 2) continue;
         bool found_good_dimuon = false;
 
         // find the first good dimuon candidate and fill info
         for(auto& dimu: (*s->vars.recoDimuCands))
         {
+          // set the appropriate dimuon for the cuts
           s->vars.dimuCand = &dimu;
+          MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
+          MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
           ///////////////////////////////////////////////////////////////////
-
-          if(!run2EventSelectionData.evaluate(s->vars) && s->sampleType.Contains("data"))
+          
+          // require same sign muons to check out fakes
+          if(mu1.charge != mu2.charge)
           { 
               continue; 
           }
-          if(!s->vars.recoMuons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.recoMuons->at(s->vars.dimuCand->iMu2).isTightID)
+          // require that the muons pass the basic run2 selections except for the ones we turned off
+          // (opposite sign and isolation are off)
+          if(!run2EventSelectionData.evaluate(s->vars) && s->sampleType.Contains("data"))
           { 
               continue; 
           }
@@ -215,58 +182,34 @@ int main(int argc, char* argv[])
           {
               continue; 
           }
+          // at minimum require medium isolation
+          if(mu1.iso() > 0.12 || mu2.iso() > 0.12)
+          { 
+              continue; 
+          }
 
           found_good_dimuon = true;
 
-          MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
-          MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
-
-          float phi_plus = (mu1.charge==1)?mu1.phi:mu2.phi;
-          float phi_minus = (mu1.charge==-1)?mu1.phi:mu2.phi;
-          
-          float eta_plus = (mu1.charge==1)?mu1.eta:mu2.eta;
-          float eta_minus = (mu1.charge==-1)?mu1.eta:mu2.eta;
-           
-          if(varNumber == 0) 
-          {
-              zcal_pf->fill(phi_plus, s->vars.dimuCand->mass_PF);
-              zcal_roch->fill(phi_plus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(phi_plus, s->vars.dimuCand->mass_KaMu);
+          // if it is a medium muon and outside the blinded region then add to the medium histogram
+          if(mu1.isMediumID && mu2.isMediumID)
+          { 
+              if(dimu.mass_PF > 140 || dimu.mass_PF < 110) medium_histo->Fill(dimu.mass_PF);
           }
 
-          if(varNumber == 1) 
-          {
-              zcal_pf->fill(phi_minus, s->vars.dimuCand->mass_PF);
-              zcal_roch->fill(phi_minus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(phi_minus, s->vars.dimuCand->mass_KaMu);
+          // if it is a tight muon with appropriate isolation and outside the blinded region then add to the tight histogram
+          if(mu1.isTightID && mu2.isTightID)
+          { 
+              if(mu1.iso() > 0.12 || mu2.iso() > 0.12) ;
+              else if(dimu.mass_PF > 140 || dimu.mass_PF < 110) tight_histo->Fill(dimu.mass_PF);
+              
           }
-
-          if(varNumber == 2) 
-          {
-              zcal_pf->fill(eta_plus, s->vars.dimuCand->mass_PF);
-              zcal_roch->fill(eta_plus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(eta_plus, s->vars.dimuCand->mass_KaMu);
-          }
-
-          if(varNumber == 3) 
-          {
-              zcal_pf->fill(eta_minus, s->vars.dimuCand->mass_PF);
-              zcal_roch->fill(eta_minus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(eta_minus, s->vars.dimuCand->mass_KaMu);
-          }
-
           if(found_good_dimuon) break;
 
         } // end dimucand loop
       } // end events loop
       
-      std::vector<ZCalibration*>* returnVector = new std::vector<ZCalibration*>();
-      returnVector->push_back(zcal_pf);
-      returnVector->push_back(zcal_roch);
-      returnVector->push_back(zcal_kamu);
-
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
-      return returnVector;
+      return returnMap;
 
     };
 
@@ -274,9 +217,8 @@ int main(int argc, char* argv[])
    // SAMPLE PARALLELIZATION------ ----------------------------------
    ///////////////////////////////////////////////////////////////////
 
-    TList* netlist = new TList();
     ThreadPool pool(nthreads);
-    std::vector< std::future< std::vector<ZCalibration*>* > > results;
+    std::vector< std::future< std::map<TString, TH1D*> > > results;
 
     TStopwatch timerWatch;
     timerWatch.Start();
@@ -284,85 +226,30 @@ int main(int argc, char* argv[])
     for(auto &s : samplevec)
         results.push_back(pool.enqueue(makePlotsForSample, s));
 
-    TList* histos = new TList();
-    TList* plots = new TList();
-    std::map<TString, TList*> overlayMap;
-
+    // get the tight and medium histograms from the different runs so we can add them together
+    TList* tight_list = new TList();
+    TList* medium_list = new TList();
     for(auto && result: results)
     {
-        TList* overlay_mean = new TList();
-        TList* overlay_res = new TList();
-        TString overlay_name = "";
-
-        for(auto zcal: (*result.get()))
+        for(auto& item: result.get())
         {
-            overlay_name = zcal->massname;
-            zcal->plot();
-
-            if(zcal->massname.Contains("Roch"))
-            {
-                zcal->mean_vs_x->SetTitle("Roch");
-                zcal->resolution_vs_x->SetTitle("Roch");
-            }
-            else if(zcal->massname.Contains("KaMu"))
-            {
-                zcal->mean_vs_x->SetTitle("KaMu");
-                zcal->resolution_vs_x->SetTitle("KaMu");
-            }
-            else
-            {
-                zcal->mean_vs_x->SetTitle("PF");
-                zcal->resolution_vs_x->SetTitle("PF");
-            }
-
-            // Add all of the plots to the tlist
-            for(unsigned int i=0; i<zcal->histos.size(); i++)
-            {
-                histos->Add(zcal->histos[i]);
-            }
-            
-            // list of plots to save
-            plots->Add(zcal->mean_vs_x);
-            plots->Add(zcal->resolution_vs_x);
-
-            // overlay all types of mass in a single plot
-            overlay_mean->Add(zcal->mean_vs_x);
-            overlay_res->Add(zcal->resolution_vs_x);
+            if(item.first.Contains("tight")) tight_list->Add(item.second);
+            else if(item.first.Contains("medium")) medium_list->Add(item.second);
         }
-        overlay_name = overlay_name.ReplaceAll("_PF", "");
-        overlay_name = overlay_name.ReplaceAll("_KaMu", "");
-        overlay_name = overlay_name.ReplaceAll("_Roch", "");
-
-        overlayMap[overlay_name+"_mean"] = overlay_mean;
-        overlayMap[overlay_name+"_resolution"] = overlay_res;
-
     }
-    
-    // overlay the mean and resolution vs x plots
-    TList* overlays = new TList();
-    for(auto& item: overlayMap)
-    {
-        TCanvas* c = DiMuPlottingSystem::overlay(item.second, item.first, item.first, xname, "voigt fit mass (GeV)", false);
-        overlays->Add(c);
-    }
+
+    // ad them together
+    TH1D* net_tight_histo = DiMuPlottingSystem::addHists(tight_list, "Tight_Muon_ID_Data", "Tight ID");
+    TH1D* net_medium_histo = DiMuPlottingSystem::addHists(medium_list, "Medium_Muon_ID_Data", "Medium ID");
 
     // Create the stack and ratio plot    
     std::cout << "  /// Saving plots..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
+    TFile* savefile = new TFile("rootfiles/fakes_"+massname+"_data_8_0_X.root", "RECREATE");
     savefile->cd();
-    TDirectory* overlaydir = savefile->mkdir("overlays");
-    TDirectory* plotdir = savefile->mkdir("plots");
-    TDirectory* histodir = savefile->mkdir("histos");
 
-    overlaydir->cd();
-    overlays->Write();
-
-    plotdir->cd();
-    plots->Write();
- 
-    histodir->cd();
-    histos->Write();
+    net_tight_histo->Write();
+    net_medium_histo->Write();
 
     savefile->Write();
     savefile->Close();

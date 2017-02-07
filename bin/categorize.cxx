@@ -48,6 +48,7 @@ TList* groupMC(TList* list, TString categoryName)
     TList* drell_yan_list = new TList();
     TList* ttbar_list = new TList();
     TList* diboson_list = new TList();
+    TList* vh_list = new TList();
 
     // strip data and get a sorted vector of mc samples
     for(unsigned int i=0; i<list->GetSize(); i++)
@@ -61,17 +62,32 @@ TList* groupMC(TList* list, TString categoryName)
         if(sampleName.Contains("Run") || sampleName.Contains("Data")) continue;
         else // group the monte carlo 
         {            
-            if(sampleName.Contains("H2Mu")) grouped_list->Add(hist); // go ahead and add the signal to the final list
+            if(sampleName.Contains("H2Mu"))
+            {
+                if(sampleName.Contains("gg")) 
+                {
+                    hist->SetTitle("GGF");
+                    grouped_list->Add(hist); // go ahead and add the signal to the final list
+                }
+                if(sampleName.Contains("VBF")) 
+                {
+                    hist->SetTitle("VBF");
+                    grouped_list->Add(hist); // go ahead and add the signal to the final list
+                }
+                if(sampleName.Contains("WH") || sampleName.Contains("ZH")) vh_list->Add(hist);
+            }
             else if(sampleName.Contains("ZJets")) drell_yan_list->Add(hist);
             else if(sampleName.Contains("tt") || sampleName.Contains("tW") || sampleName.Contains("tZ")) ttbar_list->Add(hist);
             else diboson_list->Add(hist);
         }
     }
     // Don't forget to group VH together and retitle other signal samples
-    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan", categoryName+"Drell_Yan");
-    TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop", categoryName+"TTbar_plus_SingleTop");
-    TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus", categoryName+"Diboson_plus");
+    TH1D* vh_histo = DiMuPlottingSystem::addHists(vh_list, categoryName+"VH", "VH");
+    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan", "Drell Yan");
+    TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop", "TTbar + SingleTop");
+    TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus", "Diboson +");
 
+    grouped_list->AddFirst(vh_histo);
     grouped_list->Add(diboson_histo);
     grouped_list->Add(ttbar_histo);
     grouped_list->Add(drell_yan_histo);
@@ -439,7 +455,7 @@ int main(int argc, char* argv[])
     float luminosity = 36814;      // pb-1
     float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
     float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
-    float reductionFactor = 10;    // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -992,9 +1008,9 @@ int main(int argc, char* argv[])
         if(c.second.hide) continue;
 
         // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-        TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
-        TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    c.first+"_Net_Bkg");
-        TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   c.first+"_Net_Data");
+        TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", "Net Signal");
+        TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    "Net Background");
+        TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   "Data");
 
         TList* groupedlist = groupMC(c.second.histoList, c.first);
         groupedlist->Add(hNetData);
