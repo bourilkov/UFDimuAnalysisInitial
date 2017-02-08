@@ -18,15 +18,9 @@ class JetCollectionCleaner : public CollectionCleaner
         float cJetSelectiondRMin;
         float cJetSelectionBTagMin;
         float cJetSelectionBJetEtaMax;
- 
-        static float dR(float eta1, float phi1, float eta2, float phi2);
 
-        void getValidJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec);
-        void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
-
-        void getValidBJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
-        void getValidBJetsdR(VarSet& vars, std::vector<TLorentzVector>& jetvec);
-
+        void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, bool require_b = false);
+        void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, std::vector<TLorentzVector>& bjetvec);
         void getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
 
         bool jetID(VarSet& vars, unsigned int jet, int id);

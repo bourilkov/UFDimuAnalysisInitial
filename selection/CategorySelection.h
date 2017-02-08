@@ -204,6 +204,9 @@ class LotsOfCategoriesRun2 : public Categorizer
                 int c_0b_VlH_Zee_num_e;  
                 int c_0b_VlH_Zee_num_mu;  
 
+        // list of geometric categories
+        std::vector<TString> geometricNames;
+
         // Determine which category the event belongs to
         void evaluate(VarSet& vars);
         void evaluateMuonGeometry(VarSet& vars);

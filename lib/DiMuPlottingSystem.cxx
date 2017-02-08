@@ -278,8 +278,18 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
           stack->Draw("hist");
           stack->GetXaxis()->SetTitle(xaxistitle);
           stack->GetYaxis()->SetTitle(yaxistitle);
+          
+          // overlay the mc error band
+          TH1D* sum = (TH1D*) stack->GetStack()->Last()->Clone();
+          sum->SetFillStyle(3001);
+          sum->SetLineColor(12);
+          sum->SetFillColor(12);
+          sum->Draw("E3SAME");
+          l->AddEntry(sum, "MC Error Band", "f");
+
           gPad->Modified();
 
+          // use y log scale if the flag is set
           if(log) 
           {
               gPad->SetLogy(1);
@@ -288,9 +298,12 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
               else stack->SetMinimum(minMax*10e-3);
           }
 
+          // only draw the stat box if the flag is set
           if(stats) hist->SetStats(1);
           //hist->SetMinimum(10e-4);
 	  hist->Draw("epsames");
+
+          // put the stat box in a decent location
           if(stats)
           {
               gPad->Update();

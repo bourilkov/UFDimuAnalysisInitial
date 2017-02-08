@@ -40,7 +40,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   eras.push_back( std::make_tuple("E", 4100, std::vector<int>{ 62},     std::vector<TString>{"E/170128_235329"}) );
   eras.push_back( std::make_tuple("F", 3200, std::vector<int>{ 91, 46}, std::vector<TString>{"F_1/170130_063615", "F_2/170128_235359"}) );
   eras.push_back( std::make_tuple("G", 7800, std::vector<int>{107},     std::vector<TString>{"G/170128_235417"}) );
-  //eras.push_back( std::make_tuple("H", 9014, std::vector<int>{116,  4}, std::vector<TString>{"H_1/170128_235433", "H_2/170128_235449"}) );
+  eras.push_back( std::make_tuple("H", 9014, std::vector<int>{116,  4}, std::vector<TString>{"H_1/170128_235433", "H_2/170128_235449"}) );
   
   for (auto era: eras) {
     if (select != "DATA" && select!="ALL" && select != "Run"+std::get<0>(era))

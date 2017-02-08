@@ -393,13 +393,13 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         varname = "mT_b_MET";
     }
 
-    // MET
+    // MHT
     if(varNumber == 23)
     {
         bins = 200;
         min = 0;
         max = 150;
-        varname = "MET";
+        varname = "MHT";
     }
 
     // dEta_jj_mumu
@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
 
-        i.second->setBranchAddresses(whichCategories);
+        i.second->setBranchAddresses(2);
         samplevec.push_back(i.second);
 
         // Pileup Reweighting now available in the TTree info, no need to calculate
@@ -620,10 +620,14 @@ int main(int argc, char* argv[])
         if(s->vars.recoDimuCands->size() < 1) continue;
         bool found_good_dimuon = false;
 
+
         // find the first good dimuon candidate and fill info
         for(auto& dimu: (*s->vars.recoDimuCands))
         {
+          // the dimuon candidate and the muons that make up the pair
           s->vars.dimuCand = &dimu; 
+          MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
+          MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
@@ -637,7 +641,7 @@ int main(int argc, char* argv[])
           { 
               continue; 
           }
-          if(!s->vars.recoMuons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.recoMuons->at(s->vars.dimuCand->iMu2).isTightID)
+          if(!mu1.isTightID || !mu2.isTightID)
           { 
               continue; 
           }
@@ -654,6 +658,7 @@ int main(int argc, char* argv[])
           s->branches.jets->GetEntry(i);
           s->branches.mht->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
+          s->branches.recoElectrons->GetEntry(i);
           //eventInfoBranch->GetEntry(i);
 
           if(!isData)
@@ -666,16 +671,6 @@ int main(int argc, char* argv[])
 
           if(whichCategories == 1) 
           {
-              s->vars.validJets.clear();
-              jetCollectionCleaner.getValidJetsdR(s->vars, s->vars.validJets);
-          }
-          //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
-
-          if(whichCategories == 2)
-          {
-              // load extra branches needed by run 2 categories
-              //recoElectronsBranch->GetEntry(i);
-
               // clear vectors for the valid collections
               s->vars.validMuons.clear();
               s->vars.validExtraMuons.clear();
@@ -684,13 +679,36 @@ int main(int argc, char* argv[])
               s->vars.validBJets.clear();
 
               // load valid collections from s->vars raw collections
-              jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets);
-              jetCollectionCleaner.getValidBJets(s->vars, s->vars.validBJets);
-              muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons);
+              jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
+              muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
               eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
-            
-              //for(unsigned int m=0; m<s->vars.validMuons.size(); m++)
-              //    s->vars.validExtraMuons.push_back(s->vars.validMuons[m]);
+
+              // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
+              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.3);
+              CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
+              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
+
+          }
+          //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
+
+          if(whichCategories == 2)
+          {
+              // clear vectors for the valid collections
+              s->vars.validMuons.clear();
+              s->vars.validExtraMuons.clear();
+              s->vars.validElectrons.clear();
+              s->vars.validJets.clear();
+              s->vars.validBJets.clear();
+
+              // load valid collections from s->vars raw collections
+              jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
+              muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
+              eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
+
+              // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
+              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.3);
+              CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
+              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
           }
 
           // Figure out which category the event belongs to
@@ -706,9 +724,9 @@ int main(int argc, char* argv[])
               // dimuCand->recoCandMass
               if(varNumber<=0) 
               {
-                  float varvalue = s->vars.dimuCand->mass_PF;
-                  if(varNumber == -1) varvalue = s->vars.dimuCand->mass_Roch;
-                  if(varNumber == -2) varvalue = s->vars.dimuCand->mass_KaMu;
+                  float varvalue = dimu.mass_PF;
+                  if(varNumber == -1) varvalue = dimu.mass_Roch;
+                  if(varNumber == -2) varvalue = dimu.mass_KaMu;
                   
                   if(varvalue < min || varvalue > max) continue;
 
@@ -725,22 +743,22 @@ int main(int argc, char* argv[])
               if(varname.EqualTo("dimu_pt"))
               {
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
-                  c.second.histoMap[hkey]->Fill(s->vars.dimuCand->pt_PF, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(dimu.pt_PF, s->getWeight());
                   continue;
               }
 
               if(varname.EqualTo("mu_pt"))
               {
-                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).pt, s->getWeight());
-                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).pt, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(mu1.pt, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(mu2.pt, s->getWeight());
                   continue;
               }
 
               // recoMu_Eta
               if(varname.EqualTo("mu_eta"))
               {
-                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).eta, s->getWeight());
-                  c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).eta, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(mu1.eta, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(mu2.eta, s->getWeight());
                   continue;
               }
 
@@ -754,16 +772,16 @@ int main(int argc, char* argv[])
               // jet_pt
               if(varname.EqualTo("jet_pt"))
               {
-                   for(unsigned int j=0; j<s->vars.validJets.size(); j++)
-                       c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Pt(), s->getWeight());
+                   for(auto& jet: s->vars.validJets)
+                       c.second.histoMap[hkey]->Fill(jet.Pt(), s->getWeight());
                    continue;
               }
 
               // jet_eta
               if(varname.EqualTo("jet_eta"))
               {
-                   for(unsigned int j=0; j<s->vars.validJets.size(); j++)
-                       c.second.histoMap[hkey]->Fill(s->vars.validJets[j].Eta(), s->getWeight());
+                   for(auto& jet: s->vars.validJets)
+                       c.second.histoMap[hkey]->Fill(jet.Eta(), s->getWeight());
                    continue;
               }
 
@@ -813,16 +831,16 @@ int main(int argc, char* argv[])
               // extra_muon_pt
               if(varname.EqualTo("extra_muon_pt"))
               {
-                  for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
-                      c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Pt(), s->getWeight());
+                  for(auto& mu: s->vars.validExtraMuons)
+                      c.second.histoMap[hkey]->Fill(mu.Pt(), s->getWeight());
                   continue;
               }
 
               // extra_muon_eta
               if(varname.EqualTo("extra_muon_eta"))
               {
-                  for(unsigned int j=0; j<s->vars.validExtraMuons.size(); j++)
-                      c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons[j].Eta(), s->getWeight());
+                  for(auto& mu: s->vars.validExtraMuons)
+                      c.second.histoMap[hkey]->Fill(mu.Eta(), s->getWeight());
                   continue;
               }
 
@@ -836,15 +854,15 @@ int main(int argc, char* argv[])
               // electron_pt
               if(varname.EqualTo("electron_pt"))
               {
-                  for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
-                      c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Pt(), s->getWeight());
+                  for(auto& e: s->vars.validElectrons)
+                      c.second.histoMap[hkey]->Fill(e.Pt(), s->getWeight());
                   continue;
               }
               // electron_eta
               if(varname.EqualTo("electron_eta"))
               {
-                  for(unsigned int j=0; j<s->vars.validElectrons.size(); j++)
-                      c.second.histoMap[hkey]->Fill(s->vars.validElectrons[j].Eta(), s->getWeight());
+                  for(auto& e: s->vars.validElectrons)
+                      c.second.histoMap[hkey]->Fill(e.Eta(), s->getWeight());
                   continue;
               }
 
@@ -865,16 +883,16 @@ int main(int argc, char* argv[])
               // bjet_pt
               if(varname.EqualTo("bjet_pt"))
               {
-                  for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
-                      c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Pt(), s->getWeight());
+                  for(auto& bjet: s->vars.validBJets)
+                      c.second.histoMap[hkey]->Fill(bjet.Pt(), s->getWeight());
                   continue;
               }
 
               // bjet_eta 
               if(varname.EqualTo("bjet_eta"))
               {
-                  for(unsigned int j=0; j<s->vars.validBJets.size(); j++)
-                      c.second.histoMap[hkey]->Fill(s->vars.validBJets[j].Eta(), s->getWeight());
+                  for(auto& bjet: s->vars.validBJets)
+                      c.second.histoMap[hkey]->Fill(bjet.Eta(), s->getWeight());
                   continue;
               }
               // m_bb

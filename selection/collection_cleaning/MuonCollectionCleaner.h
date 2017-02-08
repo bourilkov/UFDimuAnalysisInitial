@@ -18,7 +18,8 @@ class MuonCollectionCleaner : public CollectionCleaner
         float cMuonSelectionIsoMax;
         int   cMuonSelectionID;
 
-        void getValidMuons(VarSet& vars, std::vector<TLorentzVector>& muvec);
+        void getValidMuons(VarSet& vars, std::vector<TLorentzVector>& muvec, bool exclude_pair=false);
+        void getValidMuons(VarSet& vars, std::vector<TLorentzVector>& muvec, std::vector<TLorentzVector>& xmuvec);
 };
 
 #endif

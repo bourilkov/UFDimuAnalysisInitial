@@ -25,7 +25,7 @@ EleCollectionCleaner::EleCollectionCleaner()
     cElectronSelectionPtMin = 10;
     cElectronSelectionEtaMax = 2.5;
     cElectronSelectionIsoMax = 0.15;
-    cElectronSelectionID = 0;
+    cElectronSelectionID = 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
