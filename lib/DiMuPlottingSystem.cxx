@@ -284,7 +284,7 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
           sum->SetFillStyle(3001);
           sum->SetLineColor(12);
           sum->SetFillColor(12);
-          sum->Draw("E3SAME");
+          sum->Draw("E2SAME");
           l->AddEntry(sum, "MC Error Band", "f");
 
           gPad->Modified();

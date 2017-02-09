@@ -1,5 +1,5 @@
 ##############################################
-# FEWZSpectrumFitter.py                      #
+# BGSpectrumFitter.py                      #
 ##############################################
 # Makes roofit workspace and fits fewz       #
 # dimu mass spectrum.                        #
@@ -15,17 +15,23 @@ import re
 import argparse
 from ROOT import *
 
+import sys
+sys.argv.append( '-b-' )
+
 #============================================
 # code
 #============================================
 
-class FEWZSpectrumFitter:
+class BGSpectrumFitter:
 # object to make workspace, root files, and datacards needed for analytic shape or template
 # limit setting via higgs combine.
 
     infilename = ''
     category = ''
-    fewz_hist = 0
+    bg_dy_hist = 0
+    bg_ttbar_hist = 0
+    bg_diboson_hist = 0
+    bg_not_dy_hist = 0
     tfile = 0
     nuisance_params = []
 
@@ -33,12 +39,14 @@ class FEWZSpectrumFitter:
         self.infilename = infilename
         self.category = category
         self.tfile = TFile(infilename)
-        self.setFEWZHist()
+        self.setBGHists()
     
-    def setFEWZHist(self):
-        self.fewz_hist = self.tfile.Get('histos/fewz_dimu_mass_'+self.category)
+    def setBGHists(self):
+        self.bg_dy_hist      = self.tfile.Get('net_histos/'+self.category+"_Drell_Yan")
+        self.bg_ttbar_hist   = self.tfile.Get('net_histos/'+self.category+"_TTbar_Plus_SingleTop")
+        self.bg_diboson_hist = self.tfile.Get('net_histos/'+self.category+"_Diboson_plus")
     
-    def fitAndSave(self, whichFunction = 'exp'):
+    def fitAndSave(self, whichFunction = 'bw'):
     # make workspace with signal model and background model for analytic shape fit.
     # save it to a root file.
         # suppress all messages except those that matter
@@ -46,9 +54,9 @@ class FEWZSpectrumFitter:
         print "="*78
     
         # Get the dimu mass histogram to use for limit setting
-        nbins   = self.fewz_hist.GetNbinsX()
-        massmin = self.fewz_hist.GetBinLowEdge(1)
-        massmax = massmin + nbins*self.fewz_hist.GetBinWidth(1)
+        nbins   = self.bg_dy_hist.GetNbinsX()
+        massmin = self.bg_dy_hist.GetBinLowEdge(1)
+        massmax = massmin + nbins*self.bg_dy_hist.GetBinWidth(1)
     
         #----------------------------------------
         # create di-muon mass variable
@@ -61,7 +69,7 @@ class FEWZSpectrumFitter:
     
         # create binned dataset from histogram
         # needs to be named data_obs for higgs combine limit setting
-        data = RooDataHist('data_obs', 'data_obs', RooArgList(x), self.fewz_hist)
+        data = RooDataHist('data_obs', 'data_obs', RooArgList(x), self.bg_dy_hist)
 
         #----------------------------------------
         # breit weigner mixture (run1 bg)
@@ -99,9 +107,10 @@ class FEWZSpectrumFitter:
         #----------------------------------------
         # fit and plot
         #----------------------------------------
-        fr = pdfMmumu.fitTo(data)
+        x.setRange("window",110-0.1, 160+0.1) ;
+        fr = pdfMmumu.fitTo(data, RooFit.Range("window"))
 
-        xframe = x.frame(RooFit.Name(self.category+"_Fewz_Fit"), RooFit.Title(self.category+"_Fewz_Fit"))
+        xframe = x.frame(RooFit.Name(self.category+"_DY_Fit"), RooFit.Title(self.category+"_DY_Fit"))
         xframe.GetXaxis().SetNdivisions(505)
         data.plotOn(xframe)
         pdfMmumu.plotOn(xframe)
@@ -118,12 +127,13 @@ class FEWZSpectrumFitter:
         print "chi2    :     %7.3f"               % chi2
         print
 
-        c1 = TCanvas(self.category+'_fewz_fit_c', self.category+'_fewz_fit_c', 10, 10, 600, 600)
+        c1 = TCanvas(self.category+'_bg_dy_fit_c', self.category+'_bg_dy_fit_c', 10, 10, 600, 600)
         xframe.Draw()
         t = TLatex(.6,.75,"#chi^{2}/ndof = %7.3f" % chi2);  
         t.SetNDC(kTRUE);
         t.Draw();
         c1.SaveAs('img/'+c1.GetName()+'.png')
+        c1.SaveAs(c1.GetName()+'.root');
         c1.SetLogy(kTRUE)
         c1.Update()
         c1.SaveAs('img/'+c1.GetName()+'_log.png')
@@ -132,10 +142,8 @@ print('program is running ...')
 # Needs the file with the dimu_mass plots created by categorize.cxx via running ./categorize 0 1
 # also needs to know the category you want to make the root file and datacard for
 
-categories = ['Wide', 'Narrow', '1Jet_Wide', '1Jet_Narrow',  'Central_Central_Wide', 
-              'Central_Central_Narrow', 'Central_Not_Central_Wide', 'Central_Not_Central_Narrow']
+category = 'c_01_Jet_Tight_OE' 
 
-for cat in categories:
-    wdm = FEWZSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/00111_overlay_fewz_dimu_mass_DY-FEWZ_MC_categories_3990.root', cat) 
-    print wdm.infilename, wdm.category
-    wdm.fitAndSave()
+wdm = BGSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_PF_50_200_x69p2_8_0_X_MC_run1categories_36814.root', category) 
+print wdm.infilename, wdm.category
+wdm.fitAndSave()
