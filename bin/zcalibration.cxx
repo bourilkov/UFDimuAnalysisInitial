@@ -33,29 +33,29 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     if(varNumber == 0)
     {
         xname = "phi_plus";
-        xmin = -3.14;
-        xmax = 3.14;
+        xmin = -3.15;
+        xmax = 3.15;
     }
 
     if(varNumber == 1)
     {
         xname = "phi_minus";
-        xmin = -3.14;
-        xmax = 3.14;
+        xmin = -3.15;
+        xmax = 3.15;
     }
 
     if(varNumber == 2)
     {
         xname = "eta_plus";
-        xmin = -2.4;
-        xmax = 2.4;
+        xmin = -2.41;
+        xmax = 2.41;
     }
 
     if(varNumber == 3)
     {
         xname = "eta_minus";
-        xmin = -2.4;
-        xmax = 2.4;
+        xmin = -2.41;
+        xmax = 2.41;
     }
 }
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
         if(i==1) ss >> varNumber;
     }   
 
-    float nthreads = 6;
+    float nthreads = 7;
     float luminosity = 36814;
     float reductionFactor = 1;
     std::map<TString, Sample*> samples;
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    GetSamples(samples, "UF");
+    GetSamples(samples, "UF", "DATA");
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     for(auto &i : samples)
     {
         if(i.second->sampleType != "data") continue;
-        if(i.second->name == "RunH") continue;
+        //if(i.second->name != "RunE") continue;
 
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
       // will probably want one for each type of mass
       ZCalibration* zcal_pf   = new ZCalibration(xname, s->name+"_mass_PF", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
       ZCalibration* zcal_roch = new ZCalibration(xname, s->name+"_mass_Roch", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      ZCalibration* zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      //ZCalibration* zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
 
       ///////////////////////////////////////////////////////////////////
       // HISTOGRAMS TO FILL ---------------------------------------------
@@ -226,33 +226,33 @@ int main(int argc, char* argv[])
           
           float eta_plus = (mu1.charge==1)?mu1.eta:mu2.eta;
           float eta_minus = (mu1.charge==-1)?mu1.eta:mu2.eta;
-           
+
           if(varNumber == 0) 
           {
               zcal_pf->fill(phi_plus, s->vars.dimuCand->mass_PF);
               zcal_roch->fill(phi_plus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(phi_plus, s->vars.dimuCand->mass_KaMu);
+              //zcal_kamu->fill(phi_plus, s->vars.dimuCand->mass_KaMu);
           }
 
           if(varNumber == 1) 
           {
               zcal_pf->fill(phi_minus, s->vars.dimuCand->mass_PF);
               zcal_roch->fill(phi_minus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(phi_minus, s->vars.dimuCand->mass_KaMu);
+              //zcal_kamu->fill(phi_minus, s->vars.dimuCand->mass_KaMu);
           }
 
           if(varNumber == 2) 
           {
               zcal_pf->fill(eta_plus, s->vars.dimuCand->mass_PF);
               zcal_roch->fill(eta_plus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(eta_plus, s->vars.dimuCand->mass_KaMu);
+              //zcal_kamu->fill(eta_plus, s->vars.dimuCand->mass_KaMu);
           }
 
           if(varNumber == 3) 
           {
               zcal_pf->fill(eta_minus, s->vars.dimuCand->mass_PF);
               zcal_roch->fill(eta_minus, s->vars.dimuCand->mass_Roch);
-              zcal_kamu->fill(eta_minus, s->vars.dimuCand->mass_KaMu);
+              //zcal_kamu->fill(eta_minus, s->vars.dimuCand->mass_KaMu);
           }
 
           if(found_good_dimuon) break;
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
       std::vector<ZCalibration*>* returnVector = new std::vector<ZCalibration*>();
       returnVector->push_back(zcal_pf);
       returnVector->push_back(zcal_roch);
-      returnVector->push_back(zcal_kamu);
+      //returnVector->push_back(zcal_kamu);
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
       return returnVector;
@@ -335,7 +335,6 @@ int main(int argc, char* argv[])
 
         overlayMap[overlay_name+"_mean"] = overlay_mean;
         overlayMap[overlay_name+"_resolution"] = overlay_res;
-
     }
     
     // overlay the mean and resolution vs x plots

@@ -4,8 +4,9 @@
 
 #include <vector>
 #include "TMath.h"
+#include "ParticleInfo.h"
 
-struct PairInfo {
+struct PairInfo : public ParticleInfo{
 
   Int_t iMu1;
   Int_t iMu2;
@@ -44,8 +45,12 @@ struct PairInfo {
   Double_t pt_Roch_sys_down  ;
 
   void init();
+  Float_t getMass();
+  TLorentzVector get4vec();
+  TString outputInfo();
+  Double_t iso();
 
-  ClassDef(PairInfo, 1)
+  ClassDef(PairInfo, 2)
 };
 
 

@@ -41,18 +41,9 @@ int main(int argc, char* argv[])
     std::map<TString, Sample*> samples;
     std::cout << "\nAbout to get the samples" << std::endl;
     
-    GetSamples(samples, "CERN", "RunB");
-    GetSamples(samples, "CERN", "tt_ll_MG");
-    
-    // GetSamples(samples, "CERN", "DATA");
-    // GetSamples(samples, "CERN", "SIGNAL");
-    // GetSamples(samples, "CERN", "ZJets");
-    // GetSamples(samples, "CERN", "ttbar");
+    GetSamples(samples, "UF", "DATA");
 
     std::cout << "\nGot the samples" << std::endl;
-    //Sample* s = samples["GGF_AWB"];
-    // Sample* s = samples["DYJetsToLL_AWB"];
-    //Sample* s = samples["DYJetsToLL_AWB_M100to200"];
     Sample* s = samples["RunB"];
 
     std::cout << "Defined the sample" << std::endl;
@@ -62,65 +53,23 @@ int main(int argc, char* argv[])
    ///////////////////////////////////////////////////////// 
 
     // Get branches, set addresses
-    Int_t nMuons;
-    TBranch* nMuonsBranch = s->chain->GetBranch("nMuons");
-    TBranch* recoMuonsBranch = s->chain->GetBranch("muons");
-    TBranch* recoDimuonsBranch = s->chain->GetBranch("pairs");
-    recoMuonsBranch->SetAddress(&s->vars.recoMuons);
-    recoDimuonsBranch->SetAddress(&s->vars.recoDimuCands);
-    nMuonsBranch->SetAddress(&nMuons);
+    s->setBranchAddresses(1);
 
     for(unsigned int i=0; i<10; i++)
     {
-       nMuonsBranch->GetEntry(i);
-       recoDimuonsBranch->GetEntry(i);
-       recoMuonsBranch->GetEntry(i);
-       jetsBranch->GetEntry(i);
-       mhtBranch->GetEntry(i);
+       s->branches.recoDimuCands->GetEntry(i);
+       s->branches.recoMuons->GetEntry(i);
 
-       std::vector<TLorentzVector> muons;
-       std::vector<TLorentzVector> jets;
+       for(auto& dimu: (*s->vars.recoDimuCands))
+       {
+           std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;
+       }
+       std::cout << std::endl;
 
-
-       std::cout << "Muons before cleaning... " << std::endl;
        for(auto& m: (*s->vars.recoMuons))
        {
            std::cout << i << " muon: " << m.outputInfo() << std::endl;
-           muons.push_back(m.get4vec());
        }
-       std::cout << std::endl;
-
-       std::cout << "Jets before cleaning... " << std::endl;
-       for(auto& j: (*s->vars.jets))
-       {
-           std::cout << i << " jet: " << j.outputInfo() << std::endl;
-           jets.push_back(j.get4vec());
-       }
-
-       std::cout << std::endl;
-
-       c.cleanByDR(jets, muons, 0.3);
-
-       std::cout << "Jets after cleaning... " << std::endl;
-       for(auto& j: jets)
-       {
-           std::cout << i << " jet: " << ParticleTools::output4vecInfo(j) << std::endl;
-       }
-
-       std::cout << std::endl;
-
-       std::cout << i << " recoMuons->size(): " << s->vars.recoMuons->size() << std::endl;
-       std::cout << i << " jets->size(): " << s->vars.jets->size() << std::endl;
-       std::cout << i << " mht.pt: " << s->vars.mht->pt << std::endl;
-  
-       for(auto& dimu: (*s->vars.recoDimuCands))
-       {
-           s->vars.dimuCand = &dimu;
-           std::cout << i << " dimu.mass_      : " << s->vars.dimuCand->mass << std::endl;
-           std::cout << i << " pt1: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu1).pt << std::endl;
-           std::cout << i << " pt2: " << s->vars.recoMuons->at(s->vars.dimuCand->iMu2).pt << std::endl;
-       }
-
        std::cout << std::endl;
     }
 

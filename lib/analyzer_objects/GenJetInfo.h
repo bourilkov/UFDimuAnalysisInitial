@@ -4,8 +4,9 @@
 
 #include <vector>
 #include "TMath.h"
+#include "ParticleInfo.h"
 
-struct GenJetInfo {
+struct GenJetInfo : public ParticleInfo{
 
   Float_t px    ;
   Float_t py    ;
@@ -17,8 +18,13 @@ struct GenJetInfo {
   Float_t charge;
 
   void init();
+  Float_t getMass();
+  TLorentzVector get4vec();
+  TString outputInfo();
+  Double_t iso();
 
-  ClassDef(GenJetInfo, 1)
+
+  ClassDef(GenJetInfo, 2)
 };
 
 

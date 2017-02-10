@@ -1,23 +1,29 @@
+#include "GenParentInfo.h"
 
-#include "GenPartInfo.h"
+void GenParentInfo::init() {
 
-void GenPartInfo::init() {
+  ID         = -999;
+  status     = -999;
+  nDaughters = -999;
 
-  charge = -999;
-  mass   = -999;
   pt     = -999;
-  ptErr  = -999;
   eta    = -999;
-  y      = -999;
   phi    = -999;
+  mass   = -999;
+  charge = -999;
 
+  daughter_1_ID     = -999;
+  daughter_2_ID     = -999;
+  daughter_1_status = -999;
+  daughter_2_status = -999;
+  daughter_1_idx    = -999;
+  daughter_2_idx    = -999;
 }
-
 ///////////////////////////////////////////////////////////
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-Float_t GenPartInfo::getMass()
+Float_t GenParentInfo::getMass()
 {
     return mass;
 }
@@ -26,7 +32,7 @@ Float_t GenPartInfo::getMass()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-TLorentzVector GenPartInfo::get4vec()
+TLorentzVector GenParentInfo::get4vec()
 {
     TLorentzVector v;
     v.SetPtEtaPhiM(pt, eta, phi, getMass());
@@ -37,7 +43,7 @@ TLorentzVector GenPartInfo::get4vec()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-TString GenPartInfo::outputInfo()
+TString GenParentInfo::outputInfo()
 {
     TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f", 
                       pt, eta, phi, mass);
@@ -48,7 +54,7 @@ TString GenPartInfo::outputInfo()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-Double_t GenPartInfo::iso()
+Double_t GenParentInfo::iso()
 {
     return 0.0;
 }

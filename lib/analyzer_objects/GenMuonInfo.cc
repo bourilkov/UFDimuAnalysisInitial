@@ -1,23 +1,33 @@
 
-#include "GenPartInfo.h"
+#include "GenMuonInfo.h"
 
-void GenPartInfo::init() {
+void GenMuonInfo::init() {
 
-  charge = -999;
-  mass   = -999;
+  status     = -999;
+  nMothers   = -999;
+  postFSR    = -999;
+
   pt     = -999;
-  ptErr  = -999;
   eta    = -999;
-  y      = -999;
   phi    = -999;
+  mass   = -999;
+  charge = -999;
+
+  FSR_pt     = -999;
+  FSR_eta    = -999;
+  FSR_phi    = -999;
+  FSR_mass   = -999;
+
+  mother_ID     = -999;
+  mother_status = -999;
+  mother_idx    = -999;
 
 }
-
 ///////////////////////////////////////////////////////////
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-Float_t GenPartInfo::getMass()
+Float_t GenMuonInfo::getMass()
 {
     return mass;
 }
@@ -26,7 +36,7 @@ Float_t GenPartInfo::getMass()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-TLorentzVector GenPartInfo::get4vec()
+TLorentzVector GenMuonInfo::get4vec()
 {
     TLorentzVector v;
     v.SetPtEtaPhiM(pt, eta, phi, getMass());
@@ -37,7 +47,7 @@ TLorentzVector GenPartInfo::get4vec()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-TString GenPartInfo::outputInfo()
+TString GenMuonInfo::outputInfo()
 {
     TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f", 
                       pt, eta, phi, mass);
@@ -48,7 +58,7 @@ TString GenPartInfo::outputInfo()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-Double_t GenPartInfo::iso()
+Double_t GenMuonInfo::iso()
 {
     return 0.0;
 }
