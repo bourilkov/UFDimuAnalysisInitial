@@ -17,7 +17,8 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 #MAIN = example
 #MAIN = categorizeDebug
 #MAIN = dycompare
-MAIN = zcalibration
+#MAIN = zcalibration
+MAIN = zcalibration2
 #MAIN = fakes
 
 MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  

@@ -109,7 +109,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
   //TLegend* l = new TLegend(0.13, 0.56, 0.33, 0.88, "", "brNDC");
   
   // Wide rectangle top right
-  TLegend* l = new TLegend(0.47, 0.56, 0.88, 0.88, "", "brNDC");
+  TLegend* l = new TLegend(0.846, 0.854, 1.0, 1.0, "", "brNDC");
   TCanvas* c = new TCanvas(name);
   c->SetTitle(title);
   c->SetGridx(1);
@@ -841,6 +841,22 @@ void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
     }
     if(h>=0) 
         histos[h]->Fill(massvalue);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
+void ZCalibration::fill(Float_t xvalue, Float_t massvalue, double weight)
+{
+    int h = whichTH1D(xvalue);
+    if(h>=histos.size())
+    {
+        std::cout << Form("whichHist: %d, histos.size(): %d, binning.size(): %d, xmin: %f, xmax: %12.10f, xvalue: %12.10f, massvalue: %f \n", 
+                           h, histos.size(), binning.size(), xmin, xmax, xvalue, massvalue); 
+    }
+    if(h>=0) 
+        histos[h]->Fill(massvalue, weight);
 }
 
 //////////////////////////////////////////////////////////////////////////

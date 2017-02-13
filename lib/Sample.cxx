@@ -174,7 +174,7 @@ int Sample::getEntry(int i, TEntryList* list)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-float Sample::getWeight()
+double Sample::getWeight()
 {
 // Assumes getEntry has already been called to load the appropriate values.
 // Gets the weight for the histogram depending on the sample type 

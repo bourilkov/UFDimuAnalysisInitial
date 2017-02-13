@@ -90,6 +90,7 @@ class ZCalibration
 
         void init();
         void fill(Float_t xvalue, Float_t massvalue);
+        void fill(Float_t xvalue, Float_t massvalue, Double_t weight);
         int whichTH1D(Float_t xvalue);
         VoigtFitInfo fit(TH1D* inhist, Float_t x, Float_t x_err);
         void fit();

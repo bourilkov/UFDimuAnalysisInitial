@@ -728,7 +728,7 @@ int main(int argc, char* argv[])
                   if(varNumber == -1) varvalue = dimu.mass_Roch;
                   if(varNumber == -2) varvalue = dimu.mass_KaMu;
                   
-                  if(varvalue < min || varvalue > max) continue;
+                  if(varvalue < 60 || varvalue > max) continue;
 
                   // blind the signal region for data but not for MC
                   if(!(isData && varvalue >= 110 && varvalue < 140))

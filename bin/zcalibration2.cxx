@@ -21,27 +21,75 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-ZCalibration* combineDataRunInfo(std::vector<ZCalibration*>& zcalvec)
+void combineDataRunInfo(std::map<TString, ZCalibration*>& zcalmap)
 {
-    if(zcalvec.size() == 0) return 0;
-    ZCalibration* zfirst = zcalvec[0];
-    ZCalibration* zcal = new ZCalibration(zfirst->xname, "Net_Data_mass_PF", zfirst->fitsig, 
+    // get an item from the map, so that we have the zcal histo and plot settings
+    ZCalibration* zfirst = 0;
+    for(auto& zc: zcalmap)
+        zfirst = zc.second;
+
+    std::cout << Form("  /// Running combineDataRunInfo \n");
+
+    TString massname = "Net_Data_mass_";
+    TString massname_pf = massname+"PF";
+    TString massname_roch = massname+"Roch";
+    TString massname_kamu = massname+"KaMu";
+
+    ZCalibration* zcal_net_pf = new ZCalibration(zfirst->xname, massname_pf, zfirst->fitsig, 
+                                         zfirst->massmin, zfirst->massmax, zfirst->massbins, 
+                                         zfirst->xmin, zfirst->xmax, zfirst->xbins);
+
+    ZCalibration* zcal_net_roch = new ZCalibration(zfirst->xname, massname_roch, zfirst->fitsig, 
+                                         zfirst->massmin, zfirst->massmax, zfirst->massbins, 
+                                         zfirst->xmin, zfirst->xmax, zfirst->xbins);
+
+    ZCalibration* zcal_net_kamu = new ZCalibration(zfirst->xname, massname_kamu, zfirst->fitsig, 
                                          zfirst->massmin, zfirst->massmax, zfirst->massbins, 
                                          zfirst->xmin, zfirst->xmax, zfirst->xbins);
 
     for(unsigned int i=0; i<zfirst->histos.size(); i++)
     {
-        TList* add_hist_list = new TList();
+        TList* add_hist_list_pf = new TList();
+        TList* add_hist_list_roch = new TList();
+        TList* add_hist_list_kamu = new TList();
 
-        for(auto& zc: zcalvec)
-            add_hist_list->Add(zc->histos[i]);
+        for(auto& zc: zcalmap)
+        {
+            if(!zc.second->massname.Contains("Run")) continue;
 
-        TH1D* net_hist_i = DiMuPlottingSystem::addHists(add_hist_list, zcal->histos[i]->GetName(), zcal->histos[i]->GetTitle()); 
-        TH1D* temp = zcal->histos[i];
-        zcal->histos[i] = net_hist_i;
-        delete temp;
+            if(zc.second->massname.Contains("PF")) add_hist_list_pf->Add(zc.second->histos[i]);
+            else if(zc.second->massname.Contains("Roch")) add_hist_list_roch->Add(zc.second->histos[i]);
+            else if(zc.second->massname.Contains("KaMu")) add_hist_list_kamu->Add(zc.second->histos[i]);
+        }
+ 
+        if(add_hist_list_pf->GetSize() != 0)
+        {
+            TH1D* net_hist_i_pf = DiMuPlottingSystem::addHists(add_hist_list_pf, zcal_net_pf->histos[i]->GetName(), zcal_net_pf->histos[i]->GetTitle()); 
+            TH1D* temp_pf = zcal_net_pf->histos[i];
+            zcal_net_pf->histos[i] = net_hist_i_pf;
+            delete temp_pf;
+        }
+
+        if(add_hist_list_roch->GetSize() != 0)
+        {
+            TH1D* net_hist_i_roch = DiMuPlottingSystem::addHists(add_hist_list_roch, zcal_net_roch->histos[i]->GetName(), zcal_net_roch->histos[i]->GetTitle()); 
+            TH1D* temp_roch = zcal_net_roch->histos[i];
+            zcal_net_roch->histos[i] = net_hist_i_roch;
+            delete temp_roch;
+        }
+
+        if(add_hist_list_kamu->GetSize() != 0)
+        {
+            TH1D* net_hist_i_kamu = DiMuPlottingSystem::addHists(add_hist_list_kamu, zcal_net_kamu->histos[i]->GetName(), zcal_net_kamu->histos[i]->GetTitle()); 
+            TH1D* temp_kamu = zcal_net_kamu->histos[i];
+            zcal_net_kamu->histos[i] = net_hist_i_kamu;
+            delete temp_kamu;
+        }
     }
 
+    if(zcal_net_pf->histos.size() > 0 && zcal_net_pf->histos[0]->Integral() != 0) zcalmap[massname_pf] = zcal_net_pf;
+    if(zcal_net_roch->histos.size() > 0 && zcal_net_roch->histos[0]->Integral() != 0) zcalmap[massname_roch] = zcal_net_roch;
+    if(zcal_net_kamu->histos.size() > 0 && zcal_net_kamu->histos[0]->Integral() != 0) zcalmap[massname_kamu] = zcal_net_kamu;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -113,7 +161,7 @@ int main(int argc, char* argv[])
         if(i==1) ss >> varNumber;
     }   
 
-    float nthreads = 8;
+    float nthreads = 1;
     float luminosity = 36814;
     float reductionFactor = 10;
     std::map<TString, Sample*> samples;
@@ -248,41 +296,49 @@ int main(int argc, char* argv[])
           MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
           MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
 
+          // mc branches
+          if(s->sampleType != "data")
+          {
+              s->branches.gen_wgt->GetEntry(i);
+              s->branches.nPU->GetEntry(i);
+              s->branches.pu_wgt->GetEntry(i);
+              s->branches.eff_wgt->GetEntry(i);
+          }
 
           if(varNumber == 0) 
           {
               float phi_plus = (mu1.charge==1)?mu1.phi:mu2.phi;
           
-              zcal_pf->fill(phi_plus, dimu.mass_PF);
-              zcal_roch->fill(phi_plus, dimu.mass_Roch);
-              //zcal_kamu->fill(phi_plus, dimu.mass_KaMu);
+              zcal_pf->fill(phi_plus, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(phi_plus, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(phi_plus, dimu.mass_KaMu, s->getWeight());
           }
 
           if(varNumber == 1) 
           {
               float phi_minus = (mu1.charge==-1)?mu1.phi:mu2.phi;
 
-              zcal_pf->fill(phi_minus, dimu.mass_PF);
-              zcal_roch->fill(phi_minus, dimu.mass_Roch);
-              //zcal_kamu->fill(phi_minus, dimu.mass_KaMu);
+              zcal_pf->fill(phi_minus, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(phi_minus, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(phi_minus, dimu.mass_KaMu, s->getWeight());
           }
 
           if(varNumber == 2) 
           {
               float eta_plus = (mu1.charge==1)?mu1.eta:mu2.eta;
 
-              zcal_pf->fill(eta_plus, dimu.mass_PF);
-              zcal_roch->fill(eta_plus, dimu.mass_Roch);
-              //zcal_kamu->fill(eta_plus, dimu.mass_KaMu);
+              zcal_pf->fill(eta_plus, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(eta_plus, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(eta_plus, dimu.mass_KaMu, s->getWeight());
           }
 
           if(varNumber == 3) 
           {
               float eta_minus = (mu1.charge==-1)?mu1.eta:mu2.eta;
 
-              zcal_pf->fill(eta_minus, dimu.mass_PF);
-              zcal_roch->fill(eta_minus, dimu.mass_Roch);
-              //zcal_kamu->fill(eta_minus, dimu.mass_KaMu);
+              zcal_pf->fill(eta_minus, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(eta_minus, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(eta_minus, dimu.mass_KaMu, s->getWeight());
           }
 
           if(varNumber == 4) 
@@ -291,9 +347,9 @@ int main(int argc, char* argv[])
               float pt_plus_roch = (mu1.charge==1)?mu1.pt_Roch:mu2.pt_Roch;
               //float pt_plus_kamu = (mu1.charge==1)?mu1.pt_KaMu:mu2.pt_KaMu;
 
-              zcal_pf->fill(pt_plus_pf, dimu.mass_PF);
-              zcal_roch->fill(pt_plus_roch, dimu.mass_Roch);
-              //zcal_kamu->fill(pt_plus_kamu, dimu.mass_KaMu);
+              zcal_pf->fill(pt_plus_pf, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(pt_plus_roch, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(pt_plus_kamu, dimu.mass_KaMu, s->getWeight());
           }
 
           if(varNumber == 5) 
@@ -302,20 +358,20 @@ int main(int argc, char* argv[])
               float pt_minus_roch = (mu1.charge==-1)?mu1.pt_Roch:mu2.pt_Roch;
               //float pt_minus_kamu = (mu1.charge==-1)?mu1.pt_KaMu:mu2.pt_KaMu;
 
-              zcal_pf->fill(pt_minus_pf, dimu.mass_PF);
-              zcal_roch->fill(pt_minus_roch, dimu.mass_Roch);
-              //zcal_kamu->fill(pt_minus_kamu, dimu.mass_KaMu);
+              zcal_pf->fill(pt_minus_pf, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(pt_minus_roch, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(pt_minus_kamu, dimu.mass_KaMu, s->getWeight());
           }
 
           if(varNumber == 6) 
           {
               float dimu_pt_pf = dimu.pt_PF;
               float dimu_pt_roch = dimu.pt_Roch;
-              float dimu_pt_kamu = dimu.pt_KaMu;
+              //float dimu_pt_kamu = dimu.pt_KaMu;
 
-              zcal_pf->fill(dimu_pt_pf, dimu.mass_PF);
-              zcal_roch->fill(dimu_pt_roch, dimu.mass_Roch);
-              //zcal_kamu->fill(dimu_pt_kamu, dimu.mass_KaMu);
+              zcal_pf->fill(dimu_pt_pf, dimu.mass_PF, s->getWeight());
+              zcal_roch->fill(dimu_pt_roch, dimu.mass_Roch, s->getWeight());
+              //zcal_kamu->fill(dimu_pt_kamu, dimu.mass_KaMu, s->getWeight());
           }
 
           if(found_good_dimuon) break;
@@ -337,7 +393,6 @@ int main(int argc, char* argv[])
    // SAMPLE PARALLELIZATION------ ----------------------------------
    ///////////////////////////////////////////////////////////////////
 
-    TList* netlist = new TList();
     ThreadPool pool(nthreads);
     std::vector< std::future< std::vector<ZCalibration*>* > > results;
 
@@ -349,87 +404,47 @@ int main(int argc, char* argv[])
 
     // lists to save all histos w/ fits and all tgraphs (resolution and mean vs x)
     // A map for the overlay plots we want
-    TList* histos = new TList();
-    TList* plots = new TList();
-    std::map<TString, TList*> overlayMap;        // overlay pf, roch, kamu for each run and dy
+    TList* histos_list = new TList();
+    TList* plots_list = new TList();
+    std::map<TString, TList*> overlayMap;           // overlay pf, roch, kamu for each run and dy
+    std::map<TString, ZCalibration*> zcalMap;  
 
+    // Gather results from parallelization
     for(auto && result: results)
     {
-        TList* overlay_mean = new TList();
-        TList* overlay_res = new TList();
-        TString overlay_name = "";
-
         for(auto zcal: (*result.get()))
         {
-            overlay_name = zcal->massname;
-            zcal->plot();
-
-            if(zcal->massname.Contains("Roch"))
-            {
-                zcal->mean_vs_x->SetTitle("Roch");
-                zcal->resolution_vs_x->SetTitle("Roch");
-            }
-            else if(zcal->massname.Contains("KaMu"))
-            {
-                zcal->mean_vs_x->SetTitle("KaMu");
-                zcal->resolution_vs_x->SetTitle("KaMu");
-            }
-            else
-            {
-                zcal->mean_vs_x->SetTitle("PF");
-                zcal->resolution_vs_x->SetTitle("PF");
-            }
-
-            // Add all of the plots to the tlist
-            for(unsigned int i=0; i<zcal->histos.size(); i++)
-            {
-                histos->Add(zcal->histos[i]);
-            }
-            
-            // list of plots to save
-            plots->Add(zcal->mean_vs_x);
-            plots->Add(zcal->resolution_vs_x);
-
-            // overlay all types of mass in a single plot
-            overlay_mean->Add(zcal->mean_vs_x);
-            overlay_res->Add(zcal->resolution_vs_x);
+           zcalMap[zcal->massname] = zcal;
         }
-        overlay_name = overlay_name.ReplaceAll("_PF", "");
-        overlay_name = overlay_name.ReplaceAll("_KaMu", "");
-        overlay_name = overlay_name.ReplaceAll("_Roch", "");
-
-        overlayMap[overlay_name+"_mean"] = overlay_mean;
-        overlayMap[overlay_name+"_resolution"] = overlay_res;
     }
-    
-    // overlay the mean and resolution vs x plots
-    TList* overlays = new TList();
-    for(auto& item: overlayMap)
+
+    combineDataRunInfo(zcalMap);
+
+    for(auto& item: zcalMap)
     {
-        TCanvas* c = DiMuPlottingSystem::overlay(item.second, item.first, item.first, xname, "voigt fit mass (GeV)", false);
-        overlays->Add(c);
+        std::cout << item.first << ": " << item.second->histos[0]->GetName() << ": " << item.second->histos[1]->Integral() << std::endl;
     }
 
     // Create the stack and ratio plot    
-    std::cout << "  /// Saving plots..." << std::endl;
-    std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
-    savefile->cd();
-    TDirectory* overlaydir = savefile->mkdir("overlays");
-    TDirectory* plotdir = savefile->mkdir("plots");
-    TDirectory* histodir = savefile->mkdir("histos");
+    //std::cout << "  /// Saving plots..." << std::endl;
+    //std::cout << std::endl;
+    //TFile* savefile = new TFile("rootfiles/zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
+    //savefile->cd();
+    //TDirectory* overlaydir = savefile->mkdir("overlays");
+    //TDirectory* plotdir = savefile->mkdir("plots");
+    //TDirectory* histodir = savefile->mkdir("histos");
 
-    overlaydir->cd();
-    overlays->Write();
+    //overlaydir->cd();
+    //overlays_list->Write();
 
-    plotdir->cd();
-    plots->Write();
+    //plotdir->cd();
+    //plots_list->Write();
  
-    histodir->cd();
-    histos->Write();
+    //histodir->cd();
+    //histos_list->Write();
 
-    savefile->Write();
-    savefile->Close();
+    //savefile->Write();
+    //savefile->Close();
 
     timerWatch.Stop();
     std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
