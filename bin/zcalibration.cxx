@@ -97,7 +97,7 @@ void combineDataRunInfo(std::map<TString, ZCalibration*>& zcalmap)
 //////////////////////////////////////////////////////////////////
 
 void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massmax, int& massbins, 
-                      float& xmin, float& xmax, int& xbins, TString& xname)
+                      float& xmin, float& xmax, int& xbins, TString& xname, std::vector<Float_t>& binning)
 {
     massmin = 82.2;
     massmax = 100.2;
@@ -131,6 +131,31 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
         xname = "eta_minus";
         xmin = -2.41;
         xmax = 2.41;
+    }
+    if(varNumber == 4)
+    {
+        xname = "pt_plus";
+        xmin = 10;
+        xmax = 210;
+        xbins = 50;
+        binning = {10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 200, 510};
+    }
+
+    if(varNumber == 5)
+    {
+        xname = "pt_minus";
+        xmin = 10;
+        xmax = 510;
+        xbins = 50;
+        binning = {10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 200, 510};
+    }
+    if(varNumber == 6)
+    {
+        xname = "dimu_pt";
+        xmin = 0;
+        xmax = 500;
+        xbins=50;
+        binning = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 200, 500};
     }
 }
 
@@ -175,7 +200,9 @@ int main(int argc, char* argv[])
     TString xname;
     float fitsig, massmin, massmax, xmin, xmax;
     int massbins, xbins;
-    initPlotSettings(varNumber, fitsig, massmin, massmax, massbins, xmin, xmax, xbins, xname);
+    std::vector<Float_t> binning;
+
+    initPlotSettings(varNumber, fitsig, massmin, massmax, massbins, xmin, xmax, xbins, xname, binning);
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -212,7 +239,6 @@ int main(int argc, char* argv[])
         std::cout << "    N:                 " << i.second->N << std::endl;
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
-
         i.second->setBranchAddresses(1);
         samplevec.push_back(i.second);
     }
@@ -235,20 +261,41 @@ int main(int argc, char* argv[])
     std::cout << "massmax      : " << massmax << std::endl;
     std::cout << "massbins     : " << massbins << std::endl;
     std::cout << std::endl;
+
+    for(auto& i: binning)
+        std::cout << i << ",";
+    std::cout << std::endl << std::endl;
+
+
   
-    auto makePlotsForSample = [varNumber, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
+    auto makePlotsForSample = [&binning, varNumber, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
+      bool isData = s->sampleType == "data";
+
       // cuts to apply to the events in the sample
       Run2MuonSelectionCuts     run2MuonSelection;
       Run2EventSelectionCuts80X run2EventSelectionData(true);
+      Run2EventSelectionCuts80X run2EventSelectionMC;
 
       // will probably want one for each type of mass
-      ZCalibration* zcal_pf   = new ZCalibration(xname, s->name+"_mass_PF", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      ZCalibration* zcal_roch = new ZCalibration(xname, s->name+"_mass_Roch", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
-      //ZCalibration* zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      ZCalibration* zcal_pf   = 0; 
+      ZCalibration* zcal_roch =  0; 
+
+      if(binning.size()==0) 
+      {
+          zcal_pf = new ZCalibration(xname, s->name+"_mass_PF", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+          zcal_roch = new ZCalibration(xname, s->name+"_mass_Roch", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+          //zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, xmin, xmax, xbins);
+      }
+      else
+      {
+          zcal_pf = new ZCalibration(xname, s->name+"_mass_PF", fitsig, massmin, massmax, massbins, binning);
+          zcal_roch = new ZCalibration(xname, s->name+"_mass_Roch", fitsig, massmin, massmax, massbins, binning);
+          //zcal_kamu = new ZCalibration(xname, s->name+"_mass_KaMu", fitsig, massmin, massmax, massbins, binning);
+      }
 
       ///////////////////////////////////////////////////////////////////
       // HISTOGRAMS TO FILL ---------------------------------------------
@@ -278,8 +325,12 @@ int main(int argc, char* argv[])
           // CUTS  ----------------------------------------------------------
           ///////////////////////////////////////////////////////////////////
 
-          if(!run2EventSelectionData.evaluate(s->vars) && s->sampleType.Contains("data"))
+          if(!run2EventSelectionData.evaluate(s->vars) && isData)
           { 
+              continue; 
+          }
+          if(!run2EventSelectionMC.evaluate(s->vars) && !isData)
+          {
               continue; 
           }
           if(!s->vars.recoMuons->at(dimu.iMu1).isTightID || !s->vars.recoMuons->at(dimu.iMu2).isTightID)

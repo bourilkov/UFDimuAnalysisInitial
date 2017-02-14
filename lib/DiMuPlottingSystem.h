@@ -59,6 +59,8 @@ class ZCalibration
         ZCalibration();
         ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
                      Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins);
+        ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                     Float_t massmax, Int_t massbins, std::vector<Float_t> binning);
         ~ZCalibration(){};
 
         // ====================================================
@@ -66,6 +68,8 @@ class ZCalibration
         // ====================================================
         TString xname;
         TString massname;
+
+        bool variableBinning = false;
 
         Float_t xmin;
         Float_t xmax;
@@ -89,6 +93,7 @@ class ZCalibration
         // ====================================================
 
         void init();
+        void init(std::vector<Float_t>& binning);
         void fill(Float_t xvalue, Float_t massvalue);
         void fill(Float_t xvalue, Float_t massvalue, Double_t weight);
         int whichTH1D(Float_t xvalue);

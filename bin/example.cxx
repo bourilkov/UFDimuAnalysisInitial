@@ -60,6 +60,20 @@ int main(int argc, char* argv[])
        s->branches.recoDimuCands->GetEntry(i);
        s->branches.recoMuons->GetEntry(i);
 
+       if(s->vars.recoDimuCands > 0)
+       {
+           PairInfo& dimu = s->vars.recoDimuCands->at(0); 
+           std::cout << "before0 dimu_pt   : " << dimu.pt << std::endl;
+           std::cout << "before0 dimu_pt_R : " << dimu.pt_Roch << std::endl;
+           std::cout << "before1 dimu_pt   : " << s->vars.recoDimuCands->at(0).pt << std::endl;
+           std::cout << "before1 dimu_pt_R : " << s->vars.recoDimuCands->at(0).pt_Roch << std::endl;
+           std::cout << std::endl;
+           dimu.pt = dimu.pt_Roch;
+           std::cout << "after0 dimu_pt    : " << dimu.pt << std::endl;
+           std::cout << "after1 dimu_pt    : " << s->vars.recoDimuCands->at(0).pt << std::endl;
+           std::cout << std::endl;
+       }
+
        for(auto& dimu: (*s->vars.recoDimuCands))
        {
            std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;

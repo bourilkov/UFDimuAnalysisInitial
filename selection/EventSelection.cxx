@@ -50,7 +50,7 @@ Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(bool isData)
 {
 // Default values for the modified run 1 event selection
 
-    this->isData = isData;;
+    this->isData = isData;
     cTrigMuPtMin = 26; 
     // sublead pt condition is met in muon selection
                                 
@@ -101,14 +101,16 @@ bool Run2EventSelectionCuts80X::evaluate(VarSet& vars)
 {
     // check the mass cut first since it's the most likely to cut the event
     // saves computation time so that we don't have to check the others
-    if(!(vars.dimuCand->mass_PF > cDimuMassMin) && cutset.cuts[2].on) return false;
+    if(isData && vars.dimuCand->mass > 110 && vars.dimuCand->mass < 140) return false; // blind signal region
+    if(!(vars.dimuCand->mass > cDimuMassMin) && cutset.cuts[2].on) return false;
 
     // Pt cuts on leading muon
-    int mu1 = vars.dimuCand->iMu1;
-    int mu2 = vars.dimuCand->iMu2;
+    MuonInfo& mu1 = vars.recoMuons->at(vars.dimuCand->iMu1);
+    MuonInfo& mu2 = vars.recoMuons->at(vars.dimuCand->iMu2);
+
     if(!cutset.cuts[1].on) ;
-    else if(vars.recoMuons->at(mu1).pt >= vars.recoMuons->at(mu2).pt && vars.recoMuons->at(mu1).pt > cTrigMuPtMin) ;
-    else if(vars.recoMuons->at(mu1).pt <  vars.recoMuons->at(mu2).pt && vars.recoMuons->at(mu2).pt > cTrigMuPtMin) ;
+    else if(mu1.pt >= mu2.pt && mu1.pt > cTrigMuPtMin) ;
+    else if(mu1.pt <  mu2.pt && mu2.pt > cTrigMuPtMin) ;
     else
     {
          return false;
@@ -118,13 +120,12 @@ bool Run2EventSelectionCuts80X::evaluate(VarSet& vars)
     if(isData)
     {
         // 2 and 3 should be isoMu24 and isoTkMu24
-        if(!(vars.recoMuons->at(mu1).isHltMatched[2] || vars.recoMuons->at(mu1).isHltMatched[3] || 
-             vars.recoMuons->at(mu2).isHltMatched[2] || vars.recoMuons->at(mu2).isHltMatched[3]))
+        if(!(mu1.isHltMatched[2] || mu1.isHltMatched[3] || mu2.isHltMatched[2] || mu2.isHltMatched[3]))
             return false;
     }
 
     // Require oppositely charged muons in the event
-    if(!(vars.recoMuons->at(mu1).charge != vars.recoMuons->at(mu2).charge) && cutset.cuts[0].on) return false;
+    if(!(mu1.charge != mu2.charge) && cutset.cuts[0].on) return false;
 
     return true;
 }
@@ -157,7 +158,7 @@ void Run2EventSelectionCuts80X::makeCutSet()
     cutset.cuts[1].cutvalue = &cTrigMuPtMin;
     cutset.cuts[1].ismin = true;
 
-    cutset.cuts[2].name = Form("mass_PF > %6.2f", cDimuMassMin);
+    cutset.cuts[2].name = Form("mass > %6.2f", cDimuMassMin);
     cutset.cuts[2].bins = 150;
     cutset.cuts[2].min = 50;
     cutset.cuts[2].max = 200;
@@ -258,7 +259,7 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
         subleadPt = TMath::Min(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
         eta0 = vars.recoMuons->at(mu1).eta;
         eta1 = vars.recoMuons->at(mu2).eta;
-        dimu_mass = vars.dimuCand->mass_PF;
+        dimu_mass = vars.dimuCand->mass;
         charge0 = vars.recoMuons->at(mu1).charge;
         charge1 = vars.recoMuons->at(mu2).charge;
     }
@@ -388,14 +389,14 @@ void FEWZCompareCuts::makeCutSet()
     cutset.cuts[3].cutvalue = &cMaxEta;
     cutset.cuts[3].ismin = false;
 
-    cutset.cuts[4].name = Form("dimuCand.mass_PF > %6.2f", cDimuMassMin);
+    cutset.cuts[4].name = Form("dimuCand.mass > %6.2f", cDimuMassMin);
     cutset.cuts[4].bins = 100;
     cutset.cuts[4].min = 110;
     cutset.cuts[4].max = 310;
     cutset.cuts[4].cutvalue = &cDimuMassMin;
     cutset.cuts[4].ismin = true;
 
-    cutset.cuts[5].name = Form("dimuCand.mass_PF < %6.2f", cDimuMassMax);
+    cutset.cuts[5].name = Form("dimuCand.mass < %6.2f", cDimuMassMax);
     cutset.cuts[5].bins = 100;
     cutset.cuts[5].min = 110;
     cutset.cuts[5].max = 310;

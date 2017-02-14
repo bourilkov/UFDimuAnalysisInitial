@@ -774,10 +774,32 @@ ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Floa
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
+ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                           Float_t massmax, Int_t massbins, std::vector<Float_t> binning)
+{
+    this->xname = xname;
+    this->massname = massname;
+    this->massmin = massmin;
+    this->massmax = massmax;
+    this->massbins = massbins;
+    this->binning = binning;
+ 
+    this->fitsig = fitsig;
+
+    histos = std::vector<TH1D*>();
+    vfis = std::vector<VoigtFitInfo>();
+    init(this->binning);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
 void ZCalibration::init()
 {
     TString basename = "Z_Peak_Calibration_";
     basename+=massname+"_"+xname;
+    variableBinning=false;
 
     binning.push_back(xmin);
     Float_t interval = (xmax - xmin)/xbins;
@@ -813,18 +835,85 @@ void ZCalibration::init()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
+void ZCalibration::init(std::vector<Float_t>& binning)
+{
+    TString basename = "Z_Peak_Calibration_";
+    basename+=massname+"_"+xname;
+
+    if(binning.size() < 2) std::cout << "!!!! ERROR in ZCalibration::init, binning.size() < 2 !!! \n";
+
+    variableBinning = true;
+    xmin = binning[0];
+    xmax = binning[binning.size()-1];
+    xbins = binning.size()-1;
+
+    // Set up the bin edges
+    // Set up the TH1Ds
+    for(unsigned int i=0; i<binning.size()-1; i++)
+    {
+        TString range = Form("_%5.2f_to_%5.2f", binning[i], binning[i+1]);
+        TString title = basename+range;
+        title.ReplaceAll(" ","");
+        title.ReplaceAll(".","p");
+        histos.push_back(new TH1D(title, title, massbins, massmin, massmax));
+        histos[i]->GetXaxis()->SetTitle(massname);
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////
+
 int ZCalibration::whichTH1D(Float_t xvalue)
 {
-    Float_t interval = (xmax - xmin)/xbins;
-    int bin = (xvalue-xmin)/interval;
+    // constant binning
+    if(!variableBinning)
+    {
+        Float_t interval = (xmax - xmin)/xbins;
+        int bin = (xvalue-xmin)/interval;
 
-    if(xvalue == xmin) bin = 0;
-    if(xvalue == xmax) bin = binning.size()-2;
-    if(xvalue < xmax && bin > binning.size()-2) bin = binning.size()-2;
+        if(xvalue == xmin) bin = 0;
+        if(xvalue == xmax) bin = binning.size()-2;
+        if(xvalue < xmax && bin > binning.size()-2) bin = binning.size()-2;
 
-    if(xvalue < xmin || xvalue > xmax) bin = -9999;
+        if(xvalue < xmin || xvalue > xmax) bin = -1;
 
-    return bin;
+        return bin;
+    }
+    // variable binning
+    else
+    {
+        if(xvalue < xmin || xvalue > xmax) return -1;
+
+        int begin = 0;
+        int end = binning.size()-1;
+        int check = (begin+end)/2;
+
+        int bin = -9999;
+        while(bin < -1)
+        {
+            if(xvalue >= binning[check] && xvalue < binning[check+1]) // xvalue in check bin 
+            {
+                bin = check;
+                //std::cout << " checkv: " << binning[check] << ", check+1v: " << binning[check+1] << ", xvalue: " << xvalue << std::endl;
+            }
+            else if(xvalue < binning[check]) // xvalue is in the left half, set end to half-way 
+                end = check;
+
+            else if(end == check+1 || check == begin) // xvalue not in check bin and nowhere else to go
+            {
+                std::cout << "begin: " << begin << ", end: " << end << ", check: " << check << ", xvalue: " << xvalue << std::endl;
+                std::cout << "beginv: " << binning[begin] << ", endv: " << binning[end] << ", checkv: " << binning[check] << std::endl;
+                bin = -1;
+            }
+
+            else if(xvalue >= binning[check]) // xvalue is in the right half, set begin to right half 
+                begin = check;
+
+            check = (begin+end)/2;
+        }
+        return bin;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -834,11 +923,11 @@ int ZCalibration::whichTH1D(Float_t xvalue)
 void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
 {
     int h = whichTH1D(xvalue);
-    if(h>=histos.size())
-    {
-        std::cout << Form("whichHist: %d, histos.size(): %d, binning.size(): %d, xmin: %f, xmax: %12.10f, xvalue: %12.10f, massvalue: %f \n", 
-                           h, histos.size(), binning.size(), xmin, xmax, xvalue, massvalue); 
-    }
+    //if(h>=histos.size())
+    //{
+    //    std::cout << Form("whichHist: %d, histos.size(): %d, binning.size(): %d, xmin: %f, xmax: %12.10f, xvalue: %12.10f, massvalue: %f \n", 
+    //                       h, histos.size(), binning.size(), xmin, xmax, xvalue, massvalue); 
+    //}
     if(h>=0) 
         histos[h]->Fill(massvalue);
 }
@@ -850,11 +939,11 @@ void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
 void ZCalibration::fill(Float_t xvalue, Float_t massvalue, double weight)
 {
     int h = whichTH1D(xvalue);
-    if(h>=histos.size())
-    {
-        std::cout << Form("whichHist: %d, histos.size(): %d, binning.size(): %d, xmin: %f, xmax: %12.10f, xvalue: %12.10f, massvalue: %f \n", 
-                           h, histos.size(), binning.size(), xmin, xmax, xvalue, massvalue); 
-    }
+    //if(h>=histos.size())
+    //{
+    //    std::cout << Form("whichHist: %d, histos.size(): %d, binning.size(): %d, xmin: %f, xmax: %12.10f, xvalue: %12.10f, massvalue: %f \n", 
+    //                       h, histos.size(), binning.size(), xmin, xmax, xvalue, massvalue); 
+    //}
     if(h>=0) 
         histos[h]->Fill(massvalue, weight);
 }
@@ -930,7 +1019,7 @@ void ZCalibration::fit()
 {
     for(unsigned int h=0; h<histos.size(); h++)
     {
-        VoigtFitInfo vfi = fit(histos[h], (binning[h+1] + binning[h])/2, binning[h+1] - binning[h]);
+        VoigtFitInfo vfi = fit(histos[h], (binning[h+1] + binning[h])/2, (binning[h+1] - binning[h])/2);
         vfis.push_back(vfi);
     }
 }

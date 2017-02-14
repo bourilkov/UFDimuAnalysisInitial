@@ -57,27 +57,27 @@ Run2MuonSelectionCuts::Run2MuonSelectionCuts(float minPt, float maxEta, float ma
 bool Run2MuonSelectionCuts::evaluate(VarSet& vars)
 {
     // cuts for first muon
-    int m = vars.dimuCand->iMu1; 
+    MuonInfo& mu1 = vars.recoMuons->at(vars.dimuCand->iMu1); 
     if(cutset.cuts[0].on)
-        if(!(vars.recoMuons->at(m).pt > cMinPt))               return false;
+        if(!(mu1.pt > cMinPt))               return false;
 
     if(cutset.cuts[1].on)
-        if(!(TMath::Abs(vars.recoMuons->at(m).eta) < cMaxEta)) return false;
+        if(!(TMath::Abs(mu1.eta) < cMaxEta)) return false;
 
     if(cutset.cuts[2].on)
-        if(!(vars.recoMuons->at(m).iso() <= cMaxRelIso))       return false;
+        if(!(mu1.iso() <= cMaxRelIso))       return false;
 
 
     // cuts for the second muon
-    m = vars.dimuCand->iMu2;
+    MuonInfo& mu2 = vars.recoMuons->at(vars.dimuCand->iMu2); 
     if(cutset.cuts[3].on)
-        if(!(vars.recoMuons->at(m).pt > cMinPt))               return false;
+        if(!(mu2.pt > cMinPt))               return false;
 
     if(cutset.cuts[4].on)
-        if(!(TMath::Abs(vars.recoMuons->at(m).eta) < cMaxEta)) return false;
+        if(!(TMath::Abs(mu2.eta) < cMaxEta)) return false;
 
     if(cutset.cuts[5].on)
-        if(!(vars.recoMuons->at(m).iso() <= cMaxRelIso))       return false;
+        if(!(mu2.iso() <= cMaxRelIso))       return false;
     
 
     return true;

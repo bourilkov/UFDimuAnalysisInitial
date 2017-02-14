@@ -196,14 +196,14 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
         {
             categoryMap["c_2_Jet"].inCategory = true;
             if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; return; }
-            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand->pt_PF > cDimuPtMinGGFT){ categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; return; }
+            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand->pt > cDimuPtMinGGFT){ categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; return; }
             else{ categoryMap["c_2_Jet_VBF_Loose"].inCategory = true; return; }
         }
     }
     if(!categoryMap["c_2_Jet"].inCategory) // fails 2jet preselection enters 01 categories
     {
         categoryMap["c_01_Jet"].inCategory = true;
-        if(vars.dimuCand->pt_PF > cDimuPtMin01T){ categoryMap["c_01_Jet_Tight"].inCategory = true;}
+        if(vars.dimuCand->pt > cDimuPtMin01T){ categoryMap["c_01_Jet_Tight"].inCategory = true;}
         else{ categoryMap["c_01_Jet_Loose"].inCategory = true; }
 
         // Geometric categories for 01_Jet categories
@@ -317,7 +317,7 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
 {
 // Determine which category the event belongs to
 
-    float dimu_mass = vars.dimuCand->mass_PF;
+    float dimu_mass = vars.dimuCand->mass;
     float eta0 = vars.recoMuons->at(vars.dimuCand->iMu1).eta;
     float eta1 = vars.recoMuons->at(vars.dimuCand->iMu2).eta;
     unsigned int njets = vars.validJets.size();
@@ -744,7 +744,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
                    if(vars.mht->pt > c_0b_nonVlH_01j_MET_min_ZvvH)
                        categoryMap["c_0b_nonVlH_01j_ZvvH"].inCategory = true; 
 
-                   else if(vars.dimuCand->pt_PF >= c_0b_nonVlH_01j_dimuPt_min_gfTight)
+                   else if(vars.dimuCand->pt >= c_0b_nonVlH_01j_dimuPt_min_gfTight)
                        categoryMap["c_0b_nonVlH_01j_gF_Tight"].inCategory = true; 
 
                    else

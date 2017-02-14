@@ -629,6 +629,25 @@ int main(int argc, char* argv[])
           MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
           MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
 
+          if(varname == "dimu_mass_PF") 
+          {
+              dimu.mass = dimu.mass_PF;
+              mu1.pt = mu1.pt_PF;
+              mu2.pt = mu2.pt_PF;
+          }
+          else if(varname == "dimu_mass_Roch") 
+          {
+              dimu.mass = dimu.mass_Roch;
+              mu1.pt = mu1.pt_Roch;
+              mu2.pt = mu2.pt_Roch;
+          }
+          else if(varname == "dimu_mass_KaMu") 
+          {
+              dimu.mass = dimu.mass_KaMu;
+              mu1.pt = mu1.pt_KaMu;
+              mu2.pt = mu2.pt_KaMu;
+          }
+
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
           ///////////////////////////////////////////////////////////////////
@@ -724,26 +743,18 @@ int main(int argc, char* argv[])
               // dimuCand->recoCandMass
               if(varNumber<=0) 
               {
-                  float varvalue = dimu.mass_PF;
-                  if(varNumber == -1) varvalue = dimu.mass_Roch;
-                  if(varNumber == -2) varvalue = dimu.mass_KaMu;
-                  
-                  if(varvalue < 60 || varvalue > max) continue;
+                  float varvalue = dimu.mass;
 
-                  // blind the signal region for data but not for MC
-                  if(!(isData && varvalue >= 110 && varvalue < 140))
-                  {
-                      // if the event is in the current category then fill the category's histogram for the given sample and variable
-                      c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
-                      //std::cout << "    " << c.first << ": " << varvalue;
-                  }
+                 // if the event is in the current category then fill the category's histogram for the given sample and variable
+                 c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
+                 //std::cout << "    " << c.first << ": " << varvalue;
                  continue;
               }
 
               if(varname.EqualTo("dimu_pt"))
               {
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
-                  c.second.histoMap[hkey]->Fill(dimu.pt_PF, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(dimu.pt, s->getWeight());
                   continue;
               }
 
