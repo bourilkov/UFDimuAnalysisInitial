@@ -28,6 +28,8 @@ void combineDataRunInfo(std::map<TString, ZCalibration*>& zcalmap)
     for(auto& zc: zcalmap)
         zfirst = zc.second;
 
+    bool variableBinning = zfirst->variableBinning;
+
     std::cout << Form("  /// Running combineDataRunInfo \n");
 
     TString massname = "Net_Data_mass_";
@@ -35,17 +37,38 @@ void combineDataRunInfo(std::map<TString, ZCalibration*>& zcalmap)
     TString massname_roch = massname+"Roch";
     TString massname_kamu = massname+"KaMu";
 
-    ZCalibration* zcal_net_pf = new ZCalibration(zfirst->xname, massname_pf, zfirst->fitsig, 
+    ZCalibration* zcal_net_pf = 0;
+    ZCalibration* zcal_net_roch = 0;
+    ZCalibration* zcal_net_kamu = 0;
+
+    if(!variableBinning)
+    {
+        zcal_net_pf = new ZCalibration(zfirst->xname, massname_pf, zfirst->fitsig, 
                                          zfirst->massmin, zfirst->massmax, zfirst->massbins, 
                                          zfirst->xmin, zfirst->xmax, zfirst->xbins);
 
-    ZCalibration* zcal_net_roch = new ZCalibration(zfirst->xname, massname_roch, zfirst->fitsig, 
+        zcal_net_roch = new ZCalibration(zfirst->xname, massname_roch, zfirst->fitsig, 
                                          zfirst->massmin, zfirst->massmax, zfirst->massbins, 
                                          zfirst->xmin, zfirst->xmax, zfirst->xbins);
 
-    ZCalibration* zcal_net_kamu = new ZCalibration(zfirst->xname, massname_kamu, zfirst->fitsig, 
+        zcal_net_kamu = new ZCalibration(zfirst->xname, massname_kamu, zfirst->fitsig, 
                                          zfirst->massmin, zfirst->massmax, zfirst->massbins, 
                                          zfirst->xmin, zfirst->xmax, zfirst->xbins);
+    }
+    else
+    {
+        zcal_net_pf = new ZCalibration(zfirst->xname, massname_pf, zfirst->fitsig, 
+                                         zfirst->massmin, zfirst->massmax, zfirst->massbins, 
+                                         zfirst->binning);
+
+        zcal_net_roch = new ZCalibration(zfirst->xname, massname_roch, zfirst->fitsig, 
+                                         zfirst->massmin, zfirst->massmax, zfirst->massbins, 
+                                         zfirst->binning);
+
+        zcal_net_kamu = new ZCalibration(zfirst->xname, massname_kamu, zfirst->fitsig, 
+                                         zfirst->massmin, zfirst->massmax, zfirst->massbins, 
+                                         zfirst->binning);
+    }
 
     for(unsigned int i=0; i<zfirst->histos.size(); i++)
     {
