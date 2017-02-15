@@ -652,6 +652,7 @@ int main(int argc, char* argv[])
 
         TCanvas* c = DiMuPlottingSystem::overlay(item.second, item.first, item.first, xname, yname, false);
         overlays_list->Add(c);
+        c->SaveAs("imgs/"+item.first+"_"+xname+".png");
     }   
 
     std::cout << "  /// Saving plots..." << std::endl;

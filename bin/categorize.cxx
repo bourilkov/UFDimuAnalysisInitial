@@ -207,6 +207,33 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         varname = "dimu_pt";
     }
 
+    // dimu_pt_PF 
+    if(varNumber == 100)
+    {
+        bins = 200;
+        min = 0;
+        max = 100;
+        varname = "dimu_pt";
+    }
+
+    // dimu_pt_Roch 
+    if(varNumber == 101)
+    {
+        bins = 200;
+        min = 0;
+        max = 100;
+        varname = "dimu_Roch";
+    }
+
+    // dimu_pt_KaMu 
+    if(varNumber == 102)
+    {
+        bins = 200;
+        min = 0;
+        max = 100;
+        varname = "dimu_KaMu";
+    }
+
     // mu_pt
     if(varNumber == 2)
     {
@@ -214,6 +241,33 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         min = 0;
         max = 150;
         varname = "mu_pt";
+    }
+
+    // mu_pt_PF
+    if(varNumber == 200)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "mu_pt_PF";
+    }
+
+    // mu_pt_Roch
+    if(varNumber == 201)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "mu_pt_Roch";
+    }
+ 
+    // mu_pt_KaMu
+    if(varNumber == 202)
+    {
+        bins = 200;
+        min = 0;
+        max = 150;
+        varname = "mu_pt_KaMu";
     }
  
     // mu_eta
@@ -566,7 +620,14 @@ int main(int argc, char* argv[])
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
       else categorySelection = new LotsOfCategoriesRun2();
 
+      // set some flags
       bool isData = s->sampleType.EqualTo("data");
+
+      // use pf, roch, or kamu values for selections, categories, and fill?
+      int pf_roch_or_kamu = 0;
+      if(varname.Contains("PF")) pf_roch_or_kamu = 0;
+      else if(varname.Contains("Roch")) pf_roch_or_kamu = 1;
+      else if(varname.Contains("KaMu")) pf_roch_or_kamu = 2;
 
       ///////////////////////////////////////////////////////////////////
       // INIT HISTOGRAMS TO FILL ----------------------------------------
@@ -629,19 +690,22 @@ int main(int argc, char* argv[])
           MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
           MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
 
-          if(varname == "dimu_mass_PF") 
+          // Selection cuts and categories use standard values e.g. mu.pt
+          // to use PF, Roch, or KaMu for cuts and categories set these values 
+          // to PF, Roch, or KaMu 
+          if(pf_roch_or_kamu == 0) 
           {
               dimu.mass = dimu.mass_PF;
               mu1.pt = mu1.pt_PF;
               mu2.pt = mu2.pt_PF;
           }
-          else if(varname == "dimu_mass_Roch") 
+          else if(pf_roch_or_kamu == 1) 
           {
               dimu.mass = dimu.mass_Roch;
               mu1.pt = mu1.pt_Roch;
               mu2.pt = mu2.pt_Roch;
           }
-          else if(varname == "dimu_mass_KaMu") 
+          else if(pf_roch_or_kamu == 2) 
           {
               dimu.mass = dimu.mass_KaMu;
               mu1.pt = mu1.pt_KaMu;
@@ -751,14 +815,14 @@ int main(int argc, char* argv[])
                  continue;
               }
 
-              if(varname.EqualTo("dimu_pt"))
+              if(varname.Contains("dimu_pt"))
               {
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
                   c.second.histoMap[hkey]->Fill(dimu.pt, s->getWeight());
                   continue;
               }
-
-              if(varname.EqualTo("mu_pt"))
+              // mu_pt is a substring of dimu_pt so we need the else if
+              else if(varname.Contains("mu_pt"))
               {
                   c.second.histoMap[hkey]->Fill(mu1.pt, s->getWeight());
                   c.second.histoMap[hkey]->Fill(mu2.pt, s->getWeight());
