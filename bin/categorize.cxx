@@ -808,11 +808,12 @@ int main(int argc, char* argv[])
               if(varNumber<=0) 
               {
                   float varvalue = dimu.mass;
+                  if(isData && varvalue > 120 && varvalue < 130) continue; // blind signal region
 
-                 // if the event is in the current category then fill the category's histogram for the given sample and variable
-                 c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
-                 //std::cout << "    " << c.first << ": " << varvalue;
-                 continue;
+                  // if the event is in the current category then fill the category's histogram for the given sample and variable
+                  c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
+                  //std::cout << "    " << c.first << ": " << varvalue;
+                  continue;
               }
 
               if(varname.Contains("dimu_pt"))

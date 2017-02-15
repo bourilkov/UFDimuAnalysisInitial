@@ -101,7 +101,6 @@ bool Run2EventSelectionCuts80X::evaluate(VarSet& vars)
 {
     // check the mass cut first since it's the most likely to cut the event
     // saves computation time so that we don't have to check the others
-    if(isData && vars.dimuCand->mass > 110 && vars.dimuCand->mass < 140) return false; // blind signal region
     if(!(vars.dimuCand->mass > cDimuMassMin) && cutset.cuts[2].on) return false;
 
     // Pt cuts on leading muon
