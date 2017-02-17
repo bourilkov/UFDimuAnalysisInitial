@@ -60,6 +60,12 @@ int main(int argc, char* argv[])
        s->branches.recoDimuCands->GetEntry(i);
        s->branches.recoMuons->GetEntry(i);
 
+       float pto = s->vars.recoMuons->at(0).pt;
+       //float ptb = s->branches.recoMuons->GetLeaf("pt")->GetValue(0);
+       float ptb = 0;
+
+       std::cout << "CHECK GET BRANCH: " << pto << ", " << ptb << std::endl;
+
        if(s->vars.recoDimuCands > 0)
        {
            PairInfo& dimu = s->vars.recoDimuCands->at(0); 

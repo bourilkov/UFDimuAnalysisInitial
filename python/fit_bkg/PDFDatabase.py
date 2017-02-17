@@ -67,6 +67,27 @@ def bwZGammaPlusLinear(x):
 
     return model, [bwWidth, bwmZ, expParam, mix1, mix2, slopeParam, offsetParam, phoExpMmumu, bwExpMmumu, linMmumu]
     
+#--------------------------------------------------------
+# breit weigner scaled by falling exp + line
+#--------------------------------------------------------
+def bwZPlusLinear(x):
+    bwWidth =  RooRealVar("bwzl_widthZ","widthZ",2.5,0,30)
+    bwmZ =     RooRealVar("bwzl_mZ","mZ",91.2,85,95)
+    expParam = RooRealVar("bwzl_expParam","expParam",-1e-03,-1e-01,1e-01)
+
+    bwWidth.setConstant(True);
+    bwmZ.setConstant(True);
+
+    slopeParam = RooRealVar("bwzl_slope", "slope", -0.2, -50, 0)          
+    offsetParam = RooRealVar("bwzl_offset", "offset", 39, 0, 1000)            
+    
+    mix1 = RooRealVar("bwzl_mix1","mix1",0.95,0.5,1)
+
+    linMmumu = RooGenericPdf("bwzl_linMmumu", "@1*@0+@2", RooArgList(x, slopeParam, offsetParam))
+    bwExpMmumu  = RooGenericPdf("bwzl_bwExpMmumu","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
+    model     = RooAddPdf("bwzl_model","bwzl_model", RooArgList(bwExpMmumu,linMmumu),RooArgList(mix1))
+
+    return model, [bwWidth, bwmZ, expParam, mix1, slopeParam, offsetParam, bwExpMmumu, linMmumu]
 #----------------------------------------
 # falling exponential (hgammgamma bg)
 #----------------------------------------

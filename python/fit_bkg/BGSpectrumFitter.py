@@ -134,24 +134,26 @@ print wdm.infilename, wdm.category
 #----------------------------------------
 
 #histo = wdm.bg_dy_hist
-histo = wdm.bg_all_hist
-#histo = wdm.data_hist
+#histo = wdm.bg_all_hist
+histo = wdm.data_hist
 
 x = wdm.getX(histo)
 
 lin_model, lin_params     = pdfs.linear(x)
 exp_model, exp_params     = pdfs.higgsGammaGamma(x)
 bw_model, bw_params       = pdfs.bwZGamma(x)
+bwzl_model, bwzl_params   = pdfs.bwZPlusLinear(x)
 cheby_model, cheby_params = pdfs.chebychev(x)
+#bwl_model, bwl_params = pdfs.bwZGammaPlusLinear(x)
 
 #mix_exp_lin = RooRealVar("mix_exp_lin","mix_exp_lin",0.1,0,1)
 #exp_lin_model = RooAddPdf("hggexp_plus_linear","hggexp_plus_linear", RooArgList(exp_model,lin_model),RooArgList(mix_exp_lin))
 
-#bw_lin_model, bw_lin_params = pdfs.bwZGammaPlusLinear(x)
 
+model = lin_model
 #model = exp_lin_model
 #model = bw_lin_model
 #model = bw_model
-model = cheby_model
+#model = bwzl_model
 
 wdm.fitAndSave(histo, model, x)
