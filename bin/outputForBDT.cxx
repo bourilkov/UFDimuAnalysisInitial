@@ -306,10 +306,13 @@ int main(int argc, char* argv[])
           // !!!! output event to file
           file << EventTools::outputMapValuesCSV(vars).Data() << std::endl;
 
+          if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
+
+        } // end dimucand loop
       } // end event loop
 
-    } // end sample loop
-    file.close();
-
-    return 0;
+      file.close();
+      std::cout << Form("  /// Done processing %s \n", s->name.Data());
+      return 0;
+    }; // end sample lambda function
 }
