@@ -6,21 +6,20 @@
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"
-#include "CutSet.h"
-#include "Cut.h"
-#include "SelectionCuts.h"
+#include "MuonSelection.h"
+#include "EventSelection.h"
 #include "CategorySelection.h"
-#include "JetSelectionTools.h"
-#include "MuonSelectionTools.h"
-#include "ElectronSelectionTools.h"
-#include "TauSelectionTools.h"
+#include "JetCollectionCleaner.h"
+#include "MuonCollectionCleaner.h"
+#include "EleCollectionCleaner.h"
+#include "SampleDatabase.cxx"
 
 #include "EventTools.h"
 #include "PUTools.h"
-#include "SignificanceMetrics.cxx"
+#include "ThreadPool.hxx"
 
 #include "TLorentzVector.h"
-
+#include "TSystem.h"
 #include <sstream>
 #include <map>
 #include <vector>
@@ -47,16 +46,18 @@ int main(int argc, char* argv[])
     // save the errors for the histogram correctly so they depend upon 
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
+    int nthreads = 10;
 
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
+        ss >> nthreads;
     }   
 
     // Not sure that we need a map if we have a vector
     // Should use this as the main database and choose from it to make the vector
-    std::map<std::string, Sample*> samples;
+    std::map<TString, Sample*> samples;
 
     // Second container so that we can have a copy sorted by cross section.
     std::vector<Sample*> samplevec;
@@ -111,7 +112,14 @@ int main(int argc, char* argv[])
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
+      int bin = -1;
+      float interval = 0.5;
+      int nbins = 20;
+      float massmin = 120;
+      float massmax = 130;
+
       std::map<TString, double> vars;
+      vars["bin"] = -999;
       vars["is_signal"] = -999;
       vars["weight"] = -999;
       vars["dimu_pt"] = -999;
@@ -152,7 +160,7 @@ int main(int argc, char* argv[])
       vars["dPhi"] = -999;
 
       // !!!! output first line of csv to file
-      std::ofstream file("csv/"+s->name+"_categorization_trianing.csv", std::ofstream::out);
+      std::ofstream file("csv/"+s->name+"_bdt_training.csv", std::ofstream::out);
       file << EventTools::outputMapKeysCSV(vars).Data() << std::endl;
 
       // Objects to help with the cuts and selections
@@ -162,6 +170,8 @@ int main(int argc, char* argv[])
 
       Run2MuonSelectionCuts     run2MuonSelection;
       Run2EventSelectionCuts80X run2EventSelectionMC;
+
+      Categorizer* categorySelection = new CategorySelectionRun1();
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
@@ -178,11 +188,11 @@ int main(int argc, char* argv[])
         {
           // the dimuon candidate and the muons that make up the pair
           s->vars.dimuCand = &dimu;
-          MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
-          MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
+          MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
+          MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
 
           // only want to train on events that are in the higgs mass window
-          if(!(dimu.mass_PF > 120 && dimu.mass_PF < 130))
+          if(!(dimu.mass_PF > 110 && dimu.mass_PF < 160))
           {
               continue;
           }
@@ -199,10 +209,6 @@ int main(int argc, char* argv[])
           {
               continue; 
           }
-
-          // dimuon event passes selections, set flag to true so that we only fill info for
-          // the first good dimu candidate
-          found_good_dimuon = true;
 
           // Load the rest of the information needed for run2 categories
           s->branches.jets->GetEntry(i);
@@ -232,41 +238,81 @@ int main(int argc, char* argv[])
           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
 
-          if(s->vars.validExtraMuons.size() + s->vars.validElectrons.size() > 0) continue;
+          // low stats in these categories. don't include them in the training set
+          categorySelection->evaluate(s->vars);
+          if(categorySelection->categoryMap["c_2_Jet_VBF_Tight"].inCategory) 
+          {
+              //EventTools::outputEvent(s->vars, (*categorySelection));
+              categorySelection->reset();
+              continue;
+          }
+          if(categorySelection->categoryMap["c_2_Jet_GGF_Tight"].inCategory)
+          {
+              //EventTools::outputEvent(s->vars, (*categorySelection));
+              categorySelection->reset();
+              continue;
+          }
+
+          // dimuon event passes selections, set flag to true so that we only fill info for
+          // the first good dimu candidate
+          found_good_dimuon = true;
+
+          // bin = -1 for events outside signal region, 
+          // [0,nbins) for events inside signal region
+          if(dimu.mass_PF < massmin || dimu.mass_PF >= massmax) bin = -1;
+          else
+          {
+              float diff = dimu.mass_PF - massmin;
+              bin =  diff/interval;
+          }
+
+          vars["bin"] = bin;
 
           vars["dimu_pt"] = dimu.pt_PF;
           vars["mu0_pt"] = mu1.pt_PF;
           vars["mu1_pt"] = mu2.pt_PF;
-          vars["mu0_eta"] = mu1.eta;
-          vars["mu1_eta"] = mu2.eta;
+          vars["mu0_eta"] = TMath::Abs(mu1.eta);
+          vars["mu1_eta"] = ((mu1.eta*mu2.eta>0)?1.0:-1.0)*mu2.eta;
 
           vars["N_valid_jets"] = s->vars.validJets.size();
           if(s->vars.validJets.size() >= 1) vars["jet0_pt"] = s->vars.validJets[0].Pt();
           if(s->vars.validJets.size() >= 2) vars["jet1_pt"] = s->vars.validJets[1].Pt();
 
-          if(s->vars.validJets.size() >= 1) vars["jet0_eta"] = s->vars.validJets[0].Eta();
-          if(s->vars.validJets.size() >= 2) vars["jet1_eta"] = s->vars.validJets[1].Eta();
+          // define eta relative to leading muon of the dimu pair
+          if(s->vars.validJets.size() >= 1) vars["jet0_eta"] = ((mu1.eta*s->vars.validJets[0].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validJets[0].Eta();
+          if(s->vars.validJets.size() >= 2) vars["jet1_eta"] = ((mu1.eta*s->vars.validJets[1].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validJets[1].Eta();
           if(s->vars.validJets.size() >= 2)
           {
               TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
               float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
               vars["m_jj"] = dijet.M();
               vars["dEta_jj"] = TMath::Abs(dEta);
-              float dEtajjmumu = dijet.Eta() - s->vars.dimuCand.recoCandEtaPF;
+              float dEtajjmumu = dijet.Eta() - s->vars.dimuCand->pt_PF;
               vars["dEta_jj_mumu"] = TMath::Abs(dEtajjmumu);
           }
 
           vars["N_valid_extra_muons"] = s->vars.validExtraMuons.size();
           if(s->vars.validExtraMuons.size() >= 1) vars["extra_muon0_pt"] = s->vars.validExtraMuons[0].Pt();
           if(s->vars.validExtraMuons.size() >= 2) vars["extra_muon1_pt"] = s->vars.validExtraMuons[1].Pt();
-          if(s->vars.validExtraMuons.size() >= 1) vars["extra_muon0_eta"] = s->vars.validExtraMuons[0].Eta();
-          if(s->vars.validExtraMuons.size() >= 2) vars["extra_muon1_eta"] = s->vars.validExtraMuons[1].Eta();
+
+          // define eta relative to leading muon of the dimu pair
+          if(s->vars.validExtraMuons.size() >= 1) vars["extra_muon0_eta"] = ((mu1.eta*s->vars.validExtraMuons[0].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validExtraMuons[0].Eta();
+          if(s->vars.validExtraMuons.size() >= 2) vars["extra_muon1_eta"] = ((mu1.eta*s->vars.validExtraMuons[1].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validExtraMuons[1].Eta();
           
           vars["N_valid_electrons"] = s->vars.validExtraMuons.size();
-          if(s->vars.validElectrons.size() >= 1) vars["extra_electron0_pt"] = s->vars.validElectrons[0].Pt();
-          if(s->vars.validElectrons.size() >= 2) vars["extra_electron1_pt"] = s->vars.validElectrons[1].Pt();
-          if(s->vars.validElectrons.size() >= 1) vars["extra_electron0_eta"] = s->vars.validElectrons[0].Eta();
-          if(s->vars.validElectrons.size() >= 2) vars["extra_electron1_eta"] = s->vars.validElectrons[1].Eta();
+          if(s->vars.validElectrons.size() >= 1) vars["electron0_pt"] = s->vars.validElectrons[0].Pt();
+          if(s->vars.validElectrons.size() >= 2) vars["electron1_pt"] = s->vars.validElectrons[1].Pt();
+
+          // define eta relative to leading muon of the dimu pair
+          if(s->vars.validElectrons.size() >= 1) vars["electron0_eta"] = ((mu1.eta*s->vars.validElectrons[0].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validElectrons[0].Eta();
+          if(s->vars.validElectrons.size() >= 2) vars["electron1_eta"] = ((mu1.eta*s->vars.validElectrons[1].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validElectrons[1].Eta();
+
 
           vars["N_valid_extra_leptons"] = s->vars.validElectrons.size() + s->vars.validExtraMuons.size();
 
@@ -274,8 +320,11 @@ int main(int argc, char* argv[])
           if(s->vars.validBJets.size() >= 1) vars["bjet0_pt"] = s->vars.validBJets[0].Pt();
           if(s->vars.validBJets.size() >= 2) vars["bjet1_pt"] = s->vars.validBJets[1].Pt();
 
-          if(s->vars.validBJets.size() >= 1) vars["bjet0_eta"] = s->vars.validBJets[0].Eta();
-          if(s->vars.validBJets.size() >= 2) vars["bjet1_eta"] = s->vars.validBJets[1].Eta();
+          // define eta relative to leading muon of the dimu pair
+          if(s->vars.validBJets.size() >= 1) vars["bjet0_eta"] = ((mu1.eta*s->vars.validBJets[0].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validBJets[0].Eta();
+          if(s->vars.validBJets.size() >= 2) vars["bjet1_eta"] = ((mu1.eta*s->vars.validBJets[1].Eta() >= 0)?1.0:-1.0)
+                                                                            *s->vars.validBJets[1].Eta();
           if(s->vars.validBJets.size() >= 2)
           {
               TLorentzVector dibjet = s->vars.validBJets[0] + s->vars.validBJets[1];
@@ -294,17 +343,20 @@ int main(int argc, char* argv[])
           //    vars["mT_b_MET"] = bmet_t.M();
           //}
 
-          vars["MET"] = s->vars.mht.pt;
+          vars["MET"] = s->vars.mht->pt;
 
           if(false)
-            EventTools::outputEvent(s->vars, categorySelection);
+            EventTools::outputEvent(s->vars, (*categorySelection));
 
           // need to put in is_signal and weight and the extra fancy variables
           vars["is_signal"] = s->sampleType.Contains("signal")?1:0;
-          vars["weight"] = s->getScaleFactor(luminosity)*triggerSF*s->getWeight();
+          vars["weight"] = s->getScaleFactor(luminosity)*s->getWeight();
 
           // !!!! output event to file
           file << EventTools::outputMapValuesCSV(vars).Data() << std::endl;
+
+          // Reset the flags in preparation for the next event
+          categorySelection->reset();
 
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
 
@@ -315,4 +367,11 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
       return 0;
     }; // end sample lambda function
+
+    ThreadPool pool(nthreads);
+    std::vector< std::future<int> > results;
+
+    for(auto& s: samplevec)
+        results.push_back(pool.enqueue(outputSampleInfo, s));
+
 }
