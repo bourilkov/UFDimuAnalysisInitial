@@ -55,43 +55,46 @@ int main(int argc, char* argv[])
     // Get branches, set addresses
     s->setBranchAddresses(1);
 
-    for(unsigned int i=0; i<10; i++)
-    {
-       s->branches.recoDimuCands->GetEntry(i);
-       s->branches.recoMuons->GetEntry(i);
+    XMLCategorizer xmlc;
+    xmlc.loadFromXML("xml/tree.xml");
 
-       float pto = s->vars.recoMuons->at(0).pt;
-       //float ptb = s->branches.recoMuons->GetLeaf("pt")->GetValue(0);
-       float ptb = 0;
+    //for(unsigned int i=0; i<10; i++)
+    //{
+    //   s->branches.recoDimuCands->GetEntry(i);
+    //   s->branches.recoMuons->GetEntry(i);
 
-       std::cout << "CHECK GET BRANCH: " << pto << ", " << ptb << std::endl;
+    //   float pto = s->vars.recoMuons->at(0).pt;
+    //   //float ptb = s->branches.recoMuons->GetLeaf("pt")->GetValue(0);
+    //   float ptb = 0;
 
-       if(s->vars.recoDimuCands > 0)
-       {
-           PairInfo& dimu = s->vars.recoDimuCands->at(0); 
-           std::cout << "before0 dimu_pt   : " << dimu.pt << std::endl;
-           std::cout << "before0 dimu_pt_R : " << dimu.pt_Roch << std::endl;
-           std::cout << "before1 dimu_pt   : " << s->vars.recoDimuCands->at(0).pt << std::endl;
-           std::cout << "before1 dimu_pt_R : " << s->vars.recoDimuCands->at(0).pt_Roch << std::endl;
-           std::cout << std::endl;
-           dimu.pt = dimu.pt_Roch;
-           std::cout << "after0 dimu_pt    : " << dimu.pt << std::endl;
-           std::cout << "after1 dimu_pt    : " << s->vars.recoDimuCands->at(0).pt << std::endl;
-           std::cout << std::endl;
-       }
+    //   std::cout << "CHECK GET BRANCH: " << pto << ", " << ptb << std::endl;
 
-       for(auto& dimu: (*s->vars.recoDimuCands))
-       {
-           std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;
-       }
-       std::cout << std::endl;
+    //   if(s->vars.recoDimuCands > 0)
+    //   {
+    //       PairInfo& dimu = s->vars.recoDimuCands->at(0); 
+    //       std::cout << "before0 dimu_pt   : " << dimu.pt << std::endl;
+    //       std::cout << "before0 dimu_pt_R : " << dimu.pt_Roch << std::endl;
+    //       std::cout << "before1 dimu_pt   : " << s->vars.recoDimuCands->at(0).pt << std::endl;
+    //       std::cout << "before1 dimu_pt_R : " << s->vars.recoDimuCands->at(0).pt_Roch << std::endl;
+    //       std::cout << std::endl;
+    //       dimu.pt = dimu.pt_Roch;
+    //       std::cout << "after0 dimu_pt    : " << dimu.pt << std::endl;
+    //       std::cout << "after1 dimu_pt    : " << s->vars.recoDimuCands->at(0).pt << std::endl;
+    //       std::cout << std::endl;
+    //   }
 
-       for(auto& m: (*s->vars.recoMuons))
-       {
-           std::cout << i << " muon: " << m.outputInfo() << std::endl;
-       }
-       std::cout << std::endl;
-    }
+    //   for(auto& dimu: (*s->vars.recoDimuCands))
+    //   {
+    //       std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;
+    //   }
+    //   std::cout << std::endl;
+
+    //   for(auto& m: (*s->vars.recoMuons))
+    //   {
+    //       std::cout << i << " muon: " << m.outputInfo() << std::endl;
+    //   }
+    //   std::cout << std::endl;
+    //}
 
     // test to see if it racks up memory without this
     //delete s->vars.recoDimuCands;

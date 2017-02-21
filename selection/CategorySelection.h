@@ -6,8 +6,13 @@
 #include "VarSet.h"
 #include "TH1D.h"
 #include "TList.h"
+#include "TXMLEngine.h"
 #include <map>
 #include <iostream>
+
+//////////////////////////////////////////////////////////////////////////
+//// ______________________Category_____________ _______________________//
+//////////////////////////////////////////////////////////////////////////
 
 class Category
 {
@@ -45,6 +50,9 @@ class Category
        TString name;
 };
 
+//////////////////////////////////////////////////////////////////////////
+//// ______________________Categorizer__________ _______________________//
+//////////////////////////////////////////////////////////////////////////
 
 class Categorizer
 {
@@ -77,12 +85,75 @@ class Categorizer
         };
 };
 
+//////////////////////////////////////////////////////////////////////////
+//// ______________________XMLCategorizer_______________________________//
+//////////////////////////////////////////////////////////////////////////
+
+class CategoryNode
+{
+    public: 
+        CategoryNode(){};
+        CategoryNode(CategoryNode* cmother, CategoryNode* cleft, CategoryNode* cright, 
+                     TString cname, double csplitVar, TString csplitVarName, double csplitVal, double csignificanceSquared)
+        {
+            mother = cmother;
+            left = cleft;
+            right = cright;
+            name = cname;
+            splitVar = csplitVar;
+            splitVarName = csplitVarName;
+            splitVal = csplitVal;
+            significanceSquared = csignificanceSquared;
+        };
+        ~CategoryNode(){};
+
+        void theMiracleOfChildBirth();
+        CategoryNode* filterEventToDaughter(VarSet& vars);
+
+        void output()
+        {
+            std::cout << Form("%s  \n\tsplitVarName: %s \n\tsplitVal: %7.3f \n\tsignificance2: %5.3f \n\n", 
+                              name.Data(), splitVarName.Data(), splitVal, significanceSquared);
+        };
+
+        CategoryNode* mother = 0;
+        CategoryNode* left = 0;
+        CategoryNode* right = 0;
+
+        TString name;
+        int splitVar;
+        TString splitVarName;
+        double splitVal;
+        double significanceSquared;
+};
+
+class XMLCategorizer : public Categorizer
+{
+
+    public:
+        XMLCategorizer();
+        ~XMLCategorizer(){};
+
+        CategoryNode* rootNode = 0;
+        void initCategoryMap();
+        void evaluate(VarSet& vars);
+        void loadFromXML(TString filename);
+        void loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnode, CategoryNode* cnode);
+        CategoryNode* filterEvent(VarSet& vars);
+        CategoryNode* filterEventRecursive(VarSet& vars);
+};
+
+//////////////////////////////////////////////////////////////////////////
+//// ______________________Run1Categorizer______________________________//
+//////////////////////////////////////////////////////////////////////////
+
 class CategorySelectionRun1 : public Categorizer
 {
 // This is based off of the run1 H->MuMu category selection
     public:
         CategorySelectionRun1(); 
-        CategorySelectionRun1(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, float cDijetDeltaEtaMinVBFT, float cDijetMassMinGGFT,
+        CategorySelectionRun1(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, 
+                              float cDijetDeltaEtaMinVBFT, float cDijetMassMinGGFT,
                               float cDimuPtMinGGFT, float cDimuPtMin01T); 
 
         // Preselection
@@ -107,28 +178,9 @@ class CategorySelectionRun1 : public Categorizer
         void initCategoryMap();
 };
 
-class CategorySelectionFEWZ : public Categorizer
-{
-// Categories to compare DY, Data, and DY-FEWZ
-
-    public:
-        CategorySelectionFEWZ(); 
-        CategorySelectionFEWZ(bool useRecoMu, bool useRecoJets); 
-        CategorySelectionFEWZ(bool useReco, bool useRecoJets, float massSplit, float etaCentralSplit, float jetPtMin, float jetEtaMax); 
-
-        bool useRecoMu;
-        bool useRecoJets;
-
-        // Selections
-        float cMassSplit;
-        float cEtaCentralSplit;
-        float cJetPtMin;
-        float cJetEtaMax;
-
-        // Determine which category the event belongs to
-        void evaluate(VarSet& vars);
-        void initCategoryMap();
-};
+//////////////////////////////////////////////////////////////////////////
+//// ______________________Run2Categorizer______________________________//
+//////////////////////////////////////////////////////////////////////////
 
 class LotsOfCategoriesRun2 : public Categorizer
 {
@@ -212,5 +264,33 @@ class LotsOfCategoriesRun2 : public Categorizer
         void evaluateMuonGeometry(VarSet& vars);
         void initCategoryMap();
 };
+
+//////////////////////////////////////////////////////////////////////////
+//// ______________________FEWZCategorizer______________________________//
+//////////////////////////////////////////////////////////////////////////
+
+class CategorySelectionFEWZ : public Categorizer
+{
+// Categories to compare DY, Data, and DY-FEWZ
+
+    public:
+        CategorySelectionFEWZ(); 
+        CategorySelectionFEWZ(bool useRecoMu, bool useRecoJets); 
+        CategorySelectionFEWZ(bool useReco, bool useRecoJets, float massSplit, float etaCentralSplit, float jetPtMin, float jetEtaMax); 
+
+        bool useRecoMu;
+        bool useRecoJets;
+
+        // Selections
+        float cMassSplit;
+        float cEtaCentralSplit;
+        float cJetPtMin;
+        float cJetEtaMax;
+
+        // Determine which category the event belongs to
+        void evaluate(VarSet& vars);
+        void initCategoryMap();
+};
+
 
 #endif

@@ -12,11 +12,140 @@
 
 #include "CategorySelection.h"
 #include "ParticleTools.h"
+#include <sstream>
+
+
+void CategoryNode::theMiracleOfChildBirth()
+{
+    left = new CategoryNode(this, 0, 0, this->name+"_left", -999, "", -999, -999) ; 
+    right = new CategoryNode(this, 0, 0, this->name+"_right", -999, "", -999, -999) ;
+}
 
 ///////////////////////////////////////////////////////////////////////////
+// _______________________XMLCategorizer_________________________________//
+///////////////////////////////////////////////////////////////////////////
+
+void XMLCategorizer::initCategoryMap()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void XMLCategorizer::evaluate(VarSet& vars)
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+XMLCategorizer::XMLCategorizer()
+{
+    rootNode = new CategoryNode(0, 0, 0, TString("root"), -999, "", -999, -999);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void XMLCategorizer::loadFromXML(TString filename)
+{
+    // First create the engine.
+    TXMLEngine* xml = new TXMLEngine;
+
+    // Now try to parse xml file.
+    XMLDocPointer_t xmldoc = xml->ParseFile(filename);
+    if (xmldoc==0)
+    {
+        delete xml;
+        return;  
+    }
+
+    // Get access to main node of the xml file.
+    XMLNodePointer_t mainnode = xml->DocGetRootElement(xmldoc);
+   
+    // Recursively connect nodes together.
+    loadFromXMLRecursive(xml, mainnode, rootNode);
+   
+    // Release memory before exit
+    xml->FreeDoc(xmldoc);
+    delete xml;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnode, CategoryNode* cnode)
+{
+   // Get the split information from xml.
+    XMLAttrPointer_t attr = xml->GetFirstAttr(xnode);
+    std::vector<std::string> splitInfo(4);
+    for(unsigned int i=0; i<splitInfo.size(); i++)
+    {
+        splitInfo[i] = xml->GetAttrValue(attr); 
+        attr = xml->GetNextAttr(attr);  
+    }
+
+    // Convert strings into numbers.
+    std::stringstream converter;
+    int splitVar;
+    TString splitVarName;
+    double splitVal;
+    double significanceSquared;  
+
+    converter << splitInfo[0];
+    converter >> splitVar;
+    converter.str("");
+    converter.clear();
+
+    converter << splitInfo[1];
+    splitVarName = TString(converter.str().c_str());
+    converter.str("");
+    converter.clear();
+
+    converter << splitInfo[2];
+    converter >> splitVal;
+    converter.str("");
+    converter.clear();
+
+    converter << splitInfo[3];
+    converter >> significanceSquared;
+    converter.str("");
+    converter.clear();
+
+    //std::cout << "svar: " << splitVar << ", svar_name: " << splitVarName << ", split_val: " << splitVal << ", sig2: " << significanceSquared << std::endl;
+    cnode->splitVar = splitVar;
+    cnode->splitVarName = splitVarName;
+    cnode->splitVal = splitVal;
+    cnode->significanceSquared = significanceSquared;
+
+
+    // Get the xml daughters of the current xml node. 
+    XMLNodePointer_t xleft = xml->GetChild(xnode);
+    XMLNodePointer_t xright = xml->GetNext(xleft);
+
+    // If there are no daughters we are done.
+    if(xleft == 0 || xright == 0)
+    {
+        cnode->name = "terminal_"+cnode->name;
+        cnode->output();
+        return;
+    }
+    cnode->output();
+
+    cnode->theMiracleOfChildBirth();
+    CategoryNode* cleft = cnode->left; 
+    CategoryNode* cright = cnode->right; 
+
+    loadFromXMLRecursive(xml, xleft, cleft);
+    loadFromXMLRecursive(xml, xright, cright);
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // _______________________CategorySelectionRun1__________________________//
-///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void CategorySelectionRun1::initCategoryMap()
@@ -227,9 +356,7 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
 }
 
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 // _______________________CategorySelectionFEWZ__________________________//
-///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void CategorySelectionFEWZ::initCategoryMap()
@@ -382,9 +509,7 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
 }
 
 ///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 // _______________________LotsOfCategoriesRun2__________________________//
-///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void LotsOfCategoriesRun2::initCategoryMap()
