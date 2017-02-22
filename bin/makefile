@@ -21,10 +21,10 @@ MAIN = example
 #MAIN = fakes
 #MAIN = outputForBDT
 
-MAINRULES1 = ${LIBDIR}Sample.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
+MAINRULES1 = ${LIBDIR}Sample.o ${LIBDIR}VarSet.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
 MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.oo 
-MAINDEPS   = ${THREADDIR}ThreadPool.hxx  ${LIBDIR}VarSet.h ${LIBDIR}BranchSet.h SampleDatabase.cxx ${CDIR}CollectionCleaner.hxx
+MAINDEPS   = ${THREADDIR}ThreadPool.hxx ${LIBDIR}BranchSet.h SampleDatabase.cxx ${CDIR}CollectionCleaner.hxx
 DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx ${CDIR}CollectionCleaner.hxx
 
 # ANALYZER objects that were stored into the ttree need to be linked to ROOT

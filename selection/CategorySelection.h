@@ -137,6 +137,7 @@ class XMLCategorizer : public Categorizer
         CategoryNode* rootNode = 0;
         void initCategoryMap();
         void evaluate(VarSet& vars);
+        void evaluateRecursive(VarSet& vars, CategoryNode* cnode);
         void loadFromXML(TString filename);
         void loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnode, CategoryNode* cnode);
         CategoryNode* filterEvent(VarSet& vars);

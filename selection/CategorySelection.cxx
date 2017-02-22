@@ -35,6 +35,30 @@ void XMLCategorizer::initCategoryMap()
 
 void XMLCategorizer::evaluate(VarSet& vars)
 {
+    evaluateRecursive(vars, rootNode); 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void XMLCategorizer::evaluateRecursive(VarSet& vars, CategoryNode* cnode)
+{
+    // if it was filtered into this node then it's in this category
+    categoryMap[cnode->name].inCategory = true;
+
+    // return if terminal node
+    if(cnode->left == 0 || cnode->right == 0) return;
+
+    // if not terminal node, filter to correct daughter node
+    TString splitVarName = cnode->splitVarName;
+    double splitValue   = cnode->splitVal;
+    double xvalue = 0; 
+    
+    if(xvalue <= splitValue) 
+        evaluateRecursive(vars, cnode->left);
+    else 
+        evaluateRecursive(vars, cnode->right);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,7 +67,7 @@ void XMLCategorizer::evaluate(VarSet& vars)
 
 XMLCategorizer::XMLCategorizer()
 {
-    rootNode = new CategoryNode(0, 0, 0, TString("root"), -999, "", -999, -999);
+    rootNode = new CategoryNode(0, 0, 0, "", -999, "", -999, -999);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -122,7 +146,6 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
     cnode->splitVal = splitVal;
     cnode->significanceSquared = significanceSquared;
 
-
     // Get the xml daughters of the current xml node. 
     XMLNodePointer_t xleft = xml->GetChild(xnode);
     XMLNodePointer_t xright = xml->GetNext(xleft);
@@ -132,16 +155,28 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
     {
         cnode->name = "terminal_"+cnode->name;
         cnode->output();
+        categoryMap[cnode->name] = Category(cnode->name);
         return;
     }
-    cnode->output();
+    else
+    {
+        TString s = Form("%s_%7.3f", splitVarName.Data(), splitVal); 
+        if(cnode->mother != 0) s = "_"+s;
+        s.ReplaceAll(" ", "");
+        s.ReplaceAll(".", "p");
+        s.ReplaceAll("-", "n");
+        cnode->name+=s;
+        cnode->output();
 
-    cnode->theMiracleOfChildBirth();
-    CategoryNode* cleft = cnode->left; 
-    CategoryNode* cright = cnode->right; 
+        categoryMap[cnode->name] = Category(cnode->name);
 
-    loadFromXMLRecursive(xml, xleft, cleft);
-    loadFromXMLRecursive(xml, xright, cright);
+        cnode->theMiracleOfChildBirth();
+        CategoryNode* cleft = cnode->left; 
+        CategoryNode* cright = cnode->right; 
+
+        loadFromXMLRecursive(xml, xleft, cleft);
+        loadFromXMLRecursive(xml, xright, cright);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////

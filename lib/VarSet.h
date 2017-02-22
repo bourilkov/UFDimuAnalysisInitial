@@ -13,11 +13,13 @@
 #include "MhtInfo.h"
 #include "SlimJetInfo.h"
 #include "TLorentzVector.h"
+#include <unordered_map>
+#include <map>
 
 class VarSet
 {
     public:
-        VarSet(){};
+        VarSet();
         ~VarSet(){};
 
         // reco weights
@@ -54,7 +56,58 @@ class VarSet
 
         // gen weights
         int gen_wgt;
- 
+
+        // map variable string to variable value via function pointers
+        // uses functions below
+        std::unordered_map<std::string, double(VarSet::*)()> varMap;
+
+        double getValue(const std::string& name) 
+        {
+          if(varMap[name])
+            return (this->*varMap[name])();
+          else return -999;
+        }
+
+        // muon variables
+        double dimu_pt(){  return dimuCand->pt_PF;                     };
+        double mu1_pt() {  return recoMuons->at(dimuCand->iMu1).pt_PF; };
+        double mu2_pt() {  return recoMuons->at(dimuCand->iMu2).pt_PF; };
+        double mu1_eta(){  return recoMuons->at(dimuCand->iMu1).eta;   };
+        double mu2_eta(){  return recoMuons->at(dimuCand->iMu2).eta;   };
+
+        // jet variables
+        double jet0_pt() { return (validJets.size()>=1)?validJets[0].Pt():-999;  };
+        double jet1_pt() { return (validJets.size()>=2)?validJets[1].Pt():-999;  };
+        double jet0_eta(){ return (validJets.size()>=1)?validJets[0].Eta():-999; };
+        double jet1_eta(){ return (validJets.size()>=2)?validJets[1].Eta():-999; };
+
+        double m_jj()        { return (validJets.size()>=2)?(validJets[0]+validJets[1]).M():-999; };
+        double dEta_jj()     { return (validJets.size()>=2)?TMath::Abs(validJets[0].Eta()-validJets[1].Eta()):-999; };
+        double dEta_jj_mumu(){ return (validJets.size()>=2)?TMath::Abs((validJets[0]+validJets[1]).Eta()-dimuCand->eta):-999; };
+
+        // bjet variables
+        double bjet0_pt() { return (validBJets.size()>=1)?validBJets[0].Pt():-999;  };
+        double bjet1_pt() { return (validBJets.size()>=2)?validBJets[1].Pt():-999;  };
+        double bjet0_eta(){ return (validBJets.size()>=1)?validBJets[0].Eta():-999; };
+        double bjet1_eta(){ return (validBJets.size()>=2)?validBJets[1].Eta():-999; };
+
+        double m_bb()   { return (validBJets.size()>=2)?(validBJets[0]+validBJets[1]).M():-999; };
+        double dEta_bb(){ return (validBJets.size()>=2)?TMath::Abs(validBJets[0].Eta()-validBJets[1].Eta()):-999; };
+
+        // # variables
+        double N_valid_jets()         { return validJets.size();          };
+        double N_valid_bjets()        { return validBJets.size();         };
+        double N_valid_extra_muons()  { return validExtraMuons.size();    };
+        double N_valid_electrons()    { return validElectrons.size();     };
+        double N_valid_extra_leptons(){ return validExtraMuons.size() + validElectrons.size(); };
+
+        // MET
+        double MET(){ return mht->pt; };
+
+        // special variables, to be implemented
+        double zep()     { return -999; };
+        double phi_star(){ return -999; };
+        double dPhi()    { return -999; };
 };
 
 #endif
