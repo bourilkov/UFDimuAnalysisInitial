@@ -12,6 +12,7 @@
 
 #include "CategorySelection.h"
 #include "ParticleTools.h"
+#include "EventTools.h"
 #include <sstream>
 
 
@@ -48,12 +49,15 @@ void XMLCategorizer::evaluateRecursive(VarSet& vars, CategoryNode* cnode)
     categoryMap[cnode->name].inCategory = true;
 
     // return if terminal node
-    if(cnode->left == 0 || cnode->right == 0) return;
+    if(cnode->left == 0 || cnode->right == 0)
+    { 
+        return;
+    }
 
     // if not terminal node, filter to correct daughter node
-    TString splitVarName = cnode->splitVarName;
+    const char* splitVarName = cnode->splitVarName.Data();
     double splitValue   = cnode->splitVal;
-    double xvalue = 0; 
+    double xvalue = vars.getValue(splitVarName); 
     
     if(xvalue <= splitValue) 
         evaluateRecursive(vars, cnode->left);
@@ -76,6 +80,7 @@ XMLCategorizer::XMLCategorizer()
 
 void XMLCategorizer::loadFromXML(TString filename)
 {
+    std::cout << Form("/// Loading categories from %s... \n\n", filename.Data());
     // First create the engine.
     TXMLEngine* xml = new TXMLEngine;
 
@@ -153,19 +158,18 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
     // If there are no daughters we are done.
     if(xleft == 0 || xright == 0)
     {
-        cnode->name = "terminal_"+cnode->name;
+        cnode->name = "T_"+cnode->name;
         cnode->output();
         categoryMap[cnode->name] = Category(cnode->name);
         return;
     }
     else
     {
-        TString s = Form("%s_%7.3f", splitVarName.Data(), splitVal); 
-        if(cnode->mother != 0) s = "_"+s;
-        s.ReplaceAll(" ", "");
-        s.ReplaceAll(".", "p");
-        s.ReplaceAll("-", "n");
-        cnode->name+=s;
+        TString scut = Form("%s_%7.3f", splitVarName.Data(), splitVal); 
+        scut.ReplaceAll(" ", "");
+        scut.ReplaceAll(".", "p");
+        scut.ReplaceAll("-", "n");
+        if(cnode->mother == 0) cnode->name = "root";
         cnode->output();
 
         categoryMap[cnode->name] = Category(cnode->name);
@@ -173,6 +177,17 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
         cnode->theMiracleOfChildBirth();
         CategoryNode* cleft = cnode->left; 
         CategoryNode* cright = cnode->right; 
+
+        if(cnode->mother==0)
+        {
+            cleft->name = "lt_"+scut;
+            cright->name = "gt_"+scut;
+        }
+        else
+        {
+            cleft->name = cnode->name+"_lt_"+scut;
+            cright->name = cnode->name+"_gt_"+scut;
+        }
 
         loadFromXMLRecursive(xml, xleft, cleft);
         loadFromXMLRecursive(xml, xright, cright);

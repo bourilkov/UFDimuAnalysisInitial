@@ -211,14 +211,12 @@ void EventTools::outputEvent(VarSet& vars)
          JetCollectionCleaner js;
          std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
          std::cout << std::endl;
-         std::cout << "  dimuCand->mass: " << vars.dimuCand->mass << std::endl;
-         std::cout << "  dimuCand->mass_PF: " << vars.dimuCand->mass_PF << std::endl;
-         std::cout << "  dimuCand->pt: " << vars.dimuCand->pt << std::endl;
+         std::cout << "  dimu_mass: " << vars.dimuCand->mass << std::endl;
+         std::cout << "  dimu_mass_PF: " << vars.dimuCand->mass_PF << std::endl;
+         std::cout << "  dimu_pt: " << vars.dimuCand->pt << std::endl;
          std::cout << std::endl;
-         std::cout << "  recoMuons->at(0): " << vars.recoMuons->at(0).outputInfo() << std::endl;
-         std::cout << std::endl;
-         std::cout << "  recoMuons->at(1): " << vars.recoMuons->at(1).outputInfo() << std::endl;
-         std::cout << std::endl;
+         std::cout << "  mu1: " << vars.recoMuons->at(vars.dimuCand->iMu1).outputInfo() << std::endl;
+         std::cout << "  mu2: " << vars.recoMuons->at(vars.dimuCand->iMu2).outputInfo() << std::endl;
          std::cout << std::endl;
          std::cout << "  nJets: " << vars.jets->size() << std::endl;
          std::cout << "  nValidJets: " << vars.validJets.size() << std::endl;
@@ -238,45 +236,38 @@ void EventTools::outputEvent(VarSet& vars)
          for(unsigned int j=0; j<vars.jets->size(); j++)
          {
              std::cout << "  jet" << j << ": " <<  vars.jets->at(j).outputInfo() << std::endl;
+             if(j==vars.jets->size()-1) std::cout << std::endl;
          }
-
-         std::cout << std::endl;
 
          for(unsigned int j=0; j<vars.validJets.size(); j++)
          {
-             std::cout << "  validjet" << j <<  ParticleTools::output4vecInfo(vars.validJets[j]) << std::endl;
-             std::cout << "  validBjet" << j << " dR1: " << vars.validJets[j].DeltaR(vars.recoMuons->at(0).get4vec()) << std::endl;
-             std::cout << "  validBjet" << j << " dR2: " << vars.validJets[j].DeltaR(vars.recoMuons->at(1).get4vec()) << std::endl;
-             std::cout << std::endl;
-
+             std::cout << "  validjet" << j << ": " << ParticleTools::output4vecInfo(vars.validJets[j]) << std::endl;
+             if(j==vars.validJets.size()-1) std::cout << std::endl;
          }
-         std::cout << std::endl;
 
          for(unsigned int j=0; j<vars.validBJets.size(); j++)
          {
-             std::cout << "  validBjet" << j <<  ParticleTools::output4vecInfo(vars.validBJets[j]) << std::endl;
-             std::cout << "  validBjet" << j << " dR1: " << vars.validBJets[j].DeltaR(vars.recoMuons->at(0).get4vec()) << std::endl;
-             std::cout << "  validBjet" << j << " dR2: " << vars.validBJets[j].DeltaR(vars.recoMuons->at(1).get4vec()) << std::endl;
-             std::cout << std::endl;
-
+             std::cout << "  validBjet" << j <<  ": " << ParticleTools::output4vecInfo(vars.validBJets[j]) << std::endl;
+             if(j==vars.validBJets.size()-1) std::cout << std::endl;
          }
-         std::cout << std::endl;
 
          for(unsigned int j=0; j<vars.validMuons.size(); j++)
          {
-             std::cout << "  validMuon" << j <<  ParticleTools::output4vecInfo(vars.validMuons[j]) << std::endl;
+             std::cout << "  validMuon" << j <<  ": " << ParticleTools::output4vecInfo(vars.validMuons[j]) << std::endl;
+             if(j==vars.validMuons.size()-1) std::cout << std::endl;
          }
-         std::cout << std::endl;
+
          for(unsigned int j=0; j<vars.validExtraMuons.size(); j++)
          {
-             std::cout << "  validExtraMuon" << j <<  ParticleTools::output4vecInfo(vars.validExtraMuons[j]) << std::endl;
+             std::cout << "  validExtraMuon" << j <<  ": " << ParticleTools::output4vecInfo(vars.validExtraMuons[j]) << std::endl;
+             if(j==vars.validExtraMuons.size()-1) std::cout << std::endl;
          }
-         std::cout << std::endl;
+
          for(unsigned int j=0; j<vars.validElectrons.size(); j++)
          {
-             std::cout << "  validEletron" << j <<  ParticleTools::output4vecInfo(vars.validElectrons[j]) << std::endl;
+             std::cout << "  validElectron" << j <<  ": " << ParticleTools::output4vecInfo(vars.validElectrons[j]) << std::endl;
+             if(j==vars.validElectrons.size()-1) std::cout << std::endl;
          }
-         std::cout << std::endl;
 
 
 }

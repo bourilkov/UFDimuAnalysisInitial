@@ -79,7 +79,7 @@ class Categorizer
         void outputResults()
         {
             for(auto &entry : categoryMap)
-                std::cout << "    " << entry.first << ": " << entry.second.inCategory << std::endl;
+                if(!entry.second.hide) std::cout << "    " << entry.first << ": " << entry.second.inCategory << std::endl;
 
             std::cout << std::endl;
         };
@@ -112,7 +112,7 @@ class CategoryNode
 
         void output()
         {
-            std::cout << Form("%s  \n\tsplitVarName: %s \n\tsplitVal: %7.3f \n\tsignificance2: %5.3f \n\n", 
+            std::cout << Form("/// %s \n  # splitVarName : %s \n  # splitVal     : %7.3f \n  # significance2: %5.3f \n\n", 
                               name.Data(), splitVarName.Data(), splitVal, significanceSquared);
         };
 

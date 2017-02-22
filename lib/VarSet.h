@@ -61,8 +61,13 @@ class VarSet
         // uses functions below
         std::unordered_map<std::string, double(VarSet::*)()> varMap;
 
+        // get the the value for some variable in one of the structs above
+        // by name (string). Use the varMap to get the appropriate function
+        // of those below.
         double getValue(const std::string& name) 
         {
+          // The specific object doesn't have its own function until
+          // some method in the object is called.
           if(varMap[name])
             return (this->*varMap[name])();
           else return -999;
