@@ -74,11 +74,12 @@ class VarSet
         }
 
         // muon variables
-        double dimu_pt(){  return dimuCand->pt_PF;                     };
-        double mu1_pt() {  return recoMuons->at(dimuCand->iMu1).pt_PF; };
-        double mu2_pt() {  return recoMuons->at(dimuCand->iMu2).pt_PF; };
-        double mu1_eta(){  return recoMuons->at(dimuCand->iMu1).eta;   };
-        double mu2_eta(){  return recoMuons->at(dimuCand->iMu2).eta;   };
+        double dimu_pt()   {  return dimuCand->pt_PF;                     };
+        double mu1_pt()    {  return recoMuons->at(dimuCand->iMu1).pt_PF; };
+        double mu2_pt()    {  return recoMuons->at(dimuCand->iMu2).pt_PF; };
+        double mu1_eta()   {  return recoMuons->at(dimuCand->iMu1).eta;   };
+        double mu2_eta()   {  return recoMuons->at(dimuCand->iMu2).eta;   };
+        double mu_res_eta(){  return (TMath::Abs(mu1_eta()) + TMath::Abs(mu2_eta()))/2;   };
 
         // jet variables
         double jet0_pt() { return (validJets.size()>=1)?validJets[0].Pt():-999;  };
@@ -109,10 +110,55 @@ class VarSet
         // MET
         double MET(){ return mht->pt; };
 
+        double extra_muon0_pt() { return (validExtraMuons.size()>=1)?validExtraMuons[0].Pt():-999; };
+        double extra_muon1_pt() { return (validExtraMuons.size()>=2)?validExtraMuons[1].Pt():-999; };
+        double extra_muon0_eta(){ return (validExtraMuons.size()>=1)?validExtraMuons[0].Eta():-999; };
+        double extra_muon1_eta(){ return (validExtraMuons.size()>=2)?validExtraMuons[1].Eta():-999; };
+
+        double electron0_pt() { return (validElectrons.size()>=1)?validElectrons[0].Pt():-999; };
+        double electron1_pt() { return (validElectrons.size()>=2)?validElectrons[1].Pt():-999; };
+        double electron0_eta(){ return (validElectrons.size()>=1)?validElectrons[0].Eta():-999; };
+        double electron1_eta(){ return (validElectrons.size()>=2)?validElectrons[1].Eta():-999; };
+
+        double mT_b_MET()
+        { 
+            if(validBJets.size() < 1) return -999;
+            TLorentzVector met(mht->pt*TMath::Cos(mht->phi), mht->pt*TMath::Cos(mht->phi), 0, mht->pt);                  
+            TLorentzVector bjet = validBJets[0];
+            TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
+            TLorentzVector bmet_t = met + bjet_t;
+            return bmet_t.M();
+        };
+
         // special variables, to be implemented
-        double zep()     { return -999; };
-        double phi_star(){ return -999; };
-        double dPhi()    { return -999; };
+        double zep0()
+        { 
+            if(validJets.size() < 2) return -999; 
+            double meanEta = (validJets[0].Eta() +validJets[1].Eta())/2;
+            return validJets[0].Eta() - meanEta;
+        };
+        double zep1()
+        { 
+            if(validJets.size() < 2) return -999; 
+            double meanEta = (validJets[0].Eta() +validJets[1].Eta())/2;
+            return validJets[1].Eta() - meanEta;
+        };
+        double phi_star()
+        {
+            double phi_star = 0;
+            double mu_dPhi = TMath::Abs(recoMuons->at(dimuCand->iMu1).phi - recoMuons->at(dimuCand->iMu2).phi);
+            if(mu_dPhi > TMath::Pi()) mu_dPhi = 2*TMath::Pi() - mu_dPhi;
+            double phiACOP = TMath::Pi() - mu_dPhi;
+            double thetaStarEta = TMath::ACos(TMath::TanH((recoMuons->at(dimuCand->iMu1).eta - recoMuons->at(dimuCand->iMu2).eta)/2));
+            phi_star = TMath::Tan(phiACOP/2)*TMath::Sin(thetaStarEta);
+            return phi_star;
+        };
+        double dPhi_jj_mumu()    
+        { 
+            if(validJets.size() < 2) return -999;
+            double dphi = TMath::Abs((validJets[0] + validJets[1]).Phi() - dimuCand->phi);
+            if(dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
+        };
 };
 
 #endif

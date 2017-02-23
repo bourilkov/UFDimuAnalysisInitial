@@ -133,6 +133,7 @@ class WorkspaceAndDatacardMaker:
         smodel.paramOn(xframe)
         c1 = TCanvas('fig_signal_fit', 'fit', 10, 10, 500, 500)
         xframe.Draw()
+        c1.SaveAs('.root')
         c1.SaveAs('.png')
      
         # after fitting, we nail the parameters down so that higgs combine 
@@ -224,10 +225,10 @@ class WorkspaceAndDatacardMaker:
 print('program is running ...')
 # Needs the file with the dimu_mass plots created by categorize.cxx via running ./categorizeRun1/2
 # also needs to know the category you want to make the root file and datacard for
-wdm = WorkspaceAndDatacardMaker('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_110_160_x69p2_8_0_X_MC_categories_33598_rebin0.root', 
-                                '01_Jet_Tight_BB') 
+wdm = WorkspaceAndDatacardMaker('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_PF_110_160_x69p2_8_0_X_MC_run1categories_36814.root', 
+                                'c_01_Jet_Tight_BB') 
 print wdm.infilename, wdm.category
 wdm.makeShapeWorkspace()
 wdm.makeShapeDatacard()
-wdm.makeTemplateRootFile()
-wdm.makeTemplateDatacard()
+#wdm.makeTemplateRootFile()
+#wdm.makeTemplateDatacard()

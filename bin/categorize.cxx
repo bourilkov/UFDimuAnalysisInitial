@@ -485,11 +485,23 @@ int main(int argc, char* argv[])
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
 
+    TString xmlfile;
+
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
-        if(i==1) ss >> whichCategories;
+        if(i==1) 
+        {
+            size_t found = ss.str().find(".xml")
+            if(found!=std::string::npos)
+            {
+                xmlfile = TString(ss.str().c_str());
+                whichCategories = 3;
+            }
+            else
+                ss >> whichCategories;
+        }
         if(i==2) ss >> varNumber;
         if(i==3) ss >> nthreads;
         if(i==4) ss >> rebin;
@@ -507,8 +519,6 @@ int main(int argc, char* argv[])
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
 
     float luminosity = 36814;      // pb-1
-    float triggerSF = 0.913;       // no HLT trigger info available for the samples so we scale for the trigger efficiency instead
-    float signalSF = 100;          // not using this at the moment, but scale the signal samples to see them better in the plots if you want
     float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
@@ -598,7 +608,7 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varNumber, varname, bins, min, max, rebin, whichCategories, triggerSF, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varNumber, varname, bins, min, max, rebin, whichCategories, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
@@ -1033,7 +1043,6 @@ int main(int argc, char* argv[])
       for(auto &c : categorySelection->categoryMap)
       {
           c.second.histoMap[hkey]->Scale(s->getScaleFactor(luminosity));
-          //if(!isData) c.second.histoMap[hkey]->Scale(triggerSF);
       }
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
