@@ -173,7 +173,12 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
             min = 50;
             max = 200;
         }
-
+        else if(binning == -1)
+        {
+            bins = 50;
+            min = 110;
+            max = 160;
+        }
         else if(binning == 1)
         {
             bins = 50;
@@ -493,7 +498,7 @@ int main(int argc, char* argv[])
         ss << argv[i];
         if(i==1) 
         {
-            size_t found = ss.str().find(".xml")
+            size_t found = ss.str().find(".xml");
             if(found!=std::string::npos)
             {
                 xmlfile = TString(ss.str().c_str());
@@ -608,8 +613,11 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varNumber, varname, bins, min, max, rebin, whichCategories, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, whichCategories, luminosity, reductionFactor](Sample* s)
     {
+      bool blinded = true;
+      if(binning < 0) blinded = false;
+
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
@@ -818,7 +826,7 @@ int main(int argc, char* argv[])
               if(varNumber<=0) 
               {
                   float varvalue = dimu.mass;
-                  if(isData && varvalue > 120 && varvalue < 130) continue; // blind signal region
+                  if(isData && varvalue > 120 && varvalue < 130 && blinded) continue; // blind signal region
 
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
                   c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
@@ -1147,7 +1155,10 @@ int main(int argc, char* argv[])
         stack->SaveAs("imgs/"+varname+"_"+cname+".png");
     }
     std::cout << std::endl;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_x69p2_8_0_X_MC_run%dcategories_%d.root", varname.Data(), (int)min, (int)max, whichCategories, (int)luminosity);
+    TString blinded = "blinded";
+    if(!blinded) blinded = "UNBLINDED";
+    TString savename = Form("rootfiles/validate_%s_%s_%d_%d_run%dcategories_%d.root", blinded.Data(), varname.Data(), (int)min, 
+                            (int)max, whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
