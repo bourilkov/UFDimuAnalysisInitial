@@ -1157,7 +1157,8 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
     TString blinded = "blinded";
     if(!blinded) blinded = "UNBLINDED";
-    TString savename = Form("rootfiles/validate_%s_%s_%d_%d_run%dcategories_%d.root", blinded.Data(), varname.Data(), (int)min, 
+    if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
+    TString savename = Form("rootfiles/validate_%s_%d_%d_run%dcategories_%d.root", varname.Data(), (int)min, 
                             (int)max, whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
