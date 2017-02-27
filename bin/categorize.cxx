@@ -615,8 +615,8 @@ int main(int argc, char* argv[])
 
     auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, whichCategories, luminosity, reductionFactor](Sample* s)
     {
-      bool blinded = true;
-      if(binning < 0) blinded = false;
+      bool isblinded = true;
+      if(binning < 0) isblinded = false;
 
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
@@ -826,7 +826,7 @@ int main(int argc, char* argv[])
               if(varNumber<=0) 
               {
                   float varvalue = dimu.mass;
-                  if(isData && varvalue > 120 && varvalue < 130 && blinded) continue; // blind signal region
+                  if(isData && varvalue > 120 && varvalue < 130 && isblinded) continue; // blind signal region
 
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
                   c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
@@ -1155,8 +1155,9 @@ int main(int argc, char* argv[])
         stack->SaveAs("imgs/"+varname+"_"+cname+".png");
     }
     std::cout << std::endl;
+    bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded
     TString blinded = "blinded";
-    if(!blinded) blinded = "UNBLINDED";
+    if(!isblinded) blinded = "UNBLINDED";
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
     TString savename = Form("rootfiles/validate_%s_%d_%d_run%dcategories_%d.root", varname.Data(), (int)min, 
                             (int)max, whichCategories, (int)luminosity);

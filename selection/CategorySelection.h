@@ -180,6 +180,41 @@ class CategorySelectionRun1 : public Categorizer
 };
 
 //////////////////////////////////////////////////////////////////////////
+//// ______________________SynchCategorizer______________________________//
+//////////////////////////////////////////////////////////////////////////
+
+class CategorySelectionSynch : public Categorizer
+{
+// This is based off of the run1 H->MuMu category selection
+    public:
+        CategorySelectionSynch(); 
+        CategorySelectionSynch(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, 
+                              float cDijetDeltaEtaMinVBFT, float cDijetMassMinGGFT,
+                              float cDimuPtMinGGFT, float cDimuPtMin01T); 
+
+        // Preselection
+        float cLeadPtMin;
+        float cSubleadPtMin;
+        float cMETMax;
+
+        // VBF Tight
+        float cDijetMassMinVBFT;
+        float cDijetDeltaEtaMinVBFT;
+     
+        // GGF Tight
+        float cDijetMassMinGGFT;
+        float cDimuPtMinGGFT;
+
+        // 01Tight
+        float cDimuPtMin01T; 
+
+        // Determine which category the event belongs to
+        // result stored in isVBFTight, isGGFTight, etc 
+        void evaluate(VarSet& vars);
+        void initCategoryMap();
+};
+
+//////////////////////////////////////////////////////////////////////////
 //// ______________________Run2Categorizer______________________________//
 //////////////////////////////////////////////////////////////////////////
 

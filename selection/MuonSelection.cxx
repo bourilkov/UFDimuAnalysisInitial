@@ -30,7 +30,7 @@ Run2MuonSelectionCuts::Run2MuonSelectionCuts()
 
     cMinPt = 10;       // >, originally 15
     cMaxEta = 2.4;     // <, originally 2.1
-    cMaxRelIso = 0.12; // <
+    cMaxRelIso = 0.25; // <
     cutset.cuts = std::vector<CutInfo>(6, CutInfo());
     makeCutSet();
 }

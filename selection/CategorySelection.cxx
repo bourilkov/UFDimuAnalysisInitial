@@ -23,7 +23,9 @@ void CategoryNode::theMiracleOfChildBirth()
 }
 
 ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 // _______________________XMLCategorizer_________________________________//
+///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void XMLCategorizer::initCategoryMap()
@@ -195,7 +197,9 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
 }
 
 ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 // _______________________CategorySelectionRun1__________________________//
+///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void CategorySelectionRun1::initCategoryMap()
@@ -210,8 +214,8 @@ void CategorySelectionRun1::initCategoryMap()
     categoryMap["c_2_Jet_VBF_Tight"] = Category("c_2_Jet_VBF_Tight");
     categoryMap["c_2_Jet_VBF_Loose"] = Category("c_2_Jet_VBF_Loose");
     categoryMap["c_2_Jet_GGF_Tight"] = Category("c_2_Jet_GGF_Tight");
-    categoryMap["c_01_Jet_Tight"] = Category("c_01_Jet_Tight", true);
-    categoryMap["c_01_Jet_Loose"] = Category("c_01_Jet_Loose", true);
+    categoryMap["c_01_Jet_Tight"] = Category("c_01_Jet_Tight");
+    categoryMap["c_01_Jet_Loose"] = Category("c_01_Jet_Loose");
 
     // intermediate categories to make things easier, don't plot these, hence the true
     categoryMap["c_BB"] = Category("c_BB", true);
@@ -406,7 +410,134 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
 }
 
 ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// _______________________CategorySelectionSynch_________________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionSynch::initCategoryMap()
+{
+// Initialize the categories
+    categoryMap["c_ALL"] = Category("c_ALL");
+
+    // intermediate categories to make things easier
+    categoryMap["c_2_Jet"] = Category("c_2_Jet", true);
+    categoryMap["c_01_Jet"] = Category("c_01_Jet", true);
+
+    categoryMap["c_2_Jet_VBF_Tight"] = Category("c_2_Jet_VBF_Tight");
+    categoryMap["c_2_Jet_VBF_Loose"] = Category("c_2_Jet_VBF_Loose");
+    categoryMap["c_2_Jet_GGF_Tight"] = Category("c_2_Jet_GGF_Tight");
+    categoryMap["c_01_Jet_Tight"] = Category("c_01_Jet_Tight");
+    categoryMap["c_01_Jet_Loose"] = Category("c_01_Jet_Loose");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionSynch::CategorySelectionSynch()
+{
+// initialize the default cut values in the constructor
+
+    initCategoryMap();
+
+    // Preselection
+    cLeadPtMin = 40;
+    cSubleadPtMin = 30;
+    cMETMax = 40;
+
+    // VBF Tight
+    cDijetMassMinVBFT = 650;
+    cDijetDeltaEtaMinVBFT = 3.5;
+
+    // VBF Loose
+
+    // GGF Tight
+    cDijetMassMinGGFT = 250;
+    cDimuPtMinGGFT = 50;
+
+    // 01Tight
+    cDimuPtMin01T = 25;
+
+    // 01Loose
+    
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionSynch::CategorySelectionSynch(float leadPtMin, float subleadPtMin, float METMax, float dijetMassMinVBFT, float dijetDeltaEtaMinVBFT, 
+                                             float dijetMassMinGGFT, float dimuPtMinGGFT, float dimuPtMin01T)
+{
+// Initialize custom cut values
+
+    initCategoryMap();
+
+    // Preselection
+    cLeadPtMin = leadPtMin;
+    cSubleadPtMin = subleadPtMin;
+    cMETMax = METMax;
+
+    // VBF Tight
+    cDijetMassMinVBFT = dijetMassMinVBFT;
+    cDijetDeltaEtaMinVBFT = dijetDeltaEtaMinVBFT;
+
+    // VBF Loose
+
+    // GGF Tight
+    cDijetMassMinGGFT = dijetMassMinGGFT;
+    cDimuPtMinGGFT = dimuPtMinGGFT;
+
+    // 01Tight
+    cDimuPtMin01T = dimuPtMin01T;
+
+    // 01Loose
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionSynch::evaluate(VarSet& vars)
+{
+// Determine which category the event belongs to
+
+    // Inclusive category, all events that passed the selection cuts
+    categoryMap["c_ALL"].inCategory = true;
+
+    // jet category selection
+    if(vars.validJets.size() >= 2)
+    {
+        TLorentzVector leadJet = vars.validJets[0];
+        TLorentzVector subleadJet = vars.validJets[1];
+        TLorentzVector dijet = leadJet + subleadJet;
+
+        float dEta = leadJet.Eta() - subleadJet.Eta();
+        float dijetMass = dijet.M();
+
+        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
+        {
+            categoryMap["c_2_Jet"].inCategory = true;
+            if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; return; }
+            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand->pt > cDimuPtMinGGFT){ categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; return; }
+            else{ categoryMap["c_2_Jet_VBF_Loose"].inCategory = true; return; }
+        }
+    }
+    if(!categoryMap["c_2_Jet"].inCategory) // fails 2jet preselection enters 01 categories
+    {
+        categoryMap["c_01_Jet"].inCategory = true;
+        if(vars.dimuCand->pt > cDimuPtMin01T){ categoryMap["c_01_Jet_Tight"].inCategory = true;}
+        else{ categoryMap["c_01_Jet_Loose"].inCategory = true; }
+    }
+
+}
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 // _______________________CategorySelectionFEWZ__________________________//
+///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void CategorySelectionFEWZ::initCategoryMap()
@@ -559,7 +690,9 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
 }
 
 ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 // _______________________LotsOfCategoriesRun2__________________________//
+///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 void LotsOfCategoriesRun2::initCategoryMap()

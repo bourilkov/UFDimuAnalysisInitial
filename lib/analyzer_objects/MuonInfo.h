@@ -86,6 +86,8 @@ struct MuonInfo : public ParticleInfo{
   TLorentzVector get4vec();
   TString outputInfo();
   Double_t iso();
+  Double_t iso03();
+  Double_t iso04();
 
   ClassDef(MuonInfo, 2)
 };

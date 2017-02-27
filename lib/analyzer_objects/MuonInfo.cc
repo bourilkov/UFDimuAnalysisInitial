@@ -117,5 +117,23 @@ TString MuonInfo::outputInfo()
 
 Double_t MuonInfo::iso()
 {
+    return iso04();
+}
+
+///////////////////////////////////////////////////////////
+//--------------------------------------------------------
+///////////////////////////////////////////////////////////
+
+Double_t MuonInfo::iso03()
+{
     return (sumChargedHadronPtR03 + TMath::Max(0.0,sumNeutralHadronEtR03 + sumPhotonEtR03 - 0.5*sumPUPtR03))/pt;
+}
+
+///////////////////////////////////////////////////////////
+//--------------------------------------------------------
+///////////////////////////////////////////////////////////
+
+Double_t MuonInfo::iso04()
+{
+    return (sumChargedHadronPtR04 + TMath::Max(0.0,sumNeutralHadronEtR04 + sumPhotonEtR04 - 0.5*sumPUPtR04))/pt;
 }

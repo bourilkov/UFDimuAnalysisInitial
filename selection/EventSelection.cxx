@@ -18,7 +18,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-// _______________________Run2EventSelectionCuts80X______________________//
+// _______________________Run2EventSelectionCuts______________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
@@ -29,7 +29,7 @@
 // The 80X samples didn't have trigger matching, so the data requires
 // hlt trigger matching but the mc doesn't, then the mc is scaled
 
-Run2EventSelectionCuts80X::Run2EventSelectionCuts80X()
+Run2EventSelectionCuts::Run2EventSelectionCuts()
 {
 // Default values for the modified run 1 event selection
 
@@ -46,7 +46,7 @@ Run2EventSelectionCuts80X::Run2EventSelectionCuts80X()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(bool isData)
+Run2EventSelectionCuts::Run2EventSelectionCuts(bool isData)
 {
 // Default values for the modified run 1 event selection
 
@@ -63,7 +63,7 @@ Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(bool isData)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(float trigMuPtMin, float dimuMassMin)
+Run2EventSelectionCuts::Run2EventSelectionCuts(float trigMuPtMin, float dimuMassMin)
 {
 // Default values for the modified run 1 event selection
 
@@ -80,7 +80,7 @@ Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(float trigMuPtMin, float di
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(bool isData, float trigMuPtMin, float dimuMassMin)
+Run2EventSelectionCuts::Run2EventSelectionCuts(bool isData, float trigMuPtMin, float dimuMassMin)
 {
 // Default values for the modified run 1 event selection
 
@@ -97,7 +97,7 @@ Run2EventSelectionCuts80X::Run2EventSelectionCuts80X(bool isData, float trigMuPt
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-bool Run2EventSelectionCuts80X::evaluate(VarSet& vars)
+bool Run2EventSelectionCuts::evaluate(VarSet& vars)
 {
     // check the mass cut first since it's the most likely to cut the event
     // saves computation time so that we don't have to check the others
@@ -133,16 +133,16 @@ bool Run2EventSelectionCuts80X::evaluate(VarSet& vars)
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-TString Run2EventSelectionCuts80X::string()
+TString Run2EventSelectionCuts::string()
 {
-    return TString("Run2_Event_Selection_80X");
+    return TString("Run2_Event_Selection");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void Run2EventSelectionCuts80X::makeCutSet()
+void Run2EventSelectionCuts::makeCutSet()
 {
     cutset.cuts[0].name = "recoMu1.charge != recoMu2.charge";
     cutset.cuts[0].bins = 2;
@@ -171,6 +171,80 @@ void Run2EventSelectionCuts80X::makeCutSet()
     cutset.cuts[3].ismin = true;
 
     cutset.concatCuts();
+}
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// _______________________SynchEventSelectionCuts______________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+// Event selection based on the run1 h2mu analysis, still using these
+// for the run2 analysis modified for our hlt trigger matching
+// criteria
+
+// The 80X samples didn't have trigger matching, so the data requires
+// hlt trigger matching but the mc doesn't, then the mc is scaled
+
+SynchEventSelectionCuts::SynchEventSelectionCuts()
+{
+    cTrigMuPtMin = 26; 
+    cDimuMassMin = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+SynchEventSelectionCuts::SynchEventSelectionCuts(float trigMuPtMin, float dimuMassMin)
+{
+    cTrigMuPtMin = trigMuPtMin;          // >
+    cDimuMassMin = dimuMassMin;          // >
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+bool SynchEventSelectionCuts::evaluate(VarSet& vars)
+{
+    // check the mass cut first since it's the most likely to cut the event
+    // saves computation time so that we don't have to check the others
+    if(!(vars.dimuCand->mass > cDimuMassMin)) return false;
+
+    // Pt cuts on leading muon
+    MuonInfo& mu1 = vars.recoMuons->at(vars.dimuCand->iMu1);
+    MuonInfo& mu2 = vars.recoMuons->at(vars.dimuCand->iMu2);
+
+    // 2 and 3 should be isoMu24 and isoTkMu24
+    if(!( (mu1.isHltMatched[2] && mu1.pt > cTrigMuPtMin) || (mu1.isHltMatched[3] && mu1.pt > cTrigMuPtMin) 
+          || (mu2.isHltMatched[2] && mu2.pt > cTrigMuPtMin) || (mu2.isHltMatched[3] && mu2.pt > cTrigMuPtMin) ))
+        return false;
+
+    // Require oppositely charged muons and zero extra muons in the event
+    if(!( (mu1.charge != mu2.charge) && vars.validExtraMuons.size() == 0 )) return false;
+
+    // require that there are zero electrons
+    if(!(vars.validElectrons.size() == 0)) return false;
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+TString SynchEventSelectionCuts::string()
+{
+    return TString("Synch_Event_Selection");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void SynchEventSelectionCuts::makeCutSet()
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////

@@ -25,7 +25,7 @@ JetCollectionCleaner::JetCollectionCleaner()
     cJetSelectionPtMin = 30;
     cJetSelectionEtaMax = 4.7;
     cJetSelectiondRMin = 0.3;
-    cJetSelectionBTagMin = 0.8;
+    cJetSelectionBTagMin = 0.8484;
     cJetSelectionBJetEtaMax = 2.4;
 }
 

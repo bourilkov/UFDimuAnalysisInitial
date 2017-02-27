@@ -25,19 +25,21 @@ MuonCollectionCleaner::MuonCollectionCleaner()
     cMuonSelectionPtMin = 10;
     cMuonSelectionEtaMax = 2.4;
     cMuonSelectionIsoMax = 0.12;
-    cMuonSelectionID = 0;
+    cMuonSelectionID = 1;
+    cUseMedium2016 = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-MuonCollectionCleaner::MuonCollectionCleaner(float muSelectionPtMin, float muSelectionEtaMax, float muSelectionIsoMax, int muSelectionID)
+MuonCollectionCleaner::MuonCollectionCleaner(float muSelectionPtMin, float muSelectionEtaMax, float muSelectionIsoMax, int muSelectionID, bool useMedium2016)
 {
     cMuonSelectionPtMin = muSelectionPtMin;
     cMuonSelectionEtaMax = muSelectionEtaMax;
     cMuonSelectionIsoMax = muSelectionIsoMax;
     cMuonSelectionID = muSelectionID;
+    cUseMedium2016 = useMedium2016;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,7 +55,8 @@ void MuonCollectionCleaner::getValidMuons(VarSet& vars, std::vector<TLorentzVect
         bool id = false;
 
         if(cMuonSelectionID == 0) id = vars.recoMuons->at(j).isTightID; 
-        if(cMuonSelectionID == 1) id = vars.recoMuons->at(j).isMediumID; 
+        if(cMuonSelectionID == 1 && cUseMedium2016)  id = vars.recoMuons->at(j).isMediumID2016; 
+        if(cMuonSelectionID == 1 && !cUseMedium2016) id = vars.recoMuons->at(j).isMediumID; 
         if(cMuonSelectionID == 2) id = vars.recoMuons->at(j).isLooseID; 
 
         // Pt, Eta and ID
@@ -81,7 +84,8 @@ void MuonCollectionCleaner::getValidMuons(VarSet& vars, std::vector<TLorentzVect
         bool id = false;
 
         if(cMuonSelectionID == 0) id = vars.recoMuons->at(j).isTightID; 
-        if(cMuonSelectionID == 1) id = vars.recoMuons->at(j).isMediumID; 
+        if(cMuonSelectionID == 1 && cUseMedium2016)  id = vars.recoMuons->at(j).isMediumID2016; 
+        if(cMuonSelectionID == 1 && !cUseMedium2016) id = vars.recoMuons->at(j).isMediumID; 
         if(cMuonSelectionID == 2) id = vars.recoMuons->at(j).isLooseID; 
 
         // Pt, Eta and ID

@@ -5,17 +5,31 @@
 
 #include "Cut.h"
 
-class Run2EventSelectionCuts80X : public Cut
+class Run2EventSelectionCuts : public Cut
 {
 // if data apply hlt trigger matching
 // if MC do not apply hlt trigger matching
     public:
-        Run2EventSelectionCuts80X();
-        Run2EventSelectionCuts80X(bool isData);
-        Run2EventSelectionCuts80X(float trigMuPtMin, float dimuMassMin);
-        Run2EventSelectionCuts80X(bool isData, float trigMuPtMin, float dimuMassMin);
+        Run2EventSelectionCuts();
+        Run2EventSelectionCuts(bool isData);
+        Run2EventSelectionCuts(float trigMuPtMin, float dimuMassMin);
+        Run2EventSelectionCuts(bool isData, float trigMuPtMin, float dimuMassMin);
 
         bool isData = 0;
+        float cTrigMuPtMin;        // >
+        float cDimuMassMin;        // >
+
+        void makeCutSet();
+        bool evaluate(VarSet& vars);
+        TString string();
+};
+
+class SynchEventSelectionCuts : public Cut
+{
+    public:
+        SynchEventSelectionCuts();
+        SynchEventSelectionCuts(float trigMuPtMin, float dimuMassMin);
+
         float cTrigMuPtMin;        // >
         float cDimuMassMin;        // >
 
