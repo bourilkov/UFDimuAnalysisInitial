@@ -50,7 +50,7 @@ class BGSpectrumFitter:
 
         self.bg_not_dy_hist  = self.bg_ttbar_hist.Clone()
         self.bg_not_dy_hist.Add(self.bg_diboson_hist)
-        self.bg_not_dy_hist.SetName("c_"+self.category+"_TTBar_Diboson_plus")
+        self.bg_not_dy_hist.SetName(self.category+"_TTBar_Diboson_plus")
         self.bg_not_dy_hist.SetTitle(self.category+"_TTBar_Diboson_plus")
     
     
@@ -112,7 +112,7 @@ class BGSpectrumFitter:
 
         c1 = TCanvas(histo.GetName()+"_"+pdfMmumu.GetName()+"_c", histo.GetName()+"_"+pdfMmumu.GetName(), 10, 10, 600, 600)
         xframe.Draw()
-        t = TLatex(.6,.75,"#chi^{2}/ndof = %7.3f" % chi2);  
+        t = TLatex(.6,.5,"#chi^{2}/ndof = %7.3f" % chi2);  
         t.SetNDC(kTRUE);
         t.Draw();
         #c1.SaveAs('img/'+c1.GetName()+'.png')
@@ -124,36 +124,51 @@ class BGSpectrumFitter:
 #----------------------------------------
 
 print('program is running ...')
-category = 'c_01_Jet_Tight_OE' 
-wdm =BGSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_dimu_mass_PF_50_200_x69p2_8_0_X_MC_run1categories_36814.root', category) 
-print wdm.infilename, wdm.category
+#category = 'c_01_Jet_Tight_OE' 
+#category = 'c_01_Jet_Tight_OO' 
+#category = 'c_2_Jet_VBF_Loose' 
+#category = 'c_2_Jet_GGF_Tight' 
 
-#----------------------------------------
-# Set up our x variable and get the histo
-# we want to fit
-#----------------------------------------
-
-#histo = wdm.bg_dy_hist
-#histo = wdm.bg_all_hist
-histo = wdm.data_hist
-
-x = wdm.getX(histo)
-
-lin_model, lin_params     = pdfs.linear(x)
-exp_model, exp_params     = pdfs.higgsGammaGamma(x)
-bw_model, bw_params       = pdfs.bwZGamma(x)
-bwzl_model, bwzl_params   = pdfs.bwZPlusLinear(x)
-cheby_model, cheby_params = pdfs.chebychev(x)
-#bwl_model, bwl_params = pdfs.bwZGammaPlusLinear(x)
-
-#mix_exp_lin = RooRealVar("mix_exp_lin","mix_exp_lin",0.1,0,1)
-#exp_lin_model = RooAddPdf("hggexp_plus_linear","hggexp_plus_linear", RooArgList(exp_model,lin_model),RooArgList(mix_exp_lin))
+categories = ['c_01_Jet_Tight_OE', 'c_01_Jet_Tight_BB', 'c_2_Jet_VBF_Loose', 'c_2_Jet_VBF_Tight', 'c_2_Jet_GGF_Tight']
 
 
-model = lin_model
-#model = exp_lin_model
-#model = bw_lin_model
-#model = bw_model
-#model = bwzl_model
+for category in categories:
+    wdm = BGSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_blinded_dimu_mass_PF_110_160_nolow_run1categories_36814.root', category) 
+    print wdm.infilename, wdm.category
+    
+    #----------------------------------------
+    # Set up our x variable and get the histo
+    # we want to fit
+    #----------------------------------------
+    
+    #histo = wdm.bg_dy_hist
+    #histo = wdm.bg_all_hist
+    #histo = wdm.bg_not_dy_hist
+    histo = wdm.data_hist
+    
+    x = wdm.getX(histo)
+    
+    #lin_model, lin_params     = pdfs.linear(x)
+    #hgg_model, hgg_params     = pdfs.higgsGammaGamma(x)
+    fewz_model, fewz_params     = pdfs.fewz(x)
 
-wdm.fitAndSave(histo, model, x)
+    bwzg_model = 0
+    bwzg_params = 0
+    if "2_Jet" in category:
+        bwzg_model, bwzg_params = pdfs.bwZGamma(x, mix_min=0.9)
+    else:
+        bwzg_model, bwzg_params = pdfs.bwZGamma(x)
+
+    #bwz_model, bwz_params      = pdfs.bwZ(x)
+    #bwg_model, bwg_params     = pdfs.bwGamma(x)
+    #bwzl_model, bwzl_params   = pdfs.bwZPlusLinear(x)
+    #cheby_model, cheby_params = pdfs.chebychev(x)
+    #bwzgl_model, bwzgl_params = pdfs.bwZGammaPlusLinear(x)
+    
+    #mix = RooRealVar("mix_exp_lin","mix",0.1,0,1)
+    #hgg_lin_model = RooAddPdf("hggexp_plus_linear","hggexp_plus_linear", RooArgList(hgg_model,lin_model),RooArgList(mix))
+    #fewz_lin_model = RooAddPdf("fewz_plus_linear","fewz_plus_linear", RooArgList(fewz_model,lin_model),RooArgList(mix))
+    
+    model = fewz_model
+    
+    wdm.fitAndSave(histo, model, x)

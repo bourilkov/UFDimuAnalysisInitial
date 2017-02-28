@@ -28,18 +28,40 @@ def linear(x):
 #--------------------------------------------------------
 # breit weigner mixture scaled by falling exp (run1 bg)
 #--------------------------------------------------------
-def bwZGamma(x):
-    bwWidth =  RooRealVar("bwWidth","widthZ",2.5,0,30)
-    bwmZ =     RooRealVar("bwmZ","mZ",91.2,90,92)
-    expParam = RooRealVar("expParam","expParam",-1e-03,-1e-01,1e-01)
-    mixParam = RooRealVar("mixParam","mix",0.5,0,1)
+def bwGamma(x):
+    expParam = RooRealVar("bwg_expParam","expParam",-1e-03,-1e-01,1e-01)
+    bwmodel = RooGenericPdf("bwg_model","exp(@0*@1)*pow(@0,-2)",RooArgList(x,expParam))
+
+    return bwmodel, [expParam]
+#--------------------------------------------------------
+# breit weigner mixture scaled by falling exp (run1 bg)
+#--------------------------------------------------------
+def bwZ(x):
+    bwWidth =  RooRealVar("bwz_Width","widthZ",2.5,0,30)
+    bwmZ =     RooRealVar("bwz_mZ","mZ",91.2,90,92)
+    expParam = RooRealVar("bwz_expParam","expParam",-1e-03,-1e-02,1e-02)
+    
+    bwWidth.setConstant(True);
+    bwmZ.setConstant(True);
+    
+    bwmodel  = RooGenericPdf("bwz_model","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
+    return bwmodel, [bwWidth, bwmZ, expParam]
+
+#--------------------------------------------------------
+# breit weigner mixture scaled by falling exp (run1 bg)
+#--------------------------------------------------------
+def bwZGamma(x, mix_min=0.001):
+    bwWidth =  RooRealVar("bwzg_Width","widthZ",2.5,0,30)
+    bwmZ =     RooRealVar("bwzg_mZ","mZ",91.2,90,92)
+    expParam = RooRealVar("bwzg_expParam","expParam",-1e-03,-1e-01,1e-01)
+    mixParam = RooRealVar("bwzg_mixParam","mix",0.98,mix_min,1.0)
     
     bwWidth.setConstant(True);
     bwmZ.setConstant(True);
     
     phoExpMmumu = RooGenericPdf("phoExpMmumu","exp(@0*@1)*pow(@0,-2)",RooArgList(x,expParam))
     bwExpMmumu  = RooGenericPdf("bwExpMmumu","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
-    bwmodel     = RooAddPdf("bw_model","bw_model", RooArgList(bwExpMmumu,phoExpMmumu),RooArgList(mixParam))
+    bwmodel     = RooAddPdf("bwzg_model","bw_model", RooArgList(bwExpMmumu,phoExpMmumu),RooArgList(mixParam))
 
     return bwmodel, [bwWidth, bwmZ, expParam, mixParam, phoExpMmumu, bwExpMmumu]
     
@@ -47,9 +69,9 @@ def bwZGamma(x):
 # breit weigner mixture scaled by falling exp (run1 bg)
 #--------------------------------------------------------
 def bwZGammaPlusLinear(x):
-    bwWidth =  RooRealVar("bwl_widthZ","widthZ",2.5,0,30)
-    bwmZ =     RooRealVar("bwl_mZ","mZ",91.2,85,95)
-    expParam = RooRealVar("bwl_expParam","expParam",-1e-03,-1e-01,1e-01)
+    bwWidth =  RooRealVar("bwzgl_widthZ","widthZ",2.5,0,30)
+    bwmZ =     RooRealVar("bwzgl_mZ","mZ",91.2,85,95)
+    expParam = RooRealVar("bwzgl_expParam","expParam",-1e-03,-1e-01,1e-01)
 
     bwWidth.setConstant(True);
     bwmZ.setConstant(True);
@@ -57,13 +79,13 @@ def bwZGammaPlusLinear(x):
     slopeParam = RooRealVar("bwl_slope", "slope", -0.2, -50, 0)          
     offsetParam = RooRealVar("bwl_offset", "offset", 39, 0, 1000)            
     
-    mix1 = RooRealVar("bwl_mix1","mix1",0.95,0.5,1)
-    mix2 = RooRealVar("bwl_mix2","mix2",0.05,0,0.5)
+    mix1 = RooRealVar("bwzgl_mix1","mix1",0.95,0,1)
+    mix2 = RooRealVar("bwzgl_mix2","mix2",0.05,0,1)
 
-    linMmumu = RooGenericPdf("bwl_linMmumu", "@1*@0+@2", RooArgList(x, slopeParam, offsetParam))
-    phoExpMmumu = RooGenericPdf("bwl_phoExpMmumu","exp(@0*@1)*pow(@0,-2)",RooArgList(x,expParam))
-    bwExpMmumu  = RooGenericPdf("bwl_bwExpMmumu","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
-    model     = RooAddPdf("bwl_model","bwl_model", RooArgList(bwExpMmumu,phoExpMmumu,linMmumu),RooArgList(mix1, mix2))
+    linMmumu = RooGenericPdf("bwzgl_linMmumu", "@1*@0+@2", RooArgList(x, slopeParam, offsetParam))
+    phoExpMmumu = RooGenericPdf("bwzgl_phoExpMmumu","exp(@0*@1)*pow(@0,-2)",RooArgList(x,expParam))
+    bwExpMmumu  = RooGenericPdf("bwzgl_bwExpMmumu","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
+    model     = RooAddPdf("bwzgl_model","bwl_model", RooArgList(bwExpMmumu,phoExpMmumu,linMmumu),RooArgList(mix1, mix2))
 
     return model, [bwWidth, bwmZ, expParam, mix1, mix2, slopeParam, offsetParam, phoExpMmumu, bwExpMmumu, linMmumu]
     
@@ -81,27 +103,53 @@ def bwZPlusLinear(x):
     slopeParam = RooRealVar("bwzl_slope", "slope", -0.2, -50, 0)          
     offsetParam = RooRealVar("bwzl_offset", "offset", 39, 0, 1000)            
     
-    mix1 = RooRealVar("bwzl_mix1","mix1",0.95,0.5,1)
+    mix1 = RooRealVar("bwzl_mix1","mix1",0.95,0,1)
 
     linMmumu = RooGenericPdf("bwzl_linMmumu", "@1*@0+@2", RooArgList(x, slopeParam, offsetParam))
     bwExpMmumu  = RooGenericPdf("bwzl_bwExpMmumu","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
     model     = RooAddPdf("bwzl_model","bwzl_model", RooArgList(bwExpMmumu,linMmumu),RooArgList(mix1))
 
     return model, [bwWidth, bwmZ, expParam, mix1, slopeParam, offsetParam, bwExpMmumu, linMmumu]
+
 #----------------------------------------
-# falling exponential (hgammgamma bg)
+# fewz falling exponential
+#----------------------------------------
+def fewz(x):
+    a1 = RooRealVar("fewz_a1", "a1", -63.85, -64.85, -62.85)         
+    a2 = RooRealVar("fewz_a2", "a2", 79.7, 77, 82)         
+    a3 = RooRealVar("fewz_a3", "a3", -13.23, -15, -10)         
+
+    #a1 = RooRealVar("fewz_a1", "a1", -5.85, -6.0, -5.8)
+    #a2 = RooRealVar("fewz_a2", "a2", -6.13, -6.53, -5.63)
+    #a3 = RooRealVar("fewz_a3", "a3", 2.47, 2.0, 3.0)
+
+    a1.setConstant()
+    #a2.setConstant()
+    #a3.setConstant()
+    
+    f = RooFormulaVar("fewz_f", "(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a2, a3))
+    expmodel = RooGenericPdf("fewz_model", "pow(@0/100,@1)*exp(@2)", RooArgList(x, a1, f))
+    #expmodel = RooGenericPdf("fewz_model", "exp(@0)", RooArgList(f))
+    #expmodel = RooGenericPdf("fewz_model", "pow(@0/100,@1)", RooArgList(x, a1))
+    return expmodel, [a1, a2, a3, f]
+
+#----------------------------------------
+# hgg falling exponential
 #----------------------------------------
 def higgsGammaGamma(x):
-    a1 = RooRealVar("a1", "a1", 5.0, -50, 50)          # nuisance parameter1 for the background fit
-    a2 = RooRealVar("a2", "a2", -1.0, -50, 50)         # nuisance parameter2 for the background fit
-    one = RooRealVar("one", "one", 1.0, -10, 10) 
+    a1 = RooRealVar("hgg_a1", "a1", 5.0, -50, 50)          # nuisance parameter1 for the background fit
+    a2 = RooRealVar("hgg_a2", "a2", -1.0, -50, 50)         # nuisance parameter2 for the background fit
+    one = RooRealVar("hgg_one", "one", 1.0, -10, 10) 
     one.setConstant()
     
-    f = RooFormulaVar("f", "-(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a1, a2))
+    f = RooFormulaVar("hgg_f", "-(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a1, a2))
     expmodel = RooExponential('hggexp_model', 'hggexp_model', f, one) # exp(1*f(x))
 
     return expmodel, [a1, a2, one, f]
 
+#----------------------------------------
+# chebychev
+#----------------------------------------
 def chebychev(x, order=7): 
     #c0 = RooRealVar("c0","c0", 1.0,-1.0,1.0)
     #c1 = RooRealVar("c1","c1", 1.0,-1.0,1.0)

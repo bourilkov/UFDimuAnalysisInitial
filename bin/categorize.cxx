@@ -630,9 +630,9 @@ int main(int argc, char* argv[])
       MuonCollectionCleaner     muonCollectionCleaner;
       EleCollectionCleaner      eleCollectionCleaner;
 
-      Run2MuonSelectionCuts     run2MuonSelection;
-      Run2EventSelectionCuts80X run2EventSelectionData(true);
-      Run2EventSelectionCuts80X run2EventSelectionMC;
+      Run2MuonSelectionCuts  run2MuonSelection;
+      Run2EventSelectionCuts run2EventSelectionData(true);
+      Run2EventSelectionCuts run2EventSelectionMC;
 
       Categorizer* categorySelection = 0;
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
@@ -652,7 +652,8 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
 
       // Fewer bins for lowstats categories if necessary
-      int lowstatsbins = bins/5;
+      //int lowstatsbins = bins/5;
+      int lowstatsbins = bins;
 
       // If we are dealing with NPV or N_valid_jets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
@@ -1159,7 +1160,7 @@ int main(int argc, char* argv[])
     TString blinded = "blinded";
     if(!isblinded) blinded = "UNBLINDED";
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_run%dcategories_%d.root", varname.Data(), (int)min, 
+    TString savename = Form("rootfiles/validate_%s_%d_%d_nolow_run%dcategories_%d.root", varname.Data(), (int)min, 
                             (int)max, whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
