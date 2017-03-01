@@ -53,8 +53,8 @@ def bwZ(x):
 def bwZGamma(x, mix_min=0.001):
     bwWidth =  RooRealVar("bwzg_Width","widthZ",2.5,0,30)
     bwmZ =     RooRealVar("bwzg_mZ","mZ",91.2,90,92)
-    expParam = RooRealVar("bwzg_expParam","expParam",-1e-03,-1e-01,1e-01)
-    mixParam = RooRealVar("bwzg_mixParam","mix",0.98,mix_min,1.0)
+    expParam = RooRealVar("bwzg_expParam","expParam",-0.0053,-0.0073,-0.0033)
+    mixParam = RooRealVar("bwzg_mixParam","mix",0.379,0.359,0.399)
     
     bwWidth.setConstant(True);
     bwmZ.setConstant(True);
@@ -114,23 +114,17 @@ def bwZPlusLinear(x):
 #----------------------------------------
 # fewz falling exponential
 #----------------------------------------
-def fewz(x):
-    a1 = RooRealVar("fewz_a1", "a1", -63.85, -64.85, -62.85)         
-    a2 = RooRealVar("fewz_a2", "a2", 79.7, 77, 82)         
-    a3 = RooRealVar("fewz_a3", "a3", -13.23, -15, -10)         
+def bwZredux(x):
+    a1 = RooRealVar("bwz_redux_a1", "a1", 1.39, 0.7, 2.1)
+    a2 = RooRealVar("bwz_redux_a2", "a2", 0.46, 0.30, 0.62)
+    a3 = RooRealVar("bwz_redux_a3", "a3", -0.26, -0.40, -0.12)
 
-    #a1 = RooRealVar("fewz_a1", "a1", -5.85, -6.0, -5.8)
-    #a2 = RooRealVar("fewz_a2", "a2", -6.13, -6.53, -5.63)
-    #a3 = RooRealVar("fewz_a3", "a3", 2.47, 2.0, 3.0)
-
-    a1.setConstant()
+    #a1.setConstant()
     #a2.setConstant()
     #a3.setConstant()
     
-    f = RooFormulaVar("fewz_f", "(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a2, a3))
-    expmodel = RooGenericPdf("fewz_model", "pow(@0/100,@1)*exp(@2)", RooArgList(x, a1, f))
-    #expmodel = RooGenericPdf("fewz_model", "exp(@0)", RooArgList(f))
-    #expmodel = RooGenericPdf("fewz_model", "pow(@0/100,@1)", RooArgList(x, a1))
+    f = RooFormulaVar("bwz_redux_f", "(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a2, a3))
+    expmodel = RooGenericPdf("bwz_redux_model", "exp(@2)*(2.5)/(pow(@0-91.2,@1)+0.25*pow(2.5,@1))", RooArgList(x, a1, f))
     return expmodel, [a1, a2, a3, f]
 
 #----------------------------------------

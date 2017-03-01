@@ -75,7 +75,7 @@ class BGSpectrumFitter:
   
         return x
     
-    def fitAndSave(self, histo, pdfMmumu, x):
+    def fitAndSave(self, histo, pdfMmumu, x, xmin=110, xmax=310):
     # make workspace with signal model and background model for analytic shape fit.
     # save it to a root file.
 
@@ -90,9 +90,9 @@ class BGSpectrumFitter:
         #----------------------------------------
         # fit and plot
         #----------------------------------------
-        x.setRange("window",110-0.1, 160+0.1)  # whole window for MC
-        x.setRange("left",110-0.1, 120+0.1)    # exclude signal region for Data
-        x.setRange("right",130-0.1, 160+0.1)
+        x.setRange("window",xmin-0.1, xmax+0.1)  # whole window for MC
+        x.setRange("left",xmin-0.1, 120+0.1)    # exclude signal region for Data
+        x.setRange("right",130-0.1, xmax+0.1)
 
       
         if "Data" in histo.GetName():
@@ -133,7 +133,7 @@ categories = ['c_01_Jet_Tight_OE', 'c_01_Jet_Tight_BB', 'c_2_Jet_VBF_Loose', 'c_
 
 
 for category in categories:
-    wdm = BGSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_blinded_dimu_mass_PF_110_160_nolow_run1categories_36814.root', category) 
+    wdm = BGSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_blinded_dimu_mass_PF_110_310_nolow_run1categories_36814.root', category) 
     print wdm.infilename, wdm.category
     
     #----------------------------------------
@@ -149,13 +149,13 @@ for category in categories:
     x = wdm.getX(histo)
     
     #lin_model, lin_params     = pdfs.linear(x)
-    #hgg_model, hgg_params     = pdfs.higgsGammaGamma(x)
-    fewz_model, fewz_params     = pdfs.fewz(x)
+    hgg_model, hgg_params     = pdfs.higgsGammaGamma(x)
+    bwzr_model, bwzr_params   = pdfs.bwZredux(x)
 
     bwzg_model = 0
     bwzg_params = 0
     if "2_Jet" in category:
-        bwzg_model, bwzg_params = pdfs.bwZGamma(x, mix_min=0.9)
+        bwzg_model, bwzg_params = pdfs.bwZGamma(x)
     else:
         bwzg_model, bwzg_params = pdfs.bwZGamma(x)
 
@@ -169,6 +169,7 @@ for category in categories:
     #hgg_lin_model = RooAddPdf("hggexp_plus_linear","hggexp_plus_linear", RooArgList(hgg_model,lin_model),RooArgList(mix))
     #fewz_lin_model = RooAddPdf("fewz_plus_linear","fewz_plus_linear", RooArgList(fewz_model,lin_model),RooArgList(mix))
     
-    model = fewz_model
+    #model = bwzg_model
+    model = bwzr_model
     
     wdm.fitAndSave(histo, model, x)
