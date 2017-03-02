@@ -46,12 +46,12 @@ void EventTools::loadEventsFromFile(TString filename, std::vector<std::pair<int,
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void EventTools::outputEventsToFile(std::vector<std::pair<int,long long int>>& v, TString filename)
+void EventTools::outputEventsToFile(std::vector< std::pair<int,long long int> >& v, TString filename)
 {
 // used for the synchronization exercise
 // output the run, event info from the vector into a csv file
 
-    std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
+    std::cout << "Exporting events to " << filename << " ..." << std::endl;
     std::ofstream file(filename, std::ofstream::out);
     for(auto const &e : v)
     {   
@@ -209,7 +209,8 @@ void EventTools::outputEvent(VarSet& vars)
 {
 // output all of the information for an event, should make this more modular
          JetCollectionCleaner js;
-         std::cout << "========= RUN: " << vars.eventInfo.run << ", EVENT: " << vars.eventInfo.event << " =============" << std::endl;
+         if(vars.eventInfo !=0) 
+             std::cout << "========= RUN: " << vars.eventInfo->run << ", EVENT: " << vars.eventInfo->event << " =============" << std::endl;
          std::cout << std::endl;
          std::cout << "  dimu_mass: " << vars.dimuCand->mass << std::endl;
          std::cout << "  dimu_mass_PF: " << vars.dimuCand->mass_PF << std::endl;

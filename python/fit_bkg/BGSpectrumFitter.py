@@ -104,7 +104,7 @@ class BGSpectrumFitter:
         xframe.GetXaxis().SetNdivisions(505)
         data.plotOn(xframe)
         pdfMmumu.plotOn(xframe)
-        pdfMmumu.paramOn(xframe, RooFit.Format("NELU", RooFit.AutoPrecision(2)), RooFit.Layout(0.4, 0.95, 0.92) )
+        pdfMmumu.paramOn(xframe, RooFit.Format("NELU", RooFit.AutoPrecision(2)), RooFit.Layout(0.3, 0.95, 0.92) )
         chi2 = xframe.chiSquare(2)
 
         print "chi2    :     %7.3f"               % chi2
@@ -112,10 +112,10 @@ class BGSpectrumFitter:
 
         c1 = TCanvas(histo.GetName()+"_"+pdfMmumu.GetName()+"_c", histo.GetName()+"_"+pdfMmumu.GetName(), 10, 10, 600, 600)
         xframe.Draw()
-        t = TLatex(.6,.5,"#chi^{2}/ndof = %7.3f" % chi2);  
+        t = TLatex(.6,.6,"#chi^{2}/ndof = %7.3f" % chi2);  
         t.SetNDC(kTRUE);
         t.Draw();
-        #c1.SaveAs('img/'+c1.GetName()+'.png')
+        c1.SaveAs('img/'+c1.GetName()+'.png')
         c1.SaveAs(histo.GetName()+"_"+pdfMmumu.GetName()+'.root');
 
 #----------------------------------------
@@ -148,7 +148,7 @@ for category in categories:
     
     x = wdm.getX(histo)
     
-    #lin_model, lin_params     = pdfs.linear(x)
+    lin_model, lin_params     = pdfs.linear(x)
     hgg_model, hgg_params     = pdfs.higgsGammaGamma(x)
     bwzr_model, bwzr_params   = pdfs.bwZredux(x)
 
@@ -169,7 +169,9 @@ for category in categories:
     #hgg_lin_model = RooAddPdf("hggexp_plus_linear","hggexp_plus_linear", RooArgList(hgg_model,lin_model),RooArgList(mix))
     #fewz_lin_model = RooAddPdf("fewz_plus_linear","fewz_plus_linear", RooArgList(fewz_model,lin_model),RooArgList(mix))
     
+    #model = lin_model
     #model = bwzg_model
-    model = bwzr_model
+    #model = bwzr_model
+    model = hgg_model
     
-    wdm.fitAndSave(histo, model, x)
+    wdm.fitAndSave(histo, model, x, xmax=310)

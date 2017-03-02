@@ -8,6 +8,7 @@
 #include "TList.h"
 #include "TXMLEngine.h"
 #include <map>
+#include <utility>
 #include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,6 +33,9 @@ class Category
            this->hide = hide;
        }
     
+       // map sample name to vector of events in the category
+       std::map<TString, std::vector< std::pair<int, long long int> > > eventsMap;
+
        // Categorizer.evaluate will determine whether an event falls into this category
        // if an event falls into this category the boolean value will be set to true
        bool inCategory = false; 

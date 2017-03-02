@@ -517,7 +517,8 @@ void CategorySelectionSynch::evaluate(VarSet& vars)
         float dEta = leadJet.Eta() - subleadJet.Eta();
         float dijetMass = dijet.M();
 
-        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
+        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
+        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.validBJets.size() == 0) // No MET for now
         {
             categoryMap["c_2_Jet"].inCategory = true;
             if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; return; }
@@ -651,7 +652,7 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
         else
         {
             std::cout << "### ERROR: gen_dimu_mass < 0 in FEWZ CATEGORY SELECTION" << std::endl;
-            std::cout << vars.eventInfo.run << "," << vars.eventInfo.lumi << "," << vars.eventInfo.event << std::endl;
+            std::cout << vars.eventInfo->run << "," << vars.eventInfo->lumi << "," << vars.eventInfo->event << std::endl;
             std::cout << mu0.pt << "," << mu0.eta << "," << mu0.phi << std::endl;
             std::cout << mu1.pt << "," << mu1.eta << "," << mu1.phi << std::endl;
             std::cout << std::endl;

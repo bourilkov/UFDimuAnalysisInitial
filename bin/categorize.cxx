@@ -185,6 +185,12 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
             min = 110;
             max = 160;
         }
+        else if(binning == -2)
+        {
+            bins = 200;
+            min = 110;
+            max = 310;
+        }
         else if(binning == 2)
         {
             bins = 100;
@@ -485,9 +491,10 @@ int main(int argc, char* argv[])
 
     int whichCategories = 1;  // run2categories = 1, run2categories = 2
     int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
-    int nthreads = 10;        // number of threads to use in parallelization
-    bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
     int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
+    bool reduceBins = 0;      // reduce the number of bins in the lowstats categories
+    bool rebin = true;        // rebin the histograms so that the ratio plots have small errors
+    int nthreads = 10;        // number of threads to use in parallelization
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
 
     TString xmlfile;
@@ -508,10 +515,11 @@ int main(int argc, char* argv[])
                 ss >> whichCategories;
         }
         if(i==2) ss >> varNumber;
-        if(i==3) ss >> nthreads;
-        if(i==4) ss >> rebin;
-        if(i==5) ss >> binning;
-        if(i==6) ss >> fitratio;
+        if(i==3) ss >> binning;
+        if(i==4) ss >> reduceBins;
+        if(i==5) ss >> rebin;
+        if(i==6) ss >> nthreads;
+        if(i==7) ss >> fitratio;
     }   
     // Not sure that we need a map if we have a vector
     // Should use this as the main database and choose from it to make the vector
@@ -604,16 +612,16 @@ int main(int argc, char* argv[])
     std::cout << "min         : " << min << std::endl;
     std::cout << "max         : " << max << std::endl;
     std::cout << "bins        : " << bins << std::endl;
+    std::cout << "binning     : " << binning << std::endl;
+    std::cout << "lowstats    : " << reduceBins << std::endl;
     std::cout << "rebin       : " << rebin << std::endl;
     std::cout << std::endl;
-
-    std::mutex mtx;
 
     ///////////////////////////////////////////////////////////////////
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, whichCategories, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, luminosity, reductionFactor](Sample* s)
     {
       bool isblinded = true;
       if(binning < 0) isblinded = false;
@@ -652,8 +660,8 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
 
       // Fewer bins for lowstats categories if necessary
-      //int lowstatsbins = bins/5;
       int lowstatsbins = bins;
+      if(reduceBins) lowstatsbins = lowstatsbins/5;
 
       // If we are dealing with NPV or N_valid_jets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
@@ -1159,9 +1167,12 @@ int main(int argc, char* argv[])
     bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded
     TString blinded = "blinded";
     if(!isblinded) blinded = "UNBLINDED";
+    TString nolow = "nolow_";     // reduceBins = true -> reduce the number of bins for low stats categories
+    if(!reduceBins) nolow = "low_";
+
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_nolow_run%dcategories_%d.root", varname.Data(), (int)min, 
-                            (int)max, whichCategories, (int)luminosity);
+    TString savename = Form("rootfiles/validate_%s_%d_%d_%srun%dcategories_%d.root", varname.Data(), (int)min, 
+                            (int)max, nolow.Data(), whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

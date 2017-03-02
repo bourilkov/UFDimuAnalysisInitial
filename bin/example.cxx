@@ -61,8 +61,8 @@ int main(int argc, char* argv[])
     // Get branches, set addresses
     s->setBranchAddresses(2);
 
-    XMLCategorizer xmlc;
-    xmlc.loadFromXML("xml/tree.xml");
+    //XMLCategorizer xmlc;
+    //xmlc.loadFromXML("xml/tree.xml");
     //std::cout << std::endl;
     //xmlc.outputResults();
 
@@ -71,8 +71,8 @@ int main(int argc, char* argv[])
     MuonCollectionCleaner     muonCollectionCleaner;
     EleCollectionCleaner      eleCollectionCleaner;
 
-    Run2MuonSelectionCuts     run2MuonSelection;
-    Run2EventSelectionCuts80X run2EventSelectionMC;
+    Run2MuonSelectionCuts  run2MuonSelection;
+    Run2EventSelectionCuts run2EventSelectionMC;
 
     //std::map<TString, double(*)()> m;
     //std::unordered_map<std::string, double(*)()> um;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 
     for(unsigned int i=0; i<10; i++)
     {
-       xmlc.reset();
+       //xmlc.reset();
 
        s->branches.recoDimuCands->GetEntry(i);
        s->branches.recoMuons->GetEntry(i);
@@ -97,8 +97,11 @@ int main(int argc, char* argv[])
            // Load the rest of the information needed for run2 categories
            s->branches.jets->GetEntry(i);
            s->branches.mht->GetEntry(i);
+           s->branches.eventInfo->GetEntry(i);
            s->branches.nVertices->GetEntry(i);
            s->branches.recoElectrons->GetEntry(i);
+
+           std::cout << Form("%d: event: %d, mht: %f \n", i, s->vars.eventInfo->event, s->vars.mht->pt);
 
            if(s->sampleType != "data")
            {
@@ -130,11 +133,11 @@ int main(int argc, char* argv[])
            //std::cout << "dimu_pt_m : " << s->vars.getValue("dimu_pt") << std::endl;
            //std::cout << "dimu_pt_mt: " << s->vars.getValue(TString("dimu_pt").Data()) << std::endl;
                       
-           std::cout << std::endl;
-           xmlc.evaluate(s->vars);
-           EventTools::outputEvent(s->vars);
-           xmlc.outputResults();
-           std::cout << std::endl;
+           //std::cout << std::endl;
+           //xmlc.evaluate(s->vars);
+           //EventTools::outputEvent(s->vars);
+           //xmlc.outputResults();
+           //std::cout << std::endl;
        }
 
        //for(auto& dimu: (*s->vars.recoDimuCands))

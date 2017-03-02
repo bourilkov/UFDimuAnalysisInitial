@@ -28,7 +28,7 @@ class VarSet
 
         // reco info
         Int_t nVertices;
-        EventInfo eventInfo;
+        EventInfo* eventInfo = 0;
         PairInfo* dimuCand = 0; // this is a pointer to one of the dimu candidates in the vector
                                 // we don't want to copy the object for ~40 million events
                                 // the other objects/primitives are loaded via TBranch->Get();

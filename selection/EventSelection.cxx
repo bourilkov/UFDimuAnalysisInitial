@@ -362,7 +362,7 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
         else
         {
             std::cout << "### ERROR: gen_dimu_mass < 0 in FEWZ SELECTION" << std::endl;
-            std::cout << vars.eventInfo.run << "," << vars.eventInfo.lumi << "," << vars.eventInfo.event << std::endl;
+            std::cout << vars.eventInfo->run << "," << vars.eventInfo->lumi << "," << vars.eventInfo->event << std::endl;
             std::cout << mu0.pt << "," << mu0.eta << "," << mu0.phi << std::endl;
             std::cout << mu1.pt << "," << mu1.eta << "," << mu1.phi << std::endl;
             std::cout << std::endl;

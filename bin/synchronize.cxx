@@ -101,8 +101,10 @@ int main(int argc, char* argv[])
     for(auto &i : samples)
     {
 
-        if(i.second->sampleType != "data" && i.second->name != "H2Mu_gg" && i.second->name != "ZZ_2l_2v") continue;
-        if(i.second->sampleType == "data" && i.second->name != "RunD" && i.second->name != "RunH") continue;
+        //if(i.second->sampleType != "data" && i.second->name != "H2Mu_gg" && i.second->name != "ZZ_2l_2v") continue;
+        //if(i.second->sampleType == "data" && i.second->name != "RunD" && i.second->name != "RunH") continue;
+        if(i.second->sampleType != "data" && i.second->name != "H2Mu_gg") continue;
+        if(i.second->sampleType == "data") continue;
 
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
@@ -178,6 +180,8 @@ int main(int argc, char* argv[])
           c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, min, max);
           c.second.histoMap[hkey]->GetXaxis()->SetTitle("count");
           c.second.histoList->Add(c.second.histoMap[hkey]);
+
+          c.second.eventsMap[hkey] = std::vector< std::pair<int, long long int> >();
       }
 
 
@@ -216,7 +220,9 @@ int main(int argc, char* argv[])
           s->branches.mht->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
-          //eventInfoBranch->GetEntry(i);
+          s->branches.eventInfo->GetEntry(i);
+
+          std::pair<int, long long int> e(s->vars.eventInfo->run, s->vars.eventInfo->event); // create a pair that identifies the event uniquely
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -261,7 +267,6 @@ int main(int argc, char* argv[])
               continue;
           }
 
-
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
           found_good_dimuon = true; 
@@ -277,7 +282,7 @@ int main(int argc, char* argv[])
               if(!c.second.inCategory) continue;
 
               c.second.histoMap[hkey]->Fill(1, 1);
-
+              c.second.eventsMap[hkey].push_back(e);
           } // end category loop
 
           if(false)
@@ -329,6 +334,12 @@ int main(int argc, char* argv[])
                 cAll->categoryMap[category.first].histoMap[h.first] = h.second;
                 cAll->categoryMap[category.first].histoList->Add(h.second);
                 std::cout << Form("%s: %d\n", h.second->GetName(), (int)h.second->Integral());
+            }
+            for(auto& v: category.second.eventsMap)
+            {
+                TString filename = "synchcsv/"+v.first+"_"+category.first+".csv";
+                EventTools::outputEventsToFile(v.second, filename);
+                v.second.clear();
             }
         }
         std::cout << Form("\n");
