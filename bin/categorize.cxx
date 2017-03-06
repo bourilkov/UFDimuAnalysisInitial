@@ -605,9 +605,13 @@ int main(int argc, char* argv[])
     std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
     std::cout << "@@@ nSamples used  : " << samplevec.size() << std::endl;
 
+    // print out xmlfilename if using xmlcategorizer otherwise print out 1 or 2
+    TString categoryString = Form("%d", whichCategories);
+    if(whichCategories == 3) categoryString = xmlfile;
+
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
-    std::cout << "categories  : " << whichCategories << std::endl;
+    std::cout << "categories  : " << categoryString << std::endl;
     std::cout << "var         : " << varname << std::endl;
     std::cout << "min         : " << min << std::endl;
     std::cout << "max         : " << max << std::endl;
@@ -621,7 +625,7 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, xmlfile, luminosity, reductionFactor](Sample* s)
     {
       bool isblinded = true;
       if(binning < 0) isblinded = false;
@@ -644,7 +648,8 @@ int main(int argc, char* argv[])
 
       Categorizer* categorySelection = 0;
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
-      else categorySelection = new LotsOfCategoriesRun2();
+      else if(whichCategories ==2) categorySelection = new LotsOfCategoriesRun2();
+      else if(whichCategories ==3) categorySelection = new XMLCategorizer(xmlfile);
 
       // set some flags
       bool isData = s->sampleType.EqualTo("data");
@@ -779,47 +784,24 @@ int main(int argc, char* argv[])
               s->branches.eff_wgt->GetEntry(i);
           }
 
-          if(whichCategories == 1) 
-          {
-              // clear vectors for the valid collections
-              s->vars.validMuons.clear();
-              s->vars.validExtraMuons.clear();
-              s->vars.validElectrons.clear();
-              s->vars.validJets.clear();
-              s->vars.validBJets.clear();
+          // clear vectors for the valid collections
+          s->vars.validMuons.clear();
+          s->vars.validExtraMuons.clear();
+          s->vars.validElectrons.clear();
+          s->vars.validJets.clear();
+          s->vars.validBJets.clear();
 
-              // load valid collections from s->vars raw collections
-              jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
-              muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
-              eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
+          // load valid collections from s->vars raw collections
+          jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
+          muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
+          eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
 
-              // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
-              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.3);
-              CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
-              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
+          // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
+          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
-          }
           //std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
-
-          if(whichCategories == 2)
-          {
-              // clear vectors for the valid collections
-              s->vars.validMuons.clear();
-              s->vars.validExtraMuons.clear();
-              s->vars.validElectrons.clear();
-              s->vars.validJets.clear();
-              s->vars.validBJets.clear();
-
-              // load valid collections from s->vars raw collections
-              jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
-              muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
-              eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
-
-              // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
-              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.3);
-              CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
-              CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
-          }
 
           // Figure out which category the event belongs to
           categorySelection->evaluate(s->vars);
@@ -827,12 +809,11 @@ int main(int argc, char* argv[])
           // Look at each category
           for(auto &c : categorySelection->categoryMap)
           {
-              // skip categories
+              // skip categories that we decided to hide (usually some intermediate categories)
               if(c.second.hide) continue;
               if(!c.second.inCategory) continue;
 
-              // dimuCand->recoCandMass
-              if(varNumber<=0) 
+              if(varname.Contains("dimu_mass")) 
               {
                   float varvalue = dimu.mass;
                   if(isData && varvalue > 120 && varvalue < 130 && isblinded) continue; // blind signal region
@@ -1086,7 +1067,8 @@ int main(int argc, char* argv[])
 
     Categorizer* cAll = 0;
     if(whichCategories == 1) cAll = new CategorySelectionRun1(); 
-    else cAll = new LotsOfCategoriesRun2();
+    else if(whichCategories == 2) cAll = new LotsOfCategoriesRun2();
+    else if(whichCategories == 3) cAll = new XMLCategorizer(xmlfile);
 
     // get histos from all categorizers and put them into one
     for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
@@ -1167,12 +1149,21 @@ int main(int argc, char* argv[])
     bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded
     TString blinded = "blinded";
     if(!isblinded) blinded = "UNBLINDED";
-    TString islow = "nolow_";     // reduceBins = true -> reduce the number of bins for low stats categories
-    if(reduceBins) islow = "low_";
+    TString islow = "nolow";     // reduceBins = true -> reduce the number of bins for low stats categories
+    if(reduceBins) islow = "low";
+
+    TString extraCategoryString = "";
+    if(whichCategories==3) 
+    {
+        extraCategoryString = xmlfile; 
+        extraCategoryString = extraCategoryString.ReplaceAll("xml/", "");
+        extraCategoryString = extraCategoryString.ReplaceAll(".xml", "");
+        extraCategoryString = "_"+extraCategoryString+"_";
+    }
 
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_%srun%dcategories_%d.root", varname.Data(), (int)min, 
-                            (int)max, islow.Data(), whichCategories, (int)luminosity);
+    TString savename = Form("rootfiles/validate_%s_%d_%d_%s_categories%d%s_%d.root", varname.Data(), (int)min, 
+                            (int)max, islow.Data(), whichCategories, xmlfile.Data(), (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

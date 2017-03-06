@@ -136,6 +136,7 @@ class XMLCategorizer : public Categorizer
 
     public:
         XMLCategorizer();
+        XMLCategorizer(TString xmlfile);
         ~XMLCategorizer(){};
 
         CategoryNode* rootNode = 0;

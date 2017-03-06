@@ -80,9 +80,19 @@ XMLCategorizer::XMLCategorizer()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
+XMLCategorizer::XMLCategorizer(TString xmlfile)
+{
+    rootNode = new CategoryNode(0, 0, 0, "", -999, "", -999, -999);
+    loadFromXML(xmlfile);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
 void XMLCategorizer::loadFromXML(TString filename)
 {
-    std::cout << Form("/// Loading categories from %s... \n\n", filename.Data());
+    //std::cout << Form("/// Loading categories from %s... \n\n", filename.Data());
     // First create the engine.
     TXMLEngine* xml = new TXMLEngine;
 
@@ -161,7 +171,7 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
     if(xleft == 0 || xright == 0)
     {
         cnode->name = "T_"+cnode->name;
-        cnode->output();
+        //cnode->output();
         categoryMap[cnode->name] = Category(cnode->name);
         return;
     }
@@ -172,7 +182,7 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
         scut.ReplaceAll(".", "p");
         scut.ReplaceAll("-", "n");
         if(cnode->mother == 0) cnode->name = "root";
-        cnode->output();
+        //cnode->output();
 
         categoryMap[cnode->name] = Category(cnode->name);
 
