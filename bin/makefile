@@ -14,11 +14,11 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = categorize
-MAIN = synchronize
+#MAIN = synchronize
 #MAIN = example
 #MAIN = categorizeDebug
 #MAIN = dycompare
-#MAIN = zcalibration
+MAIN = zcalibration
 #MAIN = fakes
 #MAIN = outputForBDT
 

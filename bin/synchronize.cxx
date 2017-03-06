@@ -138,8 +138,15 @@ int main(int argc, char* argv[])
 
     auto synchSample = [reductionFactor](Sample* s)
     {
-      // Output some info about the current file
+      std::vector<std::pair<int,long long int>> eventsToCheck;
+      //loadEventsFromFile("synchcsv/xCheck.txt", eventsToCheck);
 
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 53974));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 4115));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 188189));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 182));
+
+      // Output some info about the current file
       bool useMedium2016 = s->sampleType == "data" && s->name != "RunG" && s->name != "RunH";
       std::cout << Form("  /// Processing %s with useMedium2016 = %d \n", s->name.Data(), (int)useMedium2016);
 
@@ -223,6 +230,8 @@ int main(int argc, char* argv[])
           s->branches.eventInfo->GetEntry(i);
 
           std::pair<int, long long int> e(s->vars.eventInfo->run, s->vars.eventInfo->event); // create a pair that identifies the event uniquely
+          if(EventTools::eventInVector(e, eventsToCheck)) // Adrian gave a list of events to look at for synch purposes
+             EventTools::outputEvent(s->vars);
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -248,22 +257,37 @@ int main(int argc, char* argv[])
 
           if(!synchMuonSelection.evaluate(s->vars)) 
           {
+              if(EventTools::eventInVector(e, eventsToCheck))
+                  std::cout << "   !!! Fail Muon Selection !!!" << std::endl;
+
               continue; 
           }
           if(!synchEventSelection.evaluate(s->vars))
           { 
+              if(EventTools::eventInVector(e, eventsToCheck))
+                  std::cout << "   !!! Fail Event Selection !!!" << std::endl;
+
               continue; 
           }
           if( useMedium2016 && (!mu1.isMediumID2016 || !mu2.isMediumID2016) )
           { 
+              if(EventTools::eventInVector(e, eventsToCheck))
+                  std::cout << "   !!! Fail Medium ID 2016 !!!" << std::endl;
+
               continue; 
           }
           if( !useMedium2016 && (!mu1.isMediumID || !mu2.isMediumID) )
           { 
+              if(EventTools::eventInVector(e, eventsToCheck))
+                  std::cout << "   !!! Fail Medium ID !!!" << std::endl;
+
               continue; 
           }
           if(!mu1.isGlobal || !mu1.isTracker || !mu2.isGlobal || !mu2.isTracker)
           {
+              if(EventTools::eventInVector(e, eventsToCheck))
+                  std::cout << "   !!! Fail isGlobal isTracker !!!" << std::endl;
+
               continue;
           }
 
@@ -285,9 +309,8 @@ int main(int argc, char* argv[])
               c.second.eventsMap[hkey].push_back(e);
           } // end category loop
 
-          if(false)
-            // ouput pt, mass info etc for the event
-            EventTools::outputEvent(s->vars, *categorySelection);
+          if(EventTools::eventInVector(e, eventsToCheck))
+            categorySelection->outputResults();
 
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
 

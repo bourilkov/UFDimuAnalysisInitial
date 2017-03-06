@@ -137,8 +137,8 @@ int main(int argc, char* argv[])
       MuonCollectionCleaner     muonCollectionCleaner;
       EleCollectionCleaner      eleCollectionCleaner;
 
-      Run2MuonSelectionCuts     run2MuonSelection;
-      Run2EventSelectionCuts80X run2EventSelectionMC;
+      Run2MuonSelectionCuts  run2MuonSelection;
+      Run2EventSelectionCuts run2EventSelectionMC;
 
       Categorizer* categorySelection = new CategorySelectionRun1();
 
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
               continue; 
           }
 
-          // Load the rest of the information needed for run2 categories
+          // Load the rest of the information needed
           s->branches.jets->GetEntry(i);
           s->branches.mht->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
@@ -211,17 +211,17 @@ int main(int argc, char* argv[])
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
 
           // low stats in these categories. don't include them in the training set
-          categorySelection->evaluate(s->vars);
-          if(categorySelection->categoryMap["c_2_Jet_VBF_Tight"].inCategory) 
-          {
-              //EventTools::outputEvent(s->vars, (*categorySelection));
-              continue;
-          }
-          if(categorySelection->categoryMap["c_2_Jet_GGF_Tight"].inCategory)
-          {
-              //EventTools::outputEvent(s->vars, (*categorySelection));
-              continue;
-          }
+          //categorySelection->evaluate(s->vars);
+          //if(categorySelection->categoryMap["c_2_Jet_VBF_Tight"].inCategory) 
+          //{
+          //    //EventTools::outputEvent(s->vars, (*categorySelection));
+          //    continue;
+          //}
+          //if(categorySelection->categoryMap["c_2_Jet_GGF_Tight"].inCategory)
+          //{
+          //    //EventTools::outputEvent(s->vars, (*categorySelection));
+          //    continue;
+          //}
 
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate

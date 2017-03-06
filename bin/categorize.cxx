@@ -1167,12 +1167,12 @@ int main(int argc, char* argv[])
     bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded
     TString blinded = "blinded";
     if(!isblinded) blinded = "UNBLINDED";
-    TString nolow = "nolow_";     // reduceBins = true -> reduce the number of bins for low stats categories
-    if(!reduceBins) nolow = "low_";
+    TString islow = "nolow_";     // reduceBins = true -> reduce the number of bins for low stats categories
+    if(reduceBins) islow = "low_";
 
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
     TString savename = Form("rootfiles/validate_%s_%d_%d_%srun%dcategories_%d.root", varname.Data(), (int)min, 
-                            (int)max, nolow.Data(), whichCategories, (int)luminosity);
+                            (int)max, islow.Data(), whichCategories, (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

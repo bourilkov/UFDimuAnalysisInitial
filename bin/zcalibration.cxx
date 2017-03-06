@@ -202,11 +202,13 @@ int main(int argc, char* argv[])
 {
     gROOT->SetBatch();
     int varNumber = 0;
+    int muID = 0;
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
         if(i==1) ss >> varNumber;
+        if(i==2) ss >> muID;
     }   
 
     float nthreads = 8;
@@ -284,6 +286,8 @@ int main(int argc, char* argv[])
     std::cout << "massmax      : " << massmax << std::endl;
     std::cout << "massbins     : " << massbins << std::endl;
     std::cout << std::endl;
+    std::cout << "muID         : " << muID << std::endl;
+    std::cout << std::endl;
 
     for(auto& i: binning)
         std::cout << i << ",";
@@ -291,7 +295,7 @@ int main(int argc, char* argv[])
 
 
   
-    auto makePlotsForSample = [&binning, varNumber, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
+    auto makePlotsForSample = [&binning, varNumber, muID, xname, fitsig, massbins, massmin, massmax, xbins, xmin, xmax, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
@@ -299,9 +303,12 @@ int main(int argc, char* argv[])
       bool isData = s->sampleType == "data";
 
       // cuts to apply to the events in the sample
-      Run2MuonSelectionCuts     run2MuonSelection;
-      Run2EventSelectionCuts80X run2EventSelectionData(true);
-      Run2EventSelectionCuts80X run2EventSelectionMC;
+      Run2MuonSelectionCuts  run2MuonSelection;
+      Run2EventSelectionCuts run2EventSelectionData(true);
+      Run2EventSelectionCuts run2EventSelectionMC;
+
+      // use tight isolation
+      run2MuonSelection.cMaxRelIso = 0.12;
 
       // will probably want one for each type of mass
       ZCalibration* zcal_pf   = 0; 
@@ -343,6 +350,8 @@ int main(int argc, char* argv[])
         for(auto& dimu: (*s->vars.recoDimuCands))
         {
           s->vars.dimuCand = &dimu;
+          MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
+          MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
@@ -356,19 +365,42 @@ int main(int argc, char* argv[])
           {
               continue; 
           }
-          if(!s->vars.recoMuons->at(dimu.iMu1).isTightID || !s->vars.recoMuons->at(dimu.iMu2).isTightID)
-          { 
-              continue; 
-          }
           if(!run2MuonSelection.evaluate(s->vars)) 
           {
               continue; 
           }
 
-          found_good_dimuon = true;
+          // complicated muon ID selection
+          bool isTight = false;
+          bool isMedium = false;
+          bool isMedium2016 = false;
 
-          MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
-          MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
+          if(mu1.isTightID && mu2.isTightID)
+              isTight = true; 
+
+          if(mu1.isMediumID && mu2.isMediumID)
+              isMedium = true;
+
+          if(mu1.isMediumID2016 && mu2.isMediumID2016)
+              isMedium2016 = true;
+
+          if(muID == 0)
+          {
+              if(isTight) ;
+              else continue;
+          }
+          if(muID == 1)
+          {
+              if(!isTight && isMedium) ;
+              else continue;
+          }
+          if(muID == 2)
+          {
+              if(!isTight && !isMedium && isMedium2016) ;
+              else continue;
+          }
+
+          found_good_dimuon = true;
 
           // mc branches
           if(s->sampleType != "data")
@@ -540,7 +572,7 @@ int main(int argc, char* argv[])
 
         // name by sample_MASSTYPE 
         TString title = zcal_key;
-        title = title.ReplaceAll("_mass", "");
+        title = title.ReplaceAll("_mass", "")+Form("_muID%d", muID);
 
         mean_graph->SetTitle(title);
         res_graph->SetTitle(title);
@@ -650,14 +682,15 @@ int main(int argc, char* argv[])
         else
             yname = "Fit Resolution (GeV)";
 
-        TCanvas* c = DiMuPlottingSystem::overlay(item.second, item.first, item.first, xname, yname, false);
+        TCanvas* c = DiMuPlottingSystem::overlay(item.second, item.first+Form("_muID%d", muID), item.first+Form("_muID%d", muID), xname, yname, false);
         overlays_list->Add(c);
-        c->SaveAs("imgs/"+item.first+"_"+xname+".png");
+        c->SaveAs("imgs/"+item.first+Form("_muID%d", muID)+"_"+xname+".png");
     }   
 
-    std::cout << "  /// Saving plots..." << std::endl;
+    TString savename = Form("rootfiles/zcalibration_%s_muID%d_data_MC.root", xname.Data(), muID);
+    std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
-    TFile* savefile = new TFile("rootfiles/zcalibration_"+xname+"_data_8_0_X.root", "RECREATE");
+    TFile* savefile = new TFile(savename, "RECREATE");
     savefile->cd();
     TDirectory* overlaydir = savefile->mkdir("overlays");
     TDirectory* plotdir = savefile->mkdir("plots");

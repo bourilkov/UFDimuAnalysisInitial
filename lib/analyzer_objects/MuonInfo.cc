@@ -106,8 +106,8 @@ TLorentzVector MuonInfo::get4vec()
 
 TString MuonInfo::outputInfo()
 {
-    TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, hlt4: %d, hlt5: %d, isTight: %d, isMedium: %d", 
-                      pt, eta, phi, isHltMatched[4], isHltMatched[5], isTightID, isMediumID);
+    TString s = Form("pt: %7.3f, pt_PF: %7.3f, eta: %7.3f, phi: %7.3f, isoMu24: %d, isoTkMu24: %d, isTight: %d, isMedium: %d", 
+                      pt, pt_PF, eta, phi, isHltMatched[2], isHltMatched[3], isTightID, isMediumID);
     return s;
 }
 

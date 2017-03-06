@@ -65,5 +65,5 @@ VarSet::VarSet()
     varMap["zep0"]          = &VarSet::zep0;
     varMap["zep1"]          = &VarSet::zep1;
     varMap["phi_star"]      = &VarSet::phi_star;
-    varMap["dPhi_jj_mumu"]  = &VarSet::dEta_jj_mumu;
+    varMap["dPhi_jj_mumu"]  = &VarSet::dPhi_jj_mumu;
 }
