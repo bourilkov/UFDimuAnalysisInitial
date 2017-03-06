@@ -170,7 +170,12 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
     // If there are no daughters we are done.
     if(xleft == 0 || xright == 0)
     {
-        cnode->name = "T_"+cnode->name;
+        TString sig = Form("%5.4f", TMath::Sqrt(significanceSquared));
+        sig.ReplaceAll(" ", "");
+        sig.ReplaceAll(".", "p");
+        sig.ReplaceAll("-", "n");
+        cnode->name = "T_"+sig+"_"+cnode->name;
+
         //cnode->output();
         categoryMap[cnode->name] = Category(cnode->name);
         return;
