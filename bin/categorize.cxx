@@ -1152,18 +1152,18 @@ int main(int argc, char* argv[])
     TString islow = "nolow";     // reduceBins = true -> reduce the number of bins for low stats categories
     if(reduceBins) islow = "low";
 
-    TString extraCategoryString = "";
+    TString xcategoryString = "";
     if(whichCategories==3) 
     {
-        extraCategoryString = xmlfile; 
-        extraCategoryString = extraCategoryString.ReplaceAll("xml/", "");
-        extraCategoryString = extraCategoryString.ReplaceAll(".xml", "");
-        extraCategoryString = "_"+extraCategoryString+"_";
+        xcategoryString = xmlfile; 
+        xcategoryString = xcategoryString.ReplaceAll("xml/", "");
+        xcategoryString = xcategoryString.ReplaceAll(".xml", "");
+        xcategoryString = "_"+xcategoryString;
     }
 
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
     TString savename = Form("rootfiles/validate_%s_%d_%d_%s_categories%d%s_%d.root", varname.Data(), (int)min, 
-                            (int)max, islow.Data(), whichCategories, xmlfile.Data(), (int)luminosity);
+                            (int)max, islow.Data(), whichCategories, xcategoryString.Data(), (int)luminosity);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
