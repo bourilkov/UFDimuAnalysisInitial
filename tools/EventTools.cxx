@@ -66,36 +66,21 @@ void EventTools::outputEventsToFile(std::vector< std::pair<int,long long int> >&
 
 void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString filename)
 {
-// Given a categorizer, output the expected net signal, bkg to a csv
+// Given a categorizer, output the expected net signal, bkg, and significance to a csv
 
     std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
     std::ofstream file(filename, std::ofstream::out);
 
     TString fieldnames = "Category, Significance, Signal_Net, Bkg_Net";
-
-    // Loop through signal samples to get names
-    TIter nextSig(categories.categoryMap["ALL"].signalList);
-    TObject* object = 0;
-
-    while ((object = nextSig()))
-    {
-        TH1D* h = (TH1D*) object;
-        TString samplename = h->GetName();
-        samplename = samplename.ReplaceAll("ALL_", ""); // remove "ALL_" and we are left with the sample name
-        fieldnames += ", " + samplename; 
-    }
-    
-    // Loop through bkg samples to get names
-    TIter nextBkg(categories.categoryMap["ALL"].bkgList);
-    object = 0;
-
-    while ((object = nextBkg()))
-    {
-        TH1D* h = (TH1D*) object;
-        TString samplename = h->GetName();
-        samplename = samplename.ReplaceAll("ALL_", ""); // remove "ALL_" and we are left with the sample name
-        fieldnames += ", " + samplename; 
-    }
+    //for(auto const &c : categories.categoryMap)
+    //{
+    //    for(auto const &h: c.second.histoMap)
+    //    {
+    //        // Sample Name
+    //        fieldnames += ", "+h.first;
+    //    }
+    //    break;
+    //}
 
     // put the titles of the csv fields on the first line
     file << fieldnames.Data() << std::endl;
@@ -103,6 +88,8 @@ void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString fil
     // now get the info for each category    
     for(auto const &c : categories.categoryMap)
     {   
+        // c.first = category name, c.second = category object
+        // c.second.histoMap = map<samplename, histogram>
         TH1D* hsig = DiMuPlottingSystem::addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
         TH1D* hbkg = DiMuPlottingSystem::addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
 
@@ -113,26 +100,6 @@ void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString fil
         double significance = poisson0.significance(sintegral, bintegral);
 
         file << c.first << ", " << significance << ", " << sintegral << ", " << bintegral;
-
-        // Loop through signal samples to get names
-        TIter nextSig2(c.second.signalList);
-        object = 0;
-
-        while ((object = nextSig2()))
-        {
-            TH1D* h = (TH1D*) object;
-            file << ", " << h->Integral(0, h->GetSize()); 
-        }
-        
-        // Loop through bkg samples to get names
-        TIter nextBkg2(c.second.bkgList);
-        object = 0;
-
-        while ((object = nextBkg2()))
-        {
-            TH1D* h = (TH1D*) object;
-            file << ", " << h->Integral(0, h->GetSize()); 
-        }
         file << std::endl;
 
     }   
@@ -223,9 +190,6 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << "  nValidJets: " << vars.validJets.size() << std::endl;
          std::cout << "  nValidBJets: " << vars.validBJets.size() << std::endl;
          std::cout << std::endl;
-         std::cout << "  nGenJets: " << vars.genJets.nJets << std::endl;
-         std::cout << "  nValidGenJets: " << vars.validGenJets.size() << std::endl;
-         std::cout << std::endl;
          std::cout << "  nValidMuons: " << vars.validMuons.size() << std::endl;
          std::cout << "  nValidExtraMuons: " << vars.validExtraMuons.size() << std::endl;
          std::cout << "  nValidElectrons: " << vars.validElectrons.size() << std::endl;
@@ -233,6 +197,9 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << std::endl;
          std::cout << "  MET: " << vars.mht->pt << std::endl;
          std::cout << std::endl;
+         //std::cout << "  nGenJets: " << vars.genJets.nJets << std::endl;
+         //std::cout << "  nValidGenJets: " << vars.validGenJets.size() << std::endl;
+         //std::cout << std::endl;
 
          for(unsigned int j=0; j<vars.jets->size(); j++)
          {
@@ -269,8 +236,6 @@ void EventTools::outputEvent(VarSet& vars)
              std::cout << "  validElectron" << j <<  ": " << ParticleTools::output4vecInfo(vars.validElectrons[j]) << std::endl;
              if(j==vars.validElectrons.size()-1) std::cout << std::endl;
          }
-
-
 }
 
 //////////////////////////////////////////////////////////////////
@@ -283,24 +248,4 @@ void EventTools::outputEvent(VarSet& vars, Categorizer& categorizer)
          // output standard information about the event
          outputEvent(vars);
          categorizer.outputResults();
-}
-
-//////////////////////////////////////////////////////////////////
-//---------------------------------------------------------------
-//////////////////////////////////////////////////////////////////
-
-void EventTools::cleanByDR(std::vector<TLorentzVector>& v1, std::vector<TLorentzVector>& v2, float dRmin)
-{
-// clean 4vecs in v1 by dR based upon 4vecs in v2, should probably move to CollectionCleaners
-// Not debugged, I have no idea if this works right at the moment
-
-    for(unsigned int i=0; i<v1.size(); i++)
-    {
-        for(unsigned int j=0; j<v2.size(); j++)
-        {
-            if(!(v1[i].DeltaR(v2[j]) > dRmin)) v1.erase(v1.begin()+i); 
-            i--;
-        }
-    }
-
 }

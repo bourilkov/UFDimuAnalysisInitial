@@ -241,6 +241,15 @@ int main(int argc, char* argv[])
         } // end dimucand loop
       } // end event loop
 
+      for(auto& c : categorySelection->categoryMap)
+      {
+          for(auto& h: c.second.histoMap)
+          {
+              h.second->Scale(s->getScaleFactor(luminosity));
+              //if(!c.second.hide) std::cout << Form("    %s, %s, %f\n", c.first.Data(), h.first.Data(), h.second->Integral());
+          }
+      }
+
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
       return categorySelection;
     }; // end sample lambda function
