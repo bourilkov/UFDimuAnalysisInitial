@@ -64,52 +64,6 @@ void EventTools::outputEventsToFile(std::vector< std::pair<int,long long int> >&
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void EventTools::outputCategoryCountsToFile(Categorizer& categories, TString filename)
-{
-// Given a categorizer, output the expected net signal, bkg, and significance to a csv
-
-    std::cout << "  /// Exporting events to " << filename << " ..." << std::endl;
-    std::ofstream file(filename, std::ofstream::out);
-
-    TString fieldnames = "Category, Significance, Signal_Net, Bkg_Net";
-    //for(auto const &c : categories.categoryMap)
-    //{
-    //    for(auto const &h: c.second.histoMap)
-    //    {
-    //        // Sample Name
-    //        fieldnames += ", "+h.first;
-    //    }
-    //    break;
-    //}
-
-    // put the titles of the csv fields on the first line
-    file << fieldnames.Data() << std::endl;
-
-    // now get the info for each category    
-    for(auto const &c : categories.categoryMap)
-    {   
-        // c.first = category name, c.second = category object
-        // c.second.histoMap = map<samplename, histogram>
-        TH1D* hsig = DiMuPlottingSystem::addHists(c.second.signalList, c.first+"_Net_Signal", c.first+"_Net_Signal");
-        TH1D* hbkg = DiMuPlottingSystem::addHists(c.second.bkgList, c.first+"_Net_Bkg", c.first+"_Net_Bkg");
-
-        double sintegral = hsig->Integral(0, hsig->GetSize());
-        double bintegral = hbkg->Integral(0, hbkg->GetSize());
-
-        PoissonSignificance poisson0(0);
-        double significance = poisson0.significance(sintegral, bintegral);
-
-        file << c.first << ", " << significance << ", " << sintegral << ", " << bintegral;
-        file << std::endl;
-
-    }   
-    file.close();  
-}
-
-//////////////////////////////////////////////////////////////////
-//---------------------------------------------------------------
-//////////////////////////////////////////////////////////////////
-
 TString EventTools::outputMapKeysCSV(std::map<TString,double>& map)
 {
 // Given a map output the keys to a csv string, used to output the variable names

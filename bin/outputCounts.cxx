@@ -127,23 +127,34 @@ int main(int argc, char* argv[])
 
       Categorizer* categorySelection = new CategorySelectionRun1();
 
-      TString hkey;
+      TString hkeyn;
+      TString hkeyw;
       for(auto &c : categorySelection->categoryMap)
       {   
             //number of bins for the histogram
             int hbins = 21;
 
             // c.second is the category object, c.first is the category name
-            TString hname = c.first+"_"+s->name;
-            hkey = s->name;
+            TString hnamen = c.first+"_"+s->name+"_num";
+            TString hnamew = c.first+"_"+s->name+"_weights";
+            hkeyn = s->name+"_num";
+            hkeyw = s->name+"_weights";
 
-            // Set up the histogram for the category and variable to plot
-            c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, -1, 20);
-            c.second.histoMap[hkey]->GetXaxis()->SetTitle("bin");
-            c.second.histoList->Add(c.second.histoMap[hkey]);                                        // need them ordered by xsec for the stack and ratio plot
-            if(s->sampleType.Contains("data")) c.second.dataList->Add(c.second.histoMap[hkey]);      // data histo
-            if(s->sampleType.Contains("signal")) c.second.signalList->Add(c.second.histoMap[hkey]);  // signal histos
-            if(s->sampleType.Contains("background")) c.second.bkgList->Add(c.second.histoMap[hkey]); // bkg histos
+            // The number of events histo
+            c.second.histoMap[hkeyn] = new TH1D(hnamen, hnamen, hbins, -1, 20);
+            c.second.histoMap[hkeyn]->GetXaxis()->SetTitle("bin");
+            c.second.histoList->Add(c.second.histoMap[hkeyn]);                                        
+            if(s->sampleType.Contains("data")) c.second.dataList->Add(c.second.histoMap[hkeyn]);      
+            if(s->sampleType.Contains("signal")) c.second.signalList->Add(c.second.histoMap[hkeyn]);  
+            if(s->sampleType.Contains("background")) c.second.bkgList->Add(c.second.histoMap[hkeyn]); 
+
+            // The sum of weights histo
+            c.second.histoMap[hkeyw] = new TH1D(hnamew, hnamew, hbins, -1, 20);
+            c.second.histoMap[hkeyw]->GetXaxis()->SetTitle("bin");
+            c.second.histoList->Add(c.second.histoMap[hkeyw]);                                        
+            if(s->sampleType.Contains("data")) c.second.dataList->Add(c.second.histoMap[hkeyw]);      
+            if(s->sampleType.Contains("signal")) c.second.signalList->Add(c.second.histoMap[hkeyw]);  
+            if(s->sampleType.Contains("background")) c.second.bkgList->Add(c.second.histoMap[hkeyw]); 
       }   
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
@@ -233,7 +244,8 @@ int main(int argc, char* argv[])
           for(auto &c : categorySelection->categoryMap)
           {
               // if the event is in the current category then fill the category's histogram for the given sample and variable
-              if(c.second.inCategory) c.second.histoMap[hkey]->Fill(bin, s->getWeight());
+              if(c.second.inCategory) c.second.histoMap[hkeyn]->Fill(bin);
+              if(c.second.inCategory) c.second.histoMap[hkeyw]->Fill(bin, s->getWeight());
           } // end category loop
 
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
@@ -245,7 +257,8 @@ int main(int argc, char* argv[])
       {
           for(auto& h: c.second.histoMap)
           {
-              h.second->Scale(s->getScaleFactor(luminosity));
+              if(h.first.Contains("weights"))
+                  h.second->Scale(s->getScaleFactor(luminosity));
               //if(!c.second.hide) std::cout << Form("    %s, %s, %f\n", c.first.Data(), h.first.Data(), h.second->Integral());
           }
       }
@@ -278,16 +291,11 @@ int main(int argc, char* argv[])
             if(category.second.hide) continue;
             for(auto& h: category.second.histoMap) // loop through each histogram in the category
             {
-                // std::cout << Form("%s: %f", h.first.Data(), h.second->Integral()) << std::endl;
-                // h.first is the sample name, category.histoMap<samplename, TH1D*>
-                Sample* s = samples[h.first];
-
                 cAll->categoryMap[category.first].histoMap[h.first] = h.second;
                 cAll->categoryMap[category.first].histoList->Add(h.second);
 
-                if(s->sampleType.EqualTo("signal"))          cAll->categoryMap[category.first].signalList->Add(h.second);
-                else if(s->sampleType.EqualTo("background")) cAll->categoryMap[category.first].bkgList->Add(h.second);
-                else                                         cAll->categoryMap[category.first].dataList->Add(h.second);
+                if(h.first.Contains("H2Mu")) cAll->categoryMap[category.first].signalList->Add(h.second);
+                else                         cAll->categoryMap[category.first].bkgList->Add(h.second);
             }
         }
     }
@@ -307,12 +315,41 @@ int main(int argc, char* argv[])
         // some categories are intermediate and we don't want to save the plots for those
         if(c.second.hide) continue;
 
-        // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-        TH1D* hNetSignal = DiMuPlottingSystem::addHists(c.second.signalList, c.first+"_Net_Signal", "Net Signal");
-        TH1D* hNetBkg    = DiMuPlottingSystem::addHists(c.second.bkgList,    c.first+"_Net_Bkg",    "Net Background");
+        TIter isig(c.second.signalList);
+        TIter ibkg(c.second.bkgList);
+        TObject* obj = 0;
 
-        netlist->Add(hNetSignal);
-        netlist->Add(hNetBkg);
+        TList* signalListNum = new TList();
+        TList* signalListW = new TList();
+        TList* bkgListNum = new TList();
+        TList* bkgListW = new TList();
+
+        // filter num/weight histos to appropriate lists
+        while(obj = isig())
+        {
+            TH1D* h = (TH1D*) obj;
+            if(TString(h->GetName()).Contains("num")) signalListNum->Add(h);
+            if(TString(h->GetName()).Contains("weights")) signalListW->Add(h);
+        }
+        while(obj = ibkg())
+        {
+            TH1D* h = (TH1D*) obj;
+            if(TString(h->GetName()).Contains("num")) bkgListNum->Add(h);
+            if(TString(h->GetName()).Contains("weights")) bkgListW->Add(h);
+        }
+
+        // num histos
+        TH1D* hNetSignalNum = DiMuPlottingSystem::addHists(signalListNum, c.first+"_Num_Signal", "Num Signal");
+        TH1D* hNetBkgNum    = DiMuPlottingSystem::addHists(bkgListNum,    c.first+"_Num_Bkg",    "Num Background");
+
+        // weighted histos
+        TH1D* hNetSignalW = DiMuPlottingSystem::addHists(signalListW, c.first+"_Net_Signal", "Net Signal");
+        TH1D* hNetBkgW    = DiMuPlottingSystem::addHists(bkgListW,    c.first+"_Net_Bkg",    "Net Background");
+
+        netlist->Add(hNetSignalW);
+        netlist->Add(hNetBkgW);
+        netlist->Add(hNetSignalNum);
+        netlist->Add(hNetBkgNum);
     }
 
     TString savename = Form("rootfiles/significance_run1categories.root");
