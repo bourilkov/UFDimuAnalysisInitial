@@ -131,7 +131,7 @@ def stackAndRatio(histo_list, title="stack", log=True, name="stack", xtitle="Mas
 
     c = TCanvas()
     pad1 = TPad("pad1", "pad1", 0,0.3,1,1.0)
-    pad1.SetBottomMargin(0.025)
+    pad1.SetBottomMargin(0.0125)
     pad1.Draw()
     pad1.cd()
 
@@ -140,7 +140,9 @@ def stackAndRatio(histo_list, title="stack", log=True, name="stack", xtitle="Mas
     s.Draw("hist")
     s.GetXaxis().SetTitle("")
     s.GetYaxis().SetTitle(ytitle)
-    s.GetYaxis().SetLabelFont(1);
+    s.GetYaxis().SetLabelFont(43); 
+    s.GetYaxis().SetLabelSize(15);
+    s.GetXaxis().SetLabelSize(0.000001);
     
     # overlay the mc error band
     sumhist = s.GetStack().Last().Clone()
