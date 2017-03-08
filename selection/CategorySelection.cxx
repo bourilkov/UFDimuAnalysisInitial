@@ -525,20 +525,37 @@ void CategorySelectionSynch::evaluate(VarSet& vars)
     // jet category selection
     if(vars.validJets.size() >= 2)
     {
-        TLorentzVector leadJet = vars.validJets[0];
-        TLorentzVector subleadJet = vars.validJets[1];
-        TLorentzVector dijet = leadJet + subleadJet;
-
-        float dEta = leadJet.Eta() - subleadJet.Eta();
-        float dijetMass = dijet.M();
-
         //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
-        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.validBJets.size() == 0) // No MET for now
+        if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin && vars.validBJets.size() == 0) // No MET for now
         {
             categoryMap["c_2_Jet"].inCategory = true;
-            if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; return; }
-            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand->pt > cDimuPtMinGGFT){ categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; return; }
-            else{ categoryMap["c_2_Jet_VBF_Loose"].inCategory = true; return; }
+            double mjj_max = -1;
+
+            for(unsigned int i=0; i<vars.validJets.size(); i++)
+            {
+                for(unsigned int j=i+1; j<vars.validJets.size(); j++)
+                {
+                    double dEtajj = vars.validJets[i].Eta() - vars.validJets[j].Eta();
+                    double mjj = (vars.validJets[i] + vars.validJets[j]).M();
+                    if(mjj > mjj_max) mjj_max = mjj;
+                    if(mjj > cDijetMassMinVBFT && TMath::Abs(dEtajj) > cDijetDeltaEtaMinVBFT)
+                    { 
+                        categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; 
+                        return; 
+                    }
+                }
+            }
+
+            if(mjj_max > cDijetMassMinGGFT && vars.dimuCand->pt > cDimuPtMinGGFT)
+            { 
+                categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; 
+                return; 
+            }
+            else
+            { 
+                categoryMap["c_2_Jet_VBF_Loose"].inCategory = true; 
+                return; 
+            }
         }
     }
     if(!categoryMap["c_2_Jet"].inCategory) // fails 2jet preselection enters 01 categories

@@ -55,7 +55,8 @@ void EleCollectionCleaner::getValidElectrons(VarSet& vars, std::vector<TLorentzV
         if(cElectronSelectionID == 3) id = vars.recoElectrons->at(j).isVetoID; 
 
         // crack in the hcal
-        if(TMath::Abs(vars.recoElectrons->at(j).eta) >= 1.4442 && TMath::Abs(vars.recoElectrons->at(j).eta) <= 1.566)
+        double eta = TMath::Abs(vars.recoElectrons->at(j).eta);
+        if(!(eta < 1.4442 || (eta >  1.566 && eta < cElectronSelectionEtaMax)) )
             continue;
 
         // Pt, Eta and ID
