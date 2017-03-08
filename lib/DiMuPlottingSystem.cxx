@@ -629,7 +629,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetYaxis()->SetNdivisions(505);
     hratio->GetYaxis()->SetTitleSize(20);
     hratio->GetYaxis()->SetTitleFont(43);
-    hratio->GetYaxis()->SetTitleOffset(1.55);
+    hratio->GetYaxis()->SetTitleOffset(0.7);
     hratio->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
     hratio->GetYaxis()->SetLabelSize(15);
 

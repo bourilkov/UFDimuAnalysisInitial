@@ -56,9 +56,6 @@ def bwZ(x):
 def bwZGamma(x, mix_min=0.001):
     bwWidth =  RooRealVar("bwzg_Width","widthZ",2.5,0,30)
     bwmZ =     RooRealVar("bwzg_mZ","mZ",91.2,90,92)
-
-    #expParam = RooRealVar("bwzg_expParam","expParam",-0.0053,-0.0073,-0.0033)
-    #mixParam = RooRealVar("bwzg_mixParam","mix",0.379,0,0.399)
     
     expParam = RooRealVar("bwzg_expParam","expParam",-0.0053,-0.0073,-0.0033)
     mixParam = RooRealVar("bwzg_mixParam","mix",0.379,0.2,1)
