@@ -14,15 +14,22 @@ class CollectionCleaner
     public:
         CollectionCleaner(){};
         ~CollectionCleaner(){};
-        static void cleanByDR(std::vector<TLorentzVector>& cleanThis, std::vector<TLorentzVector>& fromThis, float dRmin)
+        static void cleanByDR(std::vector<TLorentzVector>& cleanThis, std::vector<TLorentzVector>& fromThis, float dRmin, bool print=false)
         {
         // remove items from cleanThis if they are too close in dR to any item in fromThis
             for(unsigned int i=0; i<fromThis.size(); i++)
             {   
+                if(print) std::cout << Form("Checking against > %s \n", ParticleTools::output4vecInfo(fromThis[i]).Data());
                 for(unsigned int j=0; j<cleanThis.size(); j++)
                 {
+                    if(print) std::cout << Form("    Candidate > %s, dR: %7.3f\n", ParticleTools::output4vecInfo(cleanThis[j]).Data(), 
+                                          cleanThis[j].DeltaR(fromThis[i]));
+
                     if(cleanThis[j].DeltaR(fromThis[i]) < dRmin) 
                     {
+                        if(print) std::cout << Form("    Removing candidate > %s, dR: %7.3f\n", ParticleTools::output4vecInfo(cleanThis[j]).Data(),
+                                                    cleanThis[j].DeltaR(fromThis[i]));
+
                         // remove the item and make decrement j
                         // since the next item will fall back into
                         // the same index (j-- then j++ leaves j the same)

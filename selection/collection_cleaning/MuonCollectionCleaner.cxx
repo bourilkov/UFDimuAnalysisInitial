@@ -24,7 +24,7 @@ MuonCollectionCleaner::MuonCollectionCleaner()
 {
     cMuonSelectionPtMin = 10;
     cMuonSelectionEtaMax = 2.4;
-    cMuonSelectionIsoMax = 0.12;
+    cMuonSelectionIsoMax = 0.25;
     cMuonSelectionID = 1;
     cUseMedium2016 = false;
 }

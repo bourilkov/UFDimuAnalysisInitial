@@ -228,10 +228,7 @@ int main(int argc, char* argv[])
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
           s->branches.eventInfo->GetEntry(i);
-
           std::pair<int, long long int> e(s->vars.eventInfo->run, s->vars.eventInfo->event); // create a pair that identifies the event uniquely
-          if(EventTools::eventInVector(e, eventsToCheck)) // Adrian gave a list of events to look at for synch purposes
-             EventTools::outputEvent(s->vars);
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -251,6 +248,9 @@ int main(int argc, char* argv[])
           //CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
           //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
           
+          if(EventTools::eventInVector(e, eventsToCheck)) // Adrian gave a list of events to look at for synch purposes
+             EventTools::outputEvent(s->vars);
+
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
           ///////////////////////////////////////////////////////////////////

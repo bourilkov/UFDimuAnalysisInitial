@@ -20,7 +20,7 @@ class JetCollectionCleaner : public CollectionCleaner
         float cJetSelectionBJetEtaMax;
 
         void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, bool require_b = false);
-        void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, std::vector<TLorentzVector>& bjetvec);
+        void getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, std::vector<TLorentzVector>& bjetvec, bool print=false);
         void getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec);
 
         bool jetID(VarSet& vars, unsigned int jet, int id);

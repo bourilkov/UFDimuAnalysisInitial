@@ -46,20 +46,25 @@ JetCollectionCleaner::JetCollectionCleaner(float jetSelectionPtMin, float jetSel
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, std::vector<TLorentzVector>& bjetvec)
+void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector>& jetvec, std::vector<TLorentzVector>& bjetvec, bool print)
 {
 // Determine the number of valid jets using the given cuts
     for(unsigned int j=0; j < vars.jets->size(); ++j)
     {
+        if(print) std::cout << Form("Checking > %s\n", vars.jets->at(j).outputInfo().Data());
         // Pt and Eta selections for a regular jet
         if(vars.jets->at(j).pt > cJetSelectionPtMin && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionEtaMax)
         {
+           if(print) std::cout << Form("Adding to jets > %s\n", vars.jets->at(j).outputInfo().Data());
            TLorentzVector jet4vec = vars.jets->at(j).get4vec();
            jetvec.push_back(jet4vec);
 
            // further selections for a bjet, eta should be tighter since we need the tracker
            if(vars.jets->at(j).CSV > cJetSelectionBTagMin && TMath::Abs(vars.jets->at(j).eta) < cJetSelectionBJetEtaMax)
+           {
+               if(print) std::cout << Form("Adding to bjets > %s\n", vars.jets->at(j).outputInfo().Data());
                bjetvec.push_back(jet4vec);
+           }
         }
     }
 }
