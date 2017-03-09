@@ -93,24 +93,3 @@ void JetCollectionCleaner::getValidJets(VarSet& vars, std::vector<TLorentzVector
         }
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-void JetCollectionCleaner::getValidGenJets(VarSet& vars, std::vector<TLorentzVector>& jetvec)
-{
-// Determine the number of valid jets using the given cuts
-// Cut jets by dR here instead of in CMSSW
-    for(unsigned int j=0; j < vars.genJets.nJets && j < vars.genJets.arraySize; ++j)
-    {
-        // Pt and Eta selections
-        if(vars.genJets.pt[j] > cJetSelectionPtMin && TMath::Abs(vars.genJets.eta[j]) < cJetSelectionEtaMax)
-        {
-           TLorentzVector jet4vec; 
-           jet4vec.SetPtEtaPhiM(vars.genJets.pt[j],vars.genJets.eta[j],vars.genJets.phi[j],vars.genJets.mass[j]);
-           // passes all selections, add to valid jets
-           jetvec.push_back(jet4vec);
-        }
-    }
-}

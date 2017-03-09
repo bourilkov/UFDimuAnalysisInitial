@@ -12,6 +12,9 @@
 #include "EleInfo.h"
 #include "MhtInfo.h"
 #include "SlimJetInfo.h"
+#include "GenParentInfo.h"
+#include "GenMuonInfo.h"
+#include "GenPairInfo.h"
 #include "TLorentzVector.h"
 #include <unordered_map>
 #include <map>
@@ -46,11 +49,9 @@ class VarSet
         std::vector<TLorentzVector> validBJets;
 
         // gen info
-        _GenJetInfo  genJets;
-        std::vector<TLorentzVector> validGenJets;
-        _genPartInfo genZpreFSR, genZpostFSR, genGpreFSR, genGpostFSR;
-        _TrackInfo genM1GpreFSR, genM1GpostFSR, genM2GpreFSR, genM2GpostFSR; // muons from virtual photon
-        _TrackInfo genM1ZpreFSR, genM1ZpostFSR, genM2ZpreFSR, genM2ZpostFSR; // muons from Z
+        std::vector<GenParentInfo>* genParents = 0;
+        std::vector<GenMuonInfo>* genMuons = 0;
+        std::vector<GenPairInfo>* genDimuons = 0;
 
         int nPU;
 

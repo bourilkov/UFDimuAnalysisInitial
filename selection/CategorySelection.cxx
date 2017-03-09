@@ -664,36 +664,6 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
     float eta1 = vars.recoMuons->at(vars.dimuCand->iMu2).eta;
     unsigned int njets = vars.validJets.size();
 
-    // use gen jets for categorization
-    if(!useRecoJets) njets = vars.validGenJets.size();
-
-    // use gen muons for categorization 
-    if(!useRecoMu)
-    {
-        // get first postFSR DY gen muon
-        _TrackInfo mu0 = ParticleTools::getGenMuDY(0, 1, vars);
-        // get second postFSR DY gen muon
-        _TrackInfo mu1 = ParticleTools::getGenMuDY(1, 1, vars);
-
-        if(mu0.charge == mu1.charge)
-            std::cout << "### ERROR: DYmu0.charge == DYmu1.charge in FEWZ CATEGORY SELECTION. Muons decayed from Z or gamma* should have opposite sign." << std::endl;
-
-        eta0 = mu0.eta;
-        eta1 = mu1.eta;
-
-        if(mu0.pt > 0 && mu1.pt > 0) dimu_mass = ParticleTools::getMotherPtEtaPhiM(mu0.pt, mu0.eta, mu0.phi, MASS_MUON, mu1.pt, mu1.eta, mu1.phi, MASS_MUON).M();
-        else
-        {
-            std::cout << "### ERROR: gen_dimu_mass < 0 in FEWZ CATEGORY SELECTION" << std::endl;
-            std::cout << vars.eventInfo->run << "," << vars.eventInfo->lumi << "," << vars.eventInfo->event << std::endl;
-            std::cout << mu0.pt << "," << mu0.eta << "," << mu0.phi << std::endl;
-            std::cout << mu1.pt << "," << mu1.eta << "," << mu1.phi << std::endl;
-            std::cout << std::endl;
-        }
-
-
-    }
-
     // Should cut out all events that don't fall into the wide mass window in earlier selection stage
     // All events that pass are in window of min to max
     categoryMap["c_Wide"].inCategory = true;

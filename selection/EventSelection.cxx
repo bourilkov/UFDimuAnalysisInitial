@@ -326,48 +326,13 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     int mu1 = vars.dimuCand->iMu1;
     int mu2 = vars.dimuCand->iMu2;
 
-    if(useReco)
-    {
-        leadPt = TMath::Max(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
-        subleadPt = TMath::Min(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
-        eta0 = vars.recoMuons->at(mu1).eta;
-        eta1 = vars.recoMuons->at(mu2).eta;
-        dimu_mass = vars.dimuCand->mass;
-        charge0 = vars.recoMuons->at(mu1).charge;
-        charge1 = vars.recoMuons->at(mu2).charge;
-    }
-    // use gen values
-    else
-    {
-        // get first postFSR DY gen muon
-        _TrackInfo mu0 = ParticleTools::getGenMuDY(0, 1, vars);
-        // get second postFSR DY gen muon
-        _TrackInfo mu1 = ParticleTools::getGenMuDY(1, 1, vars);
-
-        if(mu0.charge == mu1.charge)
-        {
-            std::cout << "### ERROR: DYmu0.charge == DYmu1.charge in FEWZ SELECTION. Muons decayed from Z or gamma* should have opposite sign." << std::endl;
-            std::cout << "### And this shouldn't happen. This event will be cut due to charge selection anyways." << std::endl;
-        }
-
-        eta0 = mu0.eta;
-        eta1 = mu1.eta;
-        charge0 = mu0.charge;
-        charge1 = mu1.charge;
-
-        leadPt = TMath::Max(TMath::Abs(mu0.pt), TMath::Abs(mu1.pt));
-        subleadPt = TMath::Min(TMath::Abs(mu0.pt), TMath::Abs(mu1.pt));
-
-        if(mu0.pt > 0 && mu1.pt > 0) dimu_mass = ParticleTools::getMotherPtEtaPhiM(mu0.pt, mu0.eta, mu0.phi, MASS_MUON, mu1.pt, mu1.eta, mu1.phi, MASS_MUON).M();
-        else
-        {
-            std::cout << "### ERROR: gen_dimu_mass < 0 in FEWZ SELECTION" << std::endl;
-            std::cout << vars.eventInfo->run << "," << vars.eventInfo->lumi << "," << vars.eventInfo->event << std::endl;
-            std::cout << mu0.pt << "," << mu0.eta << "," << mu0.phi << std::endl;
-            std::cout << mu1.pt << "," << mu1.eta << "," << mu1.phi << std::endl;
-            std::cout << std::endl;
-        }
-    }
+    leadPt = TMath::Max(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
+    subleadPt = TMath::Min(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
+    eta0 = vars.recoMuons->at(mu1).eta;
+    eta1 = vars.recoMuons->at(mu2).eta;
+    dimu_mass = vars.dimuCand->mass;
+    charge0 = vars.recoMuons->at(mu1).charge;
+    charge1 = vars.recoMuons->at(mu2).charge;
 
     // if a muon fails any of the criterea that are turned on then reutrn false
     if(cutset.cuts[0].on)
