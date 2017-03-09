@@ -533,6 +533,7 @@ void CategorySelectionSynch::evaluate(VarSet& vars)
 
             for(unsigned int i=0; i<vars.validJets.size(); i++)
             {
+                if(!(vars.validJets[i].Pt() > cLeadPtMin)) break;
                 for(unsigned int j=i+1; j<vars.validJets.size(); j++)
                 {
                     double dEtajj = vars.validJets[i].Eta() - vars.validJets[j].Eta();

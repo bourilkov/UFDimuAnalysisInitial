@@ -9,7 +9,9 @@
 import string
 import re
 import argparse
+import numpy as np
 from ROOT import *
+from array import *
 
 import sys
 #sys.argv.append( '-b-' )
@@ -127,7 +129,10 @@ def ratio(histo_list):
 #-----------------------------------------------------------------
 ##################################################################
 
-def stackAndRatio(histo_list, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0]):
+def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0]):
+
+    if(rlist==0):
+        rlist = histo_list
 
     c = TCanvas()
     pad1 = TPad("pad1", "pad1", 0,0.3,1,1.0)
@@ -174,7 +179,7 @@ def stackAndRatio(histo_list, title="stack", log=True, name="stack", xtitle="Mas
     pad2.SetBottomMargin(0.2)
     pad2.Draw()
     pad2.cd()
-    hratio = ratio(histo_list)
+    hratio = ratio(rlist)
     hratio.SetMinimum(0.58)
     hratio.SetMaximum(1.42)
     hratio.SetMarkerStyle(20)
@@ -199,3 +204,146 @@ def stackAndRatio(histo_list, title="stack", log=True, name="stack", xtitle="Mas
 
     c.SaveAs("stack.png")
 
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+def ratioError2(numerator, numeratorError2, denominator, denominatorError2):
+    """ Propogation of errors for N_numerator/N_denominator
+        Returns error squared, takes in numerator error squared and denom err squared as well as N_num and N_denom"""
+    if(numerator   <= 0): return 0
+    if(denominator <= 0): return 0
+    ratio = numerator/denominator;
+
+    return  ratio*ratio*( numeratorError2/numerator/numerator + denominatorError2/denominator/denominator );
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+def getRebinEdges(numerator, denominator, max_err = 0.10):
+    """The ratio plots are a bit crazy with huge errors sometimes, so we want to rebin with variable binning
+       such that the error is always low in each of the ratio plot bins"""
+
+    newBins = []    # will return this as the new binning scheme based upon the ratio plot errors
+    errVec = []     # error in each bin
+    numName = numerator.GetName()
+    isMassData = False
+    if("dimu_mass" in numerator.GetXaxis().GetTitle() and "Data" in numName): isMassData = True
+    print "numerator name: %s, numerator xtitle: %s, isMassData: %d" %(numName, numerator.GetXaxis().GetTitle(), isMassData)
+
+    # check if the two histos are binned the same way
+    compatible = numerator.GetNbinsX() == denominator.GetNbinsX() and numerator.GetBinLowEdge(1) == denominator.GetBinLowEdge(1) \
+                 and numerator.GetBinLowEdge(numerator.GetNbinsX()) == denominator.GetBinLowEdge(denominator.GetNbinsX())
+    if(not compatible):
+        print "!!! ERROR: tools.getBinning >> numerator and denominator histograms do not have the same binning scheme!"
+        return []
+
+    if(numerator.Integral() <= 0 or denominator.Integral() <=0):
+        print "!!! ERROR: tools.getBinning >>  numerator or denominator integral <= 0"
+        return []
+
+    # first low edge is the lowest edge by default
+    newBins.append(numerator.GetBinLowEdge(1))     # edges for the new binning scheme
+    sumNum = 0                                     
+    sumErr2Num = 0
+    sumDenom = 0
+    sumErr2Denom = 0
+    lastBinIsCutBin = 0
+
+    # Collect bins together until the error is low enough for the corresponding ratio plot bin.
+    # Once the error is low enough call that the new bin, move on and repeat.
+    for i in range(1,numerator.GetNbinsX()+1):
+        sumNum += numerator.GetBinContent(i)
+        sumErr2Num += numerator.GetBinError(i)*numerator.GetBinError(i)
+
+        sumDenom += denominator.GetBinContent(i)
+        sumErr2Denom += denominator.GetBinError(i)*denominator.GetBinError(i)
+
+        # squared error for the ratio, using propogation of errors
+        # 0 if sumNum or sumDenom is 0
+        ratioErr2 = ratioError2(sumNum, sumErr2Num, sumDenom, sumErr2Denom)
+
+        percentError = 0
+        if(ratioErr2>0): 
+            percentError = TMath.Sqrt(ratioErr2)/(sumNum/sumDenom)
+
+        # If the bins suddenly drop to zero or go up from zero then this is probably due to some cut that was applied
+        # and we dont' want to combine the 0 bins on one side of the cut with the bins after the cut. It messes up the comparison plots.
+        # it's better to see exactly where the cut caused everything to drop to zero.
+        if(i!=numerator.GetNbinsX() and TMath.Abs(numerator.GetBinContent(i)-numerator.GetBinContent(i+1)) > 10
+           and (numerator.GetBinContent(i) == 0 or numerator.GetBinContent(i+1) == 0)):
+            newBins.append(numerator.GetBinLowEdge(i)+numerator.GetBinWidth(i))
+            errVec.append(percentError)
+
+            sumNum = 0
+            sumErr2Num = 0
+
+            sumDenom = 0
+            sumErr2Denom = 0
+            lastBinIsCutBin = True
+        # we have the minimum error necessary create the bin in the vector
+        # or just make a bin if we are in the blinded region of the mass spectrum
+        elif(percentError !=0 and percentError <= max_err or (isMassData and numerator.GetBinLowEdge(i) >= 120 
+             and numerator.GetBinLowEdge(i) < 130)):
+            newBins.append(numerator.GetBinLowEdge(i)+numerator.GetBinWidth(i))
+            errVec.append(percentError)
+
+            sumNum = 0
+            sumErr2Num = 0
+
+            sumDenom = 0
+            sumErr2Denom = 0
+
+            lastBinIsCutBin = False
+        # we got to the end of the histogram and the last bins can't add up
+        # to get the error low enough, so we merge these last bins with the 
+        # last bin set up in the new variable binning scheme.
+        if(i==numerator.GetNbinsX() and (percentError > max_err or percentError == 0)):
+            # get rid of the last bin added, but make sure there is at least one bin. Don't remove the low edge of the zero-th bin.
+            # la la we need at least a value for the beginning and end, size 1 vector doesn't make sense and rebinning will fail.
+            if(len(newBins) > 1 and not lastBinIsCutBin): 
+                del newBins[-1]
+            # replace with the end bin value in the numerator histo
+            newBins.append(numerator.GetBinLowEdge(i)+numerator.GetBinWidth(i))
+    return newBins
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+def rebin(hlist, edges):
+    """Use the a variable binning scheme to rebin the histograms in the list."""
+    rebin_hlist = []
+    for h in hlist:
+        hrebin = h.Rebin(len(edges)-1, h.GetName()+"_", array('d',edges))
+        rebin_hlist.append(hrebin)
+        
+    return rebin_hlist
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+def scaleByBinWidth(hlist, edges):
+    min_diff = 9999999999
+    scale = []
+    retlist = []
+
+    # find minimum bin width
+    for i in range(len(edges)-1):
+        scale.append(edges[i+1]-edges[i])   # bin width for each bin
+        if(edges[i+1] - edges[i] < min_diff): min_diff = edges[i+1]-edges[i]
+
+    scale = np.array(scale)
+    scale = scale/min_diff
+
+    for h in hlist:
+        hclone = h.Clone(h.GetName()+"_")
+        # scale each bin in hrebin so that it is reduced by binwidth/minwidth
+        for i,b in enumerate(scale):
+            hclone.SetBinContent(i+1, 1/b*hclone.GetBinContent(i+1))
+            hclone.SetBinError(i+1, 1/b*hclone.GetBinError(i+1))
+        retlist.append(hclone)
+
+    return retlist

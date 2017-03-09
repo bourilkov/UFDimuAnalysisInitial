@@ -442,8 +442,6 @@ int main(int argc, char* argv[])
         ///////////////////////////////////////////////////////////////////
         
         // If cutNoGens is true, we don't want to plot events where there are no gen muons from a Z or gamma*
-
-        
         
         // don't apply iso cuts when using reco, already turned off for gen
         //FEWZselection.cutset.cuts[7].on = false;

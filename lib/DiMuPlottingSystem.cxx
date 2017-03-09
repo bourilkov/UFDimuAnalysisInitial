@@ -519,7 +519,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     if(rebin)
     {
         // now put the variable binning into newBins
-        getBinningForRatio(numerator, denominator, newBins, 0.20);
+        getBinningForRatio(numerator, denominator, newBins, 0.10);
 
         // use the rebinnedList for the stack and ratio plot
         if(newBins.size() > 2)

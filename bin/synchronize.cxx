@@ -141,10 +141,10 @@ int main(int argc, char* argv[])
       std::vector<std::pair<int,long long int>> eventsToCheck;
       //loadEventsFromFile("synchcsv/xCheck.txt", eventsToCheck);
 
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 53974));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 4115));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 188189));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 182));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 51570));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 539));
+      //eventsToCheck.push_back(std::pair<int, long long int>(1, 188189));
+      //eventsToCheck.push_back(std::pair<int, long long int>(1, 182));
 
       // Output some info about the current file
       bool useMedium2016 = s->sampleType == "data" && s->name != "RunG" && s->name != "RunH";
