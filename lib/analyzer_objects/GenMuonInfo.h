@@ -33,6 +33,8 @@ struct GenMuonInfo : public ParticleInfo{
   TString outputInfo();
   Double_t iso();
 
+  bool operator%(GenMuonInfo& other);
+
   ClassDef(GenMuonInfo, 2);
 
 };

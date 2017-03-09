@@ -26,6 +26,10 @@ class BranchSet
         TBranch* nPU = 0;
         TBranch* gen_wgt = 0;
 
+        TBranch* genParents = 0;
+        TBranch* genMuons = 0;
+        TBranch* genDimuons = 0;
+
         int getEntry(int i)
         {
             if(nVertices != 0) nVertices->GetEntry(i);
@@ -41,6 +45,10 @@ class BranchSet
             if(pu_wgt != 0) pu_wgt->GetEntry(i);
             if(nPU != 0) nPU->GetEntry(i);
             if(gen_wgt != 0) gen_wgt->GetEntry(i);
+
+            if(genParents != 0) genParents->GetEntry(i);
+            if(genMuons != 0) genMuons->GetEntry(i);
+            if(genDimuons != 0) genDimuons->GetEntry(i);
         }
 };
 

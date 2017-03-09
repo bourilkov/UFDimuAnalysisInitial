@@ -49,8 +49,8 @@ TLorentzVector GenMuonInfo::get4vec()
 
 TString GenMuonInfo::outputInfo()
 {
-    TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f", 
-                      pt, eta, phi, mass);
+    TString s = Form("status: %d, pt: %7.3f, ptf: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f, postFSR: %d, m_id: %d, m_idx %d", 
+                      status, pt, FSR_pt, eta, phi, mass, postFSR, mother_ID, mother_idx);
     return s;
 }
 
@@ -62,3 +62,16 @@ Double_t GenMuonInfo::iso()
 {
     return 0.0;
 }
+
+///////////////////////////////////////////////////////////
+//--------------------------------------------------------
+///////////////////////////////////////////////////////////
+
+bool GenMuonInfo::operator%(GenMuonInfo& other)
+{
+    TLorentzVector left = this->get4vec();
+    TLorentzVector right = other.get4vec();
+    if(left.DeltaR(right) < 0.1 && (this->postFSR != other.postFSR)) return true;
+    else return false;
+}
+

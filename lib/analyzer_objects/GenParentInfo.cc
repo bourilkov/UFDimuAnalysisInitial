@@ -45,8 +45,8 @@ TLorentzVector GenParentInfo::get4vec()
 
 TString GenParentInfo::outputInfo()
 {
-    TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f", 
-                      pt, eta, phi, mass);
+    TString s = Form("id: %d, status: %d, pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f, d1_idx: %d, d2_idx: %d", 
+                      ID, status, pt, eta, phi, mass, daughter_1_idx, daughter_2_idx);
     return s;
 }
 

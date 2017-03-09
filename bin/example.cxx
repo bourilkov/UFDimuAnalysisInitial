@@ -47,10 +47,10 @@ int main(int argc, char* argv[])
     std::map<TString, Sample*> samples;
     std::cout << "\nAbout to get the samples" << std::endl;
     
-    GetSamples(samples, "UF", "DATA");
+    GetSamples(samples, "UF", "ALL");
 
     std::cout << "\nGot the samples" << std::endl;
-    Sample* s = samples["RunB"];
+    Sample* s = samples["H2Mu_gg"];
 
     std::cout << "Defined the sample" << std::endl;
 
@@ -61,11 +61,6 @@ int main(int argc, char* argv[])
     // Get branches, set addresses
     s->setBranchAddresses(2);
 
-    //XMLCategorizer xmlc;
-    //xmlc.loadFromXML("xml/tree.xml");
-    //std::cout << std::endl;
-    //xmlc.outputResults();
-
     // Objects to help with the cuts and selections
     JetCollectionCleaner      jetCollectionCleaner;
     MuonCollectionCleaner     muonCollectionCleaner;
@@ -74,16 +69,8 @@ int main(int argc, char* argv[])
     Run2MuonSelectionCuts  run2MuonSelection;
     Run2EventSelectionCuts run2EventSelectionMC;
 
-    //std::map<TString, double(*)()> m;
-    //std::unordered_map<std::string, double(*)()> um;
-    //um["f"] = &function;
-
-    //std::cout << um["f"] << std::endl;
-
     for(unsigned int i=0; i<10; i++)
     {
-       //xmlc.reset();
-
        s->branches.recoDimuCands->GetEntry(i);
        s->branches.recoMuons->GetEntry(i);
 
@@ -101,14 +88,15 @@ int main(int argc, char* argv[])
            s->branches.nVertices->GetEntry(i);
            s->branches.recoElectrons->GetEntry(i);
 
-           std::cout << Form("%d: event: %d, mht: %f \n", i, s->vars.eventInfo->event, s->vars.mht->pt);
-
            if(s->sampleType != "data")
            {
-               //s->branches.gen_wgt->GetEntry(i);
-               //s->branches.nPU->GetEntry(i);
-               //s->branches.pu_wgt->GetEntry(i);
-               //s->branches.eff_wgt->GetEntry(i);
+               s->branches.gen_wgt->GetEntry(i);
+               s->branches.nPU->GetEntry(i);
+               s->branches.pu_wgt->GetEntry(i);
+               s->branches.eff_wgt->GetEntry(i);
+               s->branches.genParents->GetEntry(i);
+               s->branches.genMuons->GetEntry(i);
+               s->branches.genDimuons->GetEntry(i);
            }
 
            // clear vectors for the valid collections
@@ -124,36 +112,35 @@ int main(int argc, char* argv[])
            eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
 
            // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
-           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.3);
-           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
-           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
-
-           //std::cout << "dimu_pt   : " << dimu.pt_PF << std::endl;
-           //std::cout << "dimu_pt_f : " << s->vars.dimu_pt() << std::endl;
-           //std::cout << "dimu_pt_m : " << s->vars.getValue("dimu_pt") << std::endl;
-           //std::cout << "dimu_pt_mt: " << s->vars.getValue(TString("dimu_pt").Data()) << std::endl;
-                      
-           //std::cout << std::endl;
-           //xmlc.evaluate(s->vars);
-           //EventTools::outputEvent(s->vars);
-           //xmlc.outputResults();
-           //std::cout << std::endl;
+           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
+           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
+           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
        }
-
-       //for(auto& dimu: (*s->vars.recoDimuCands))
-       //{
-       //    std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;
-       //}
-       //std::cout << std::endl;
-
-       //for(auto& m: (*s->vars.recoMuons))
-       //{
-       //    std::cout << i << " muon: " << m.outputInfo() << std::endl;
-       //}
-       //std::cout << std::endl;
+       for(auto& parent: (*s->vars.genParents))
+       {
+           std::cout << i << " gen_parent: " << parent.outputInfo() << std::endl;
+       }
+       for(auto& genmu: (*s->vars.genMuons))
+       {
+           std::cout << i << " gen_muon: " << genmu.outputInfo() << std::endl;
+       }
+       for(auto& dimu: (*s->vars.recoDimuCands))
+       {
+           std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;
+       }
+       for(auto& m: (*s->vars.recoMuons))
+       {
+           std::cout << i << " muon: " << m.outputInfo() << std::endl;
+       }
+       std::cout << std::endl;
+       std::cout << std::endl;
+       for(auto& genmu1: (*s->vars.genMuons))
+       {
+           std::cout << i << "CHECK :: gen_muon: " << genmu1.outputInfo() << std::endl;
+           for(auto& genmu2: (*s->vars.genMuons))
+           {
+               std::cout << i << "    VS :: " << (genmu1 % genmu2) << " :: gen_muon: " << genmu2.outputInfo() << std::endl;
+           }
+       }
     }
-
-    // test to see if it racks up memory without this
-    //delete s->vars.recoDimuCands;
-    //delete s->vars.recoMuons;
 }

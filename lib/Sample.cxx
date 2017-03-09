@@ -108,6 +108,14 @@ void Sample::setBranchAddresses(int whichCategories)
           branches.nPU->SetAddress(&vars.nPU);
           branches.pu_wgt->SetAddress(&vars.pu_wgt);
           branches.eff_wgt->SetAddress(&vars.eff_wgt);
+
+          branches.genParents = chain->GetBranch("genParents");
+          branches.genMuons   = chain->GetBranch("genMuons");
+          branches.genDimuons = chain->GetBranch("genPairs");
+
+          branches.genParents->SetAddress(&vars.genParents);
+          branches.genMuons->SetAddress(&vars.genMuons);
+          branches.genDimuons->SetAddress(&vars.genDimuons);
       }
 }
 ///////////////////////////////////////////////////////////////////////////////
