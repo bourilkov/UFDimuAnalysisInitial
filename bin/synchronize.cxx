@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
 
-    int nthreads = 4;        // number of threads to use in parallelization
+    int nthreads = 1;        // number of threads to use in parallelization
 
     for(int i=1; i<argc; i++)
     {   
@@ -142,9 +142,9 @@ int main(int argc, char* argv[])
       //loadEventsFromFile("synchcsv/xCheck.txt", eventsToCheck);
 
       eventsToCheck.push_back(std::pair<int, long long int>(1, 51570));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 539));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 188189));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 182));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 65309));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 112520));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 20194));
 
       // Output some info about the current file
       bool useMedium2016 = s->sampleType == "data" && s->name != "RunG" && s->name != "RunH";

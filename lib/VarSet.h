@@ -58,6 +58,31 @@ class VarSet
         // gen weights
         int gen_wgt;
 
+        // cuts for vbf jets
+        double cLeadPtMin = 40;
+        double cDijetMassMinVBFT = 650;
+        double cDijetDeltaEtaMinVBFT = 3.5;
+        double cDijetMassMinGGFT = 250;
+        double cDimuPtMinGGFT = 50;
+
+        // set the above cuts if they change
+        void setVBFcuts(double leadPtMin, double dijetMassMinVBFT, double dijetDeltaEtaMinVBFT, double dijetMassMinGGFT, double dimuPtMinGGFT)
+        {
+            cLeadPtMin = leadPtMin;
+            cDijetMassMinVBFT = dijetMassMinVBFT;
+            cDijetDeltaEtaMinVBFT = dijetDeltaEtaMinVBFT;
+            cDijetMassMinGGFT = dijetMassMinGGFT;
+            cDimuPtMinGGFT = dimuPtMinGGFT;
+        }
+
+        // index for vbf jets
+        int vbf_j0 = -999;
+        int vbf_j1 = -999;
+ 
+        // index for our "standard" jets
+        int j0 = 0;
+        int j1 = 1;
+
         // map variable string to variable value via function pointers
         // uses functions below
         std::unordered_map<std::string, double(VarSet::*)()> varMap;
@@ -74,10 +99,91 @@ class VarSet
           else return -999;
         }
 
+        void setCalibrationType(TString ctype)
+        {
+          if(ctype == "PF") 
+          {
+              dimuCand->mass = dimuCand->mass_PF;
+              recoMuons->at(dimuCand->iMu1).pt = recoMuons->at(dimuCand->iMu1).pt_PF;
+              recoMuons->at(dimuCand->iMu2).pt = recoMuons->at(dimuCand->iMu2).pt_PF;
+          }
+          else if(ctype == "Roch") 
+          {
+              dimuCand->mass = dimuCand->mass_Roch;
+              recoMuons->at(dimuCand->iMu1).pt = recoMuons->at(dimuCand->iMu1).pt_Roch;
+              recoMuons->at(dimuCand->iMu2).pt = recoMuons->at(dimuCand->iMu2).pt_Roch;
+          }
+          else if(ctype == "KaMu") 
+          {
+              dimuCand->mass = dimuCand->mass_KaMu;
+              recoMuons->at(dimuCand->iMu1).pt = recoMuons->at(dimuCand->iMu1).pt_KaMu;
+              recoMuons->at(dimuCand->iMu2).pt = recoMuons->at(dimuCand->iMu2).pt_KaMu;
+          }
+        }
+
+        // get jets that represent vbf jets
+        void setVBFjets()
+        {
+            vbf_j0 = -999;
+            vbf_j1 = -999;
+
+            for(unsigned int i=0; i<validJets.size(); i++) 
+            {
+                if(!(validJets[i].Pt() > cLeadPtMin)) break;
+                for(unsigned int j=i+1; j<validJets.size(); j++) 
+                {
+                    double dEtajj = TMath::Abs(validJets[i].Eta() - validJets[j].Eta());
+                    double mjj = (validJets[i] + validJets[j]).M();
+                    if(mjj > cDijetMassMinVBFT && dEtajj > cDijetDeltaEtaMinVBFT)
+                    {
+                        vbf_j0 = i;
+                        vbf_j1 = j;
+                        return; 
+                    }
+                    else if(mjj > cDijetMassMinGGFT && dimuCand->pt > cDimuPtMinGGFT)
+                    {
+                        vbf_j0 = i;
+                        vbf_j1 = j;
+                        return; 
+                    }
+                    else
+                    {
+                        vbf_j0 = i;
+                        vbf_j1 = j;
+                        return; 
+                    }
+                }
+            }
+        }
+
+        // standard jets will be the two corresponding to the max mjj value 
+        void setJets()
+        {
+            double mjj_max = -999;
+            j0 = -999;
+            j1 = -999;
+
+            for(unsigned int i=0; i<validJets.size(); i++) 
+            {
+                for(unsigned int j=i+1; j<validJets.size(); j++) 
+                {
+                    double dEtajj = TMath::Abs(validJets[i].Eta() - validJets[j].Eta());
+                    double mjj = (validJets[i] + validJets[j]).M();
+                    if(mjj > mjj_max)
+                    {
+                        vbf_j0 = i;
+                        vbf_j1 = j;
+                        return; 
+                    }
+                }
+            }
+        }
+
         // muon variables
-        double dimu_pt()   {  return dimuCand->pt_PF;                     };
-        double mu1_pt()    {  return recoMuons->at(dimuCand->iMu1).pt_PF; };
-        double mu2_pt()    {  return recoMuons->at(dimuCand->iMu2).pt_PF; };
+        // indexed by 1,2 in analyzer instead of 0,1 so there is a mismatch in naming convention here
+        double dimu_pt()   {  return dimuCand->pt;                        };
+        double mu1_pt()    {  return recoMuons->at(dimuCand->iMu1).pt;    };
+        double mu2_pt()    {  return recoMuons->at(dimuCand->iMu2).pt;    };
         double mu1_eta()   {  return recoMuons->at(dimuCand->iMu1).eta;   };
         double mu2_eta()   {  return recoMuons->at(dimuCand->iMu2).eta;   };
         double mu_res_eta(){  return (TMath::Abs(mu1_eta()) + TMath::Abs(mu2_eta()))/2;   };
@@ -91,6 +197,16 @@ class VarSet
         double m_jj()        { return (validJets.size()>=2)?(validJets[0]+validJets[1]).M():-999; };
         double dEta_jj()     { return (validJets.size()>=2)?TMath::Abs(validJets[0].Eta()-validJets[1].Eta()):-999; };
         double dEta_jj_mumu(){ return (validJets.size()>=2)?TMath::Abs((validJets[0]+validJets[1]).Eta()-dimuCand->eta):-999; };
+
+        // vbf jet variables
+        double vbf_jet0_pt() { return (vbf_j0 >= 0 && vbf_j1 > 0)?validJets[vbf_j0].Pt():-999;  };
+        double vbf_jet1_pt() { return (vbf_j0 >= 0 && vbf_j1 > 0)?validJets[vbf_j1].Pt():-999;  };
+        double vbf_jet0_eta(){ return (vbf_j0 >= 0 && vbf_j1 > 0)?validJets[vbf_j0].Eta():-999; };
+        double vbf_jet1_eta(){ return (vbf_j0 >= 0 && vbf_j1 > 0)?validJets[vbf_j1].Eta():-999; };
+
+        double vbf_m_jj()        { return (vbf_j0 >= 0 && vbf_j1 > 0)?(validJets[vbf_j0]+validJets[vbf_j1]).M():-999; };
+        double vbf_dEta_jj()     { return (vbf_j0 >= 0 && vbf_j1 > 0)?TMath::Abs(validJets[vbf_j0].Eta()-validJets[vbf_j1].Eta()):-999; };
+        double vbf_dEta_jj_mumu(){ return (vbf_j0 >= 0 && vbf_j1 > 0)?TMath::Abs((validJets[vbf_j0]+validJets[vbf_j1]).Eta()-dimuCand->eta):-999; };
 
         // bjet variables
         double bjet0_pt() { return (validBJets.size()>=1)?validBJets[0].Pt():-999;  };
@@ -132,17 +248,11 @@ class VarSet
         };
 
         // special variables, to be implemented
-        double zep0()
+        double zep()
         { 
             if(validJets.size() < 2) return -999; 
             double meanEta = (validJets[0].Eta() +validJets[1].Eta())/2;
             return validJets[0].Eta() - meanEta;
-        };
-        double zep1()
-        { 
-            if(validJets.size() < 2) return -999; 
-            double meanEta = (validJets[0].Eta() +validJets[1].Eta())/2;
-            return validJets[1].Eta() - meanEta;
         };
         double phi_star()
         {

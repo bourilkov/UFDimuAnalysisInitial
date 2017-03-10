@@ -38,7 +38,7 @@ Run2EventSelectionCuts::Run2EventSelectionCuts()
     // sublead pt condition is met in muon selection
                                 
     cDimuMassMin = 60;
-    cutset.cuts = std::vector<CutInfo>(4, CutInfo());
+    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
 }
 
@@ -55,7 +55,7 @@ Run2EventSelectionCuts::Run2EventSelectionCuts(bool isData)
     // sublead pt condition is met in muon selection
                                 
     cDimuMassMin = 60;
-    cutset.cuts = std::vector<CutInfo>(4, CutInfo());
+    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
 }
 
@@ -72,7 +72,7 @@ Run2EventSelectionCuts::Run2EventSelectionCuts(float trigMuPtMin, float dimuMass
     // sublead pt condition is met in muon selection
 
     cDimuMassMin = dimuMassMin;          // >
-    cutset.cuts = std::vector<CutInfo>(4, CutInfo());
+    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
 }
 
@@ -89,7 +89,7 @@ Run2EventSelectionCuts::Run2EventSelectionCuts(bool isData, float trigMuPtMin, f
     // sublead pt condition is met in muon selection
 
     cDimuMassMin = dimuMassMin;          // >
-    cutset.cuts = std::vector<CutInfo>(4, CutInfo());
+    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
     makeCutSet();
 }
 
@@ -108,19 +108,11 @@ bool Run2EventSelectionCuts::evaluate(VarSet& vars)
     MuonInfo& mu2 = vars.recoMuons->at(vars.dimuCand->iMu2);
 
     if(!cutset.cuts[1].on) ;
-    else if(mu1.pt >= mu2.pt && mu1.pt > cTrigMuPtMin) ;
-    else if(mu1.pt <  mu2.pt && mu2.pt > cTrigMuPtMin) ;
+    else if((mu1.isHltMatched[2] || mu1.isHltMatched[3]) && mu1.pt > cTrigMuPtMin) ;
+    else if((mu2.isHltMatched[2] || mu2.isHltMatched[3]) && mu2.pt > cTrigMuPtMin) ;
     else
     {
          return false;
-    }
-
-    // trigger matching
-    if(isData)
-    {
-        // 2 and 3 should be isoMu24 and isoTkMu24
-        if(!(mu1.isHltMatched[2] || mu1.isHltMatched[3] || mu2.isHltMatched[2] || mu2.isHltMatched[3]))
-            return false;
     }
 
     // Require oppositely charged muons in the event
@@ -150,7 +142,7 @@ void Run2EventSelectionCuts::makeCutSet()
     cutset.cuts[0].max = 2;
     cutset.cuts[0].ismin = true;
 
-    cutset.cuts[1].name = Form("leadingRecoMu.pt > %6.2f", cTrigMuPtMin);
+    cutset.cuts[1].name = Form("hltMatchedMu.pt > %6.2f", cTrigMuPtMin);
     cutset.cuts[1].bins = 201;
     cutset.cuts[1].min = -1;
     cutset.cuts[1].max = 200;
@@ -163,12 +155,6 @@ void Run2EventSelectionCuts::makeCutSet()
     cutset.cuts[2].max = 200;
     cutset.cuts[2].cutvalue = &cDimuMassMin;
     cutset.cuts[2].ismin = true;
-
-    cutset.cuts[3].name = "recoMu1 or recoMu2 matched to (hlt2 or hlt3)";
-    cutset.cuts[3].bins = 2;
-    cutset.cuts[3].min = 0;
-    cutset.cuts[3].max = 2;
-    cutset.cuts[3].ismin = true;
 
     cutset.concatCuts();
 }
