@@ -1,4 +1,13 @@
-//PUTools.h
+///////////////////////////////////////////////////////////////////////////
+//                           PUTools.h                                   //
+//=======================================================================//
+//                                                                       //
+//     Make histograms for the StandAloneLumiReweighter, which gives     //
+//     us PU weights. But we usually just do this at analyzer level now, //
+//     rather than use the stand alone tool to calculate the weight      //
+//     at plotting time.                                                 //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef PUTOOLS
 #define PUTOOLS

@@ -1,4 +1,11 @@
-//EventSelection.h
+///////////////////////////////////////////////////////////////////////////
+//                             EventSelection.h                          //
+//=======================================================================//
+//                                                                       //
+//        Some selections to cut events. Implements Cut.h.               //
+//        Cut based on trigger matching, or other event info.            //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_EVENTSELECTIONCUTS
 #define ADD_EVENTSELECTIONCUTS

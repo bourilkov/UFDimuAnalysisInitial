@@ -1,4 +1,11 @@
-// ParticleTools.cxx
+///////////////////////////////////////////////////////////////////////////
+//                           ParticleTools.cxx                           //
+//=======================================================================//
+//                                                                       //
+//        Miscellaneous tools for particles: output 4vec info to terminal//
+//        get the correct gen muons from a gen event, some other tools   //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #include <vector>
 #include <iostream>

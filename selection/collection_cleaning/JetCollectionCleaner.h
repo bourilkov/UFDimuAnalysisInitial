@@ -1,4 +1,10 @@
-//JetCollectionCleaner.h
+///////////////////////////////////////////////////////////////////////////
+//                             JetCollectionCleaner.h                    //
+//=======================================================================//
+//                                                                       //
+//        Select good jets from the main collection.                     //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_JETSELECTIONTOOLS
 #define ADD_JETSELECTIONTOOLS

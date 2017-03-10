@@ -1,4 +1,12 @@
-// DiMuPlottingSystem.h
+///////////////////////////////////////////////////////////////////////////
+// ======================================================================//
+// DiMuPlottingSystem.h                                                  //
+// ======================================================================//
+// Plotting utilities for the analysis.                                  //
+// Compare MC stack to Data w/ ratio plot, add histograms together,      //
+// overlay tgraphs, rebin histos based on rato plot error, etc           //
+// ======================================================================//
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_DIMUPLOTTINGSYSTEM
 #define ADD_DIMUPLOTTINGSYSTEM
@@ -21,86 +29,6 @@
 
 #include "Sample.h"
 #include <fstream>
-
-struct VoigtFitInfo 
-{
-// Datastructure to keep track of fit information for the ZCalibration
-
-  Float_t hmean = -999;
-  Float_t hmean_err = -999;
-  Float_t hrms = -999;
-  Float_t hrms_err = -999;
-
-  Float_t gamma = 0.08399;
-
-  Float_t vmean = -999;
-  Float_t vmean_err = -999;
-  Float_t vsigma = -999;
-  Float_t vsigma_err = -999;
-  Float_t vgamma = -999;
-  Float_t vgamma_err = -999;
-
-  Float_t x = -999;
-  Float_t x_err = -999;
-
-  TF1* fit = 0;
-};
-
-
-class ZCalibration
-{
-// Fit the z peak with a voigtian in different ranges of the x variable
-
-    public:
-        // ====================================================
-        // Constructors/Destructors ---------------------------
-        // ====================================================
-
-        ZCalibration();
-        ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
-                     Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins);
-        ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
-                     Float_t massmax, Int_t massbins, std::vector<Float_t> binning);
-        ~ZCalibration(){};
-
-        // ====================================================
-        // Variables ------------------------------------------
-        // ====================================================
-        TString xname;
-        TString massname;
-
-        bool variableBinning = false;
-
-        Float_t xmin;
-        Float_t xmax;
-        Int_t xbins;
-
-        Float_t massmin;
-        Float_t massmax;
-        Int_t massbins;
-
-        Float_t fitsig;
-
-        std::vector<Float_t> binning;
-        std::vector<TH1D*> histos;
-        std::vector<VoigtFitInfo> vfis;
-
-        TGraphErrors* mean_vs_x = 0;
-        TGraphErrors* resolution_vs_x = 0;
-
-        // ====================================================
-        // Functions-------------------------------------------
-        // ====================================================
-
-        void init();
-        void init(std::vector<Float_t>& binning);
-        void fill(Float_t xvalue, Float_t massvalue);
-        void fill(Float_t xvalue, Float_t massvalue, Double_t weight);
-        int whichTH1D(Float_t xvalue);
-        VoigtFitInfo fit(TH1D* inhist, Float_t x, Float_t x_err);
-        void fit();
-        void plot();
-};
 
 class DiMuPlottingSystem
 {

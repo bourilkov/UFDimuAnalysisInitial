@@ -14,16 +14,16 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = categorize
-MAIN = dyAndDataForFEWZ
+#MAIN = dyAndDataForFEWZ
 #MAIN = outputCounts
 #MAIN = synchronize
 #MAIN = example
 #MAIN = dycompare
-#MAIN = zcalibration
+MAIN = zcalibration
 #MAIN = fakes
 #MAIN = outputForBDT
 
-MAINRULES1 = ${LIBDIR}Sample.o ${LIBDIR}VarSet.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
+MAINRULES1 = ${LIBDIR}Sample.o ${LIBDIR}VarSet.o ${LIBDIR}ZCalibration.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
 MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.oo 
 MAINDEPS   = ${THREADDIR}ThreadPool.hxx ${LIBDIR}BranchSet.h SampleDatabase.cxx ${CDIR}CollectionCleaner.hxx

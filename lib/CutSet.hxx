@@ -1,4 +1,16 @@
-//CutSet.h
+///////////////////////////////////////////////////////////////////////////
+// ======================================================================//
+// CutSet.hxx                                                            //
+// ======================================================================//
+// CutInfo represents the information for a  single cut.                 //
+// Can turn cuts on and off get info                                     //
+// from this object to create a histogram of the cutvar for validation   //
+// or N-1 studies.                                                       //
+// CutSet is a collection of CutInfo. Can output the cuts concat them    //
+// into a single string. See which ones in the set failed, useful for    //
+// synchronization or debugging.                                         //
+// ======================================================================//
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_CUTSET
 #define ADD_CUTSET

@@ -2,8 +2,8 @@
 //                             EventSelection.cxx                        //
 //=======================================================================//
 //                                                                       //
-//        Some selections for the event. Consider the event in the       //
-//        if it passes.                                                  //
+//        Some selections to cut events. Implements Cut.h.               //
+//        Cut based on trigger matching, or other event info.            //
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 

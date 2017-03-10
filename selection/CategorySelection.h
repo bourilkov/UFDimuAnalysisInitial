@@ -1,4 +1,14 @@
-//CategorySelection.h
+///////////////////////////////////////////////////////////////////////////
+//                       CategorySelection.h                             //
+//=======================================================================//
+//                                                                       //
+// Categorizer objects categorize each event. Define the cuts for the    //
+// categories and the evaluate function to determine the category        //
+// structure. We keep track of the different categories in the           //
+// in the categorizer via categoryMap<TString, Category>. Each category  //
+// tracks its historams with histoMap<TString, TH1D*> and some TLists.   //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_CATEGORYSELECTION
 #define ADD_CATEGORYSELECTION
@@ -93,6 +103,8 @@ class Categorizer
 //// ______________________XMLCategorizer_______________________________//
 //////////////////////////////////////////////////////////////////////////
 
+// A decision node or terminal node for an XMLCategorizer that reads in an XML
+// Decision Tree as the categorization.
 class CategoryNode
 {
     public: 
@@ -131,6 +143,7 @@ class CategoryNode
         double significanceSquared;
 };
 
+// XMLCategorizer reads in an XML Decision Tree as the categorization.
 class XMLCategorizer : public Categorizer
 {
 
@@ -155,7 +168,7 @@ class XMLCategorizer : public Categorizer
 
 class CategorySelectionRun1 : public Categorizer
 {
-// This is based off of the run1 H->MuMu category selection
+// The run1 H->MuMu category selection
     public:
         CategorySelectionRun1(); 
         CategorySelectionRun1(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, 
@@ -190,7 +203,7 @@ class CategorySelectionRun1 : public Categorizer
 
 class CategorySelectionSynch : public Categorizer
 {
-// This is based off of the run1 H->MuMu category selection
+// Category selection for synchronization purposes
     public:
         CategorySelectionSynch(); 
         CategorySelectionSynch(float cLeadPtMin, float cSubleadPtMin, float cMETMax, float cDijetMassMinVBFT, 
@@ -225,7 +238,8 @@ class CategorySelectionSynch : public Categorizer
 
 class LotsOfCategoriesRun2 : public Categorizer
 {
-// Adrian's new categories for Run2
+// Adrian's new categories for Run2, oh boy
+
     public:
         LotsOfCategoriesRun2(); 
         //LotsOfCategoriesRun2(); 

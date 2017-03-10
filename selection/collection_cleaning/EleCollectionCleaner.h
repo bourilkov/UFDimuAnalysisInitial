@@ -1,4 +1,10 @@
-//EleCollectionCleaner.h
+///////////////////////////////////////////////////////////////////////////
+//                         EleCollectionCleaner.h                        //
+//=======================================================================//
+//                                                                       //
+//        Select valid electrons.                                        //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_ELECTRONSELECTIONTOOLS
 #define ADD_ELECTRONSELECTIONTOOLS

@@ -1,4 +1,10 @@
-//MuonCollectionCleaner.h
+///////////////////////////////////////////////////////////////////////////
+//                         MuonCollectionCleaner.cxx                     //
+//=======================================================================//
+//                                                                       //
+//        Select valid muons beyond the candidate pair.                  //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_MUSELECTIONTOOLS
 #define ADD_MUSELECTIONTOOLS

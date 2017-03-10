@@ -1,8 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////
-//                             CategorySelection.cxx                     //
+//                       CategorySelection.cxx                           //
 //=======================================================================//
 //                                                                       //
-//        Define the selection critera for the different categories.     //
+// Categorizer objects to categorize each event. Define the cuts for the //
+// categories and the evaluate function to determine the category        //
+// structure. We keep track of the different categories in the           //
+// in the categorizer via categoryMap<TString, Category>. Each category  //
+// tracks its historams with histoMap<TString, TH1D*> and some TLists.   //
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 

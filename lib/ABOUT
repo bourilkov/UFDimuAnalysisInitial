@@ -23,21 +23,21 @@
       % e.g. EventSelection->evaluate(Sample->vars) or MuonSelection->evaluate(Sample->vars)
   - has a CutSet class to keep track of all of the cut information
 
-*CutSet
-  - basically a vector of CutInfo objects, one for each cut in the Cut class
-  - does some book keeping 
-    % keep track of binning, name for each cut, cut value, and the string representation for each
+*CutInfo
+  - Bookkeeping information for a cut: name, cut string, turn on/off
       # The string representations can be used with TTree draw
 
-  - Anways this has some nice functionality
-    % Turn specific cuts on and of
-    % concatenate the set of cuts into a single string to use with TTree->Draw or just to output to terminal
+*CutSet
+  - basically a vector of CutInfo objects, one for each cut in the Cut class
+  - Set to provide bookkeeping for all of the cuts 
+  - funcitonality to concatenate the set of cuts into a single string to use with TTree->Draw or just to output to terminal
 
 *analyzer_objects
+  - muons, jets, electrons, taus, gen muons, gen jets, etc
+      % std::vector<ObjectInfo>'s were stored into the ttree
   - The objects that the analyzer stored into the TTree
   - Grab them from the ttree each event and put them into sample->vars
-  - muons, jets, electrons, taus, gen muons, gen jets, etc
-  - std::vector<ObjectInfo>'s were stored into the ttree
+  - branches linking the TTree to sample->vars are in BranchSet
   - analyzer_objects/linkdef/Linkdef.h is needed by the makefile to tell ROOT how to get the objects out of the TTree
       % ../bin/makefile uses Linkdef.h and the analyzer_objets to make them usable in ROOT and our executables
       % create executables in ../bin, compile them with the makefile there

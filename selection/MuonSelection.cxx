@@ -2,8 +2,9 @@
 //                             MuonSelection.cxx                         //
 //=======================================================================//
 //                                                                       //
-//        Define the muon selection cuts for the analysis.               //
+//        Eliminate events by cutting on individual muon info.           //
 //        The dimuon candidate muons must pass these criteria.           //
+//        Usually cuts based on muon eta, pt, and iso.                   //
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 

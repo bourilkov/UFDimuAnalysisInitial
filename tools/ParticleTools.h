@@ -1,4 +1,11 @@
-// ParticleTools.h
+///////////////////////////////////////////////////////////////////////////
+//                           ParticleTools.h                             //
+//=======================================================================//
+//                                                                       //
+//        Miscellaneous tools for particles: output 4vec info to terminal//
+//        get the correct gen muons from a gen event, some other tools   //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef PARTICLETOOLS
 #define PARTICLETOOLS

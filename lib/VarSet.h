@@ -1,6 +1,14 @@
-// VarSet.h
-// Load the variables from the ttree into the structs in this class
-// The structs are defined in DataFormats.h
+///////////////////////////////////////////////////////////////////////////
+// ======================================================================//
+// VarSet.h                                                              //
+// ======================================================================//
+// TTree variables are loaded into these objects. Each sample has        //
+// its own VarSet data structure.                                        //
+// We also set up a map<TString,FUNCTION> to get feature values based    //
+// upon the name of the feature.                                         //
+// Has muons, dimuons, jets, electrons, gen muons, etc...                //
+// ======================================================================//
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_VARSET
 #define ADD_VARSET

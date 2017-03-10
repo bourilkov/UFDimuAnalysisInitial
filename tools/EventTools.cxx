@@ -1,4 +1,12 @@
-// EventTools.cxx
+///////////////////////////////////////////////////////////////////////////
+//                           EventTools.cxx                              //
+//=======================================================================//
+//                                                                       //
+//        Miscellaneous tools: output event info to terminal             //
+//        output run,event from vector to CSV, output vars and values    //
+//        from map to CSV, etc                                           //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #include <vector>
 #include <utility> // pair

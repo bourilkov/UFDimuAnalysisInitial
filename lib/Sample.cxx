@@ -1,8 +1,13 @@
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 //                             Sample.cxx                                //
 //=======================================================================//
 //                                                                       //
-//        Keeps track of the sample information. TTree, xsec, etc.       //
+// Load info from analysis ttrees and variables into this datastructure. //
+// Keep track of xsec, name, and files.                                  //
+// TTree vars are loaded into objects in Sample.vars.                    //
+// This object also has functionality to set the appropriate             //
+// weights for MC based on gen weight, efficiency, and PU.               //
+// can set the normalization based upon xsec and lumi.                   //
 //                                                                       //
 ///////////////////////////////////////////////////////////////////////////
 

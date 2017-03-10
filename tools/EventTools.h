@@ -1,4 +1,12 @@
-// EventTools.h
+///////////////////////////////////////////////////////////////////////////
+//                           EventTools.h                                //
+//=======================================================================//
+//                                                                       //
+//        Miscellaneous tools: output event info to terminal             //
+//        output run,event from vector to CSV, output vars and values    //
+//        from map to CSV, etc                                           //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef EVENTTOOLS
 #define EVENTTOOLS

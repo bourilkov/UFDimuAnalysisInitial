@@ -1,4 +1,12 @@
-//CollectionCleaner.hxx
+///////////////////////////////////////////////////////////////////////////
+//                             CollectionCleaner.hxx                     //
+//=======================================================================//
+//                                                                       //
+//        Abstract class. Other cleaners inherit this object             //
+//        to grab good muons, electrons, jets, etc from the collections  //
+//        in Sample->vars.                                               //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef ADD_COLLECTIONCLEANER
 #define ADD_COLLECTIONCLEANER
