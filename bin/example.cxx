@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     // Set up the histograms for each cateory, so we can fill them later
     // c.first is the category name, c.second is the category object
     std::cout << "Setting up histograms for the different categories" << std::endl;
-    for(auto &c : categorySelection->categoryMap)
+    for(auto &c : categorySelection.categoryMap)
     {
         // Each category has a map to keep track of histos you want to fill
         // let's make dimuon_mass histos for each category
@@ -124,13 +124,13 @@ int main(int argc, char* argv[])
        s->branches.recoDimuCands->GetEntry(i);
        s->branches.recoMuons->GetEntry(i);
 
-       if(s->vars.recoDimuCands > 0)
+       if(s->vars.recoDimuCands->size() > 0)
        {
            // reset the categories so we get the correct categorization for this event
            categorySelection.reset();
 
            // let's only fill the histograms for events with one dimuon candidate
-           if(s->vars.recoDimuCands != 1) continue;
+           if(s->vars.recoDimuCands->size() != 1) continue;
 
            // Set aliases for the dimuon candidate and its muons so we don't have to type as much
            // access objects and their info in s->vars
@@ -218,11 +218,12 @@ int main(int argc, char* argv[])
     // c.first is the category name, c.second is the category object
     for(auto &c : categorySelection.categoryMap)
     {
+        double luminosity = 36814;
         TH1D* h = c.second.histoMap["mass"];
         h->Scale(s->getScaleFactor(luminosity));  // scale histogram based upon data luminosity
                                                   // and the xsec of the process (should loop over all the events
                                                   // in the sample for this to be accurate)
-        std::cout << Form("category: %s, histo: %s, integral: %f \n", c.first.Data(), "mass", h.second.histoMap["mass"]->Integral());
+        std::cout << Form("category: %s, histo: %s, integral: %f \n", c.first.Data(), "mass", h->Integral());
         h->Write();
     }
     f->Write();

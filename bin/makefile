@@ -16,10 +16,10 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 #MAIN = categorize
 #MAIN = dyAndDataForFEWZ
 #MAIN = outputCounts
-#MAIN = synchronize
+MAIN = synchronize
 #MAIN = example
 #MAIN = dycompare
-MAIN = zcalibration
+#MAIN = zcalibration
 #MAIN = fakes
 #MAIN = outputForBDT
 
