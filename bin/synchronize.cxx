@@ -1,11 +1,13 @@
-// plot different variables in the run 1 or run 2 categories.
-// may be used to look for discrepancies between data and mc or to make dimu_mass plots for limit setting.
-// outputs mc stacks with data overlayed and a ratio plot underneath.
-// also saves the histos needed to make the mc stack, data.
-// Also saves net BKG histo and net signal histo for limit setting, saves individuals as well
-
-// Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
-// We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
+/////////////////////////////////////////////////////////////////////////////
+//                           synchronize.cxx                               //
+//=========================================================================//
+//                                                                         //
+//   Synchronize with the other groups in the analysis.                    //
+//   Output information about selected events, output lists of events      //
+//   in each category to csv, read in lists of events from csv if there    //
+//   are many events to investigate.                                       //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"

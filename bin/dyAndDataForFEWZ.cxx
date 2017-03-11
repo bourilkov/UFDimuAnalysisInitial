@@ -1,8 +1,12 @@
-// Make drell yan and data histograms with the FEWZ selection so that we can overlay and
-// compare to FEWZ later
-
-// Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
-// We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
+/////////////////////////////////////////////////////////////////////////////
+//                            dyAndDataForFEWZ.cxx                         //
+//=========================================================================//
+//                                                                         //
+// Make drell yan and data histograms with the FEWZ selection so that      //
+// we can overlay and compare to FEWZ later. FEWZ histos are parsed        //
+// from txt to TH1D in ../python/fewz.                                     //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"

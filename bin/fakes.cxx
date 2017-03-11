@@ -1,4 +1,10 @@
-// zcalibration.cxx, plot zmass and resolution in data vs phi+, phi-, eta+, eta-
+/////////////////////////////////////////////////////////////////////////////
+//                           fakes.cxx                                     //
+//=========================================================================//
+//                                                                         //
+// Study non prompt muons by looking at same sign pairs.                   //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"

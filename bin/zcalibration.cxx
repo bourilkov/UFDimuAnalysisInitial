@@ -1,4 +1,13 @@
-// zcalibration.cxx, plot zmass and resolution in data vs phi+, phi-, eta+, eta-
+/////////////////////////////////////////////////////////////////////////////
+//                           zcalibration.cxx                              //
+//=========================================================================//
+//                                                                         //
+// plot zmass and resolution in data and drell yan MC                      //
+// vs phi+, phi-, eta+, eta-. Used to investigate different pt corrections //
+// Compare Particle Flow to KaMu and Rochester.                            //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
+
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"

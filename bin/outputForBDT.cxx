@@ -1,8 +1,13 @@
-// output the events in a small window around the higgs mass = 125 GeV and their variables
-// so that we can train a bdt to make our categories for us
+/////////////////////////////////////////////////////////////////////////////
+//                           outputForBDT.cxx                              //
+//=========================================================================//
+//                                                                         //
+// output the events in a small window around the higgs mass = 125 GeV     //
+// and their variables so that we can train a bdt to make our              //
+// categories for us.                                                      //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
 
-// Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
-// We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"

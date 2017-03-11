@@ -1,7 +1,15 @@
-// output the signal, background and significance for the different categories 
+/////////////////////////////////////////////////////////////////////////////
+//                           outputCounts.cxx                              //
+//=========================================================================//
+//                                                                         //
+// output # signal, # background, S/B  and significance for                //
+// the different categories to CSV. Useful to evaluate the goodness        //
+// of categorization. Using it to compare Decision Tree created categories //
+// to the Run1 categories at the moment. Works with different significance //
+// metrics in SignificanceMetrics.hxx.                                     //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
 
-// Missing HLT trigger info in CMSSW_8_0_X MC so we have to compare Data and MC in a different manner.
-// We apply triggers to data but not to MC. Then scale MC for trigger efficiency.
 
 #include "Sample.h"
 #include "DiMuPlottingSystem.h"
