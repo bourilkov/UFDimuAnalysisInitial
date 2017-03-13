@@ -89,6 +89,7 @@ int main(int argc, char* argv[])
     for(auto &i : samples)
     {
         if(i.second->sampleType == "data") continue;
+        //if(i.second->name != "H2Mu_gg") continue;
 
         // Output some info about the current file
         std::cout << "  /// Preprocessing " << i.second->name << std::endl;
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
       EleCollectionCleaner      eleCollectionCleaner;
 
       Run2MuonSelectionCuts  run2MuonSelection;
-      Run2EventSelectionCuts run2EventSelectionMC;
+      Run2EventSelectionCuts run2EventSelection;
 
       Categorizer* categorySelection = new CategorySelectionRun1();
 
@@ -152,7 +153,7 @@ int main(int argc, char* argv[])
         // only load essential information for the first set of cuts 
         s->branches.recoDimuCands->GetEntry(i);
         s->branches.recoMuons->GetEntry(i);
-
+    
         // loop and find a good dimuon candidate
         if(s->vars.recoDimuCands->size() < 1) continue;
         bool found_good_dimuon = false;
@@ -165,20 +166,24 @@ int main(int argc, char* argv[])
 
           // the dimuon candidate and the muons that make up the pair
           s->vars.dimuCand = &dimu;
+
+          // set pt calibration type: PF, Roch, or KaMu
+          s->vars.setCalibrationType("PF");
+
           MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
           MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
 
           // only want to train on events that are in the higgs mass window
-          if(!(dimu.mass_PF > 110 && dimu.mass_PF < 160))
+          if(!(dimu.mass > 110 && dimu.mass < 160))
           {
               continue;
           }
           // usual cuts
-          if(!mu1.isTightID || !mu2.isTightID)
+          if(!mu1.isMediumID || !mu2.isMediumID)
           { 
               continue; 
           }
-          if(!run2EventSelectionMC.evaluate(s->vars))
+          if(!run2EventSelection.evaluate(s->vars))
           { 
               continue; 
           }
@@ -211,22 +216,9 @@ int main(int argc, char* argv[])
           eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
 
           // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
-          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.3);
-          CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.3);
-          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.3);
-
-          // low stats in these categories. don't include them in the training set
-          //categorySelection->evaluate(s->vars);
-          //if(categorySelection->categoryMap["c_2_Jet_VBF_Tight"].inCategory) 
-          //{
-          //    //EventTools::outputEvent(s->vars, (*categorySelection));
-          //    continue;
-          //}
-          //if(categorySelection->categoryMap["c_2_Jet_GGF_Tight"].inCategory)
-          //{
-          //    //EventTools::outputEvent(s->vars, (*categorySelection));
-          //    continue;
-          //}
+          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
@@ -234,10 +226,10 @@ int main(int argc, char* argv[])
 
           // bin = -1 for events outside signal region, 
           // [0,nbins) for events inside signal region
-          if(dimu.mass_PF < massmin || dimu.mass_PF >= massmax) bin = -1;
+          if(dimu.mass < massmin || dimu.mass >= massmax) bin = -1;
           else
           {
-              float diff = dimu.mass_PF - massmin;
+              float diff = dimu.mass - massmin;
               bin =  diff/interval;
           }
 
@@ -246,11 +238,18 @@ int main(int argc, char* argv[])
           vars["is_signal"] = s->sampleType.Contains("signal")?1:0;
           vars["weight"] = s->getScaleFactor(luminosity)*s->getWeight();
 
+          //std::cout << i << " !!! SETTING JETS " << std::endl;
+          s->vars.setJets();    // jets sorted and paired by mjj
+          s->vars.setVBFjets(); // jets sorted and paired by vbf criteria
+
           // put the actual value for each feature into our map
           // then output the map to CSV later
           for(auto& item: s->vars.varMap)
+          {
               // item.first is the name of the feature
+              //std::cout << item.first.c_str() << std::endl;
               vars[item.first.c_str()] = s->vars.getValue(item.first);
+          }
 
           if(false)
             EventTools::outputEvent(s->vars, (*categorySelection));
