@@ -12,6 +12,7 @@
 
 
 #include "Sample.h"
+#include "SignificanceMetrics.hxx"
 #include "DiMuPlottingSystem.h"
 #include "MuonSelection.h"
 #include "EventSelection.h"
@@ -119,7 +120,6 @@ int main(int argc, char* argv[])
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
-      int bin = -1;
       float interval = 0.5;
       int nbins = 20;
       float massmin = 120;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
       EleCollectionCleaner      eleCollectionCleaner;
 
       Run2MuonSelectionCuts  run2MuonSelection;
-      Run2EventSelectionCuts run2EventSelectionMC;
+      Run2EventSelectionCuts run2EventSelection;
 
       Categorizer* categorySelection = new CategorySelectionRun1();
 
@@ -192,11 +192,11 @@ int main(int argc, char* argv[])
               continue;
           }
           // usual cuts
-          if(!mu1.isTightID || !mu2.isTightID)
+          if(!mu1.isMediumID || !mu2.isMediumID)
           { 
               continue; 
           }
-          if(!run2EventSelectionMC.evaluate(s->vars))
+          if(!run2EventSelection.evaluate(s->vars))
           { 
               continue; 
           }
@@ -241,6 +241,7 @@ int main(int argc, char* argv[])
 
           // bin = -1 for events outside signal region, 
           // [0,nbins) for events inside signal region
+          int bin = -1;
           if(dimu.mass_PF < massmin || dimu.mass_PF >= massmax) bin = -1;
           else
           {
@@ -266,8 +267,10 @@ int main(int argc, char* argv[])
           for(auto& h: c.second.histoMap)
           {
               if(h.first.Contains("weights"))
+              {
                   h.second->Scale(s->getScaleFactor(luminosity));
-              //if(!c.second.hide) std::cout << Form("    %s, %s, %f\n", c.first.Data(), h.first.Data(), h.second->Integral());
+                  //if(s->sampleType == "signal") std::cout << Form("    %s, %s, %f\n", c.first.Data(), h.first.Data(), h.second->Integral());
+              }
           }
       }
 
@@ -317,9 +320,67 @@ int main(int argc, char* argv[])
     TList* datalist = new TList();       // list to save all of the data histos
     TList* netlist = new TList();        // list to save all of the net histos
 
-    std::cout << "About to loop through cAll" << std::endl;
+
+    TString csvfilename = "sigcsv/significance.csv";
+    std::cout << std::endl << "  /// Exporting counts and significnace to " << csvfilename << " ..." << std::endl;
+    std::cout << std::endl;
+
+    std::ofstream file(csvfilename, std::ofstream::out);
+    TString outtitles = "category,limit,s0,s1,s2,s3,s4,s5,S_div_sqrtB,S_div_B,signal,background,nsignal,nbackground,vbf,ggf,dy,ttbar";
+    TString stdouttitles = "category, limit, significance, s/sqrt(B), signal, background, VBF, GGF, DY, TTBar";
+    std::cout << stdouttitles << std::endl;
+
+    file << outtitles.Data() << std::endl;
+
+    std::map<TString, double> mlim;
+    mlim["c_01_Jet_Loose_BB"] =  20.5;
+    mlim["c_01_Jet_Loose_BE"] =  39.5;
+    mlim["c_01_Jet_Loose_BO"] =  20.0;
+    mlim["c_01_Jet_Loose_EE"] =  106.;
+    mlim["c_01_Jet_Loose_OE"] =  43.0;
+    mlim["c_01_Jet_Loose_OO"] =  35.0;
+    mlim["c_01_Jet_Tight_BB"] =  4.14;
+    mlim["c_01_Jet_Tight_BE"] =  8.15;
+    mlim["c_01_Jet_Tight_BO"] =  4.20;
+    mlim["c_01_Jet_Tight_EE"] =  19.8;
+    mlim["c_01_Jet_Tight_OE"] =  9.15;
+    mlim["c_01_Jet_Tight_OO"] =  7.40;
+    mlim["c_2_Jet_VBF_Tight"] =  6.46;
+    mlim["c_2_Jet_GGF_Tight"] =  8.84;
+    mlim["c_2_Jet_VBF_Loose"] =  5.17;
+
+    SignificanceMetric* s0 = new AsimovSignificance(0);
+    SignificanceMetric* s1 = new AsimovSignificance(1);
+    SignificanceMetric* s2 = new AsimovSignificance(2);
+    SignificanceMetric* s3 = new AsimovSignificance(3);
+    SignificanceMetric* s4 = new AsimovSignificance(4);
+    SignificanceMetric* s5 = new AsimovSignificance(5);
+
+    double net_significance = 0;
+    double net_s_sqrt_b = 0;
+
     for(auto &c : cAll->categoryMap)
     {
+        double lim = mlim[c.first];
+        TString cname = c.first;
+        double sig0 = -999;
+        double sig1 = -999;
+        double sig2 = -999;
+        double sig3 = -999;
+        double sig4 = -999;
+        double sig5 = -999;
+        double signal = -999;
+        double bkg = -999;
+        double s_over_b = -999;
+        double s2_over_b = -999;
+        double nsignal = -999;
+        double nbkg = -999;
+
+        double vbf = -999;
+        double ggf = -999;
+        double dy = -999;
+        double ttbar = -999;
+
         // some categories are intermediate and we don't want to save the plots for those
         if(c.second.hide) continue;
 
@@ -333,17 +394,31 @@ int main(int argc, char* argv[])
         TList* bkgListW = new TList();
 
         // filter num/weight histos to appropriate lists
+        TH1D* hvbf = 0;
+        TH1D* hggf = 0;
+        TH1D* hdy = 0;
+        TH1D* httbar = 0;
         while(obj = isig())
         {
             TH1D* h = (TH1D*) obj;
             if(TString(h->GetName()).Contains("num")) signalListNum->Add(h);
-            if(TString(h->GetName()).Contains("weights")) signalListW->Add(h);
+            if(TString(h->GetName()).Contains("weights")) 
+            {
+                signalListW->Add(h);
+                if(TString(h->GetName()).Contains("_VBF")) hvbf=h;
+                if(TString(h->GetName()).Contains("_gg")) hggf=h;
+            }
         }
         while(obj = ibkg())
         {
             TH1D* h = (TH1D*) obj;
             if(TString(h->GetName()).Contains("num")) bkgListNum->Add(h);
-            if(TString(h->GetName()).Contains("weights")) bkgListW->Add(h);
+            if(TString(h->GetName()).Contains("weights")) 
+            {
+                bkgListW->Add(h);
+                if(TString(h->GetName()).Contains("ZJets")) hdy=h;
+                if(TString(h->GetName()).Contains("tt_ll")) httbar=h;
+            }
         }
 
         // num histos
@@ -358,10 +433,53 @@ int main(int argc, char* argv[])
         netlist->Add(hNetBkgW);
         netlist->Add(hNetSignalNum);
         netlist->Add(hNetBkgNum);
+
+        // signal region is in bins [2,nbins], bin1 is the amount outside the signal region
+        // we want the counts inside the signal region
+        signal  = hNetSignalW->Integral(2, hNetSignalW->GetNbinsX());
+        bkg     = hNetBkgW->Integral(2, hNetSignalW->GetNbinsX());
+        nsignal = hNetSignalNum->Integral(2, hNetSignalW->GetNbinsX());
+        nbkg    = hNetBkgNum->Integral(2, hNetSignalW->GetNbinsX());
+
+        vbf     = hvbf->Integral(2, hNetSignalW->GetNbinsX());
+        ggf     = hggf->Integral(2, hNetSignalW->GetNbinsX());
+        dy      = hdy->Integral(2, hNetSignalW->GetNbinsX());
+        ttbar   = httbar->Integral(2, hNetSignalW->GetNbinsX());
+
+        s_over_b = signal/bkg;
+        s2_over_b = signal*signal/bkg;
+        sig0 = s0->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+        sig1 = s1->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+        sig2 = s2->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+        sig3 = s3->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+        sig4 = s4->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+        sig5 = s5->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+
+        if(c.second.isTerminal) net_significance += sig0;
+        if(c.second.isTerminal) net_s_sqrt_b += s2_over_b;
+
+        TString outtitles = "category,limit,s0,s1,s2,s3,s4,s5,S_div_sqrtB,S_div_B,signal,background,nsignal,nbackground,vbf,ggf,dy,ttbar";
+        TString outstring = Form("%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%f,%f,%f,%f", cname.Data(), lim, TMath::Sqrt(sig0), 
+                                 TMath::Sqrt(sig1), TMath::Sqrt(sig2), TMath::Sqrt(sig3), TMath::Sqrt(sig4), TMath::Sqrt(sig5), 
+                                 TMath::Sqrt(s2_over_b), s_over_b, signal, bkg, nsignal, nbkg, vbf, ggf, dy, ttbar);
+        file << outstring.Data() << std::endl;
+
+        TString stdoutstring = Form("%s,%f,%f,%f,%f,%f,%f,%f,%f", cname.Data(), lim, TMath::Sqrt(sig0), TMath::Sqrt(s2_over_b), signal, bkg, vbf, ggf, dy, ttbar);
+        std::cout << stdoutstring << std::endl;
     }
+    file.close();  
+    net_significance = TMath::Sqrt(net_significance);
+    net_s_sqrt_b = TMath::Sqrt(net_s_sqrt_b);
+
+    std::cout << std::endl;
+    std::cout << "  ////////////////////////////////////////// " << std::endl;
+    std::cout << "  ### NET SIGNIFICANCE: " << net_significance << std::endl;
+    std::cout << "  ### NET S/SQRT(B)   : " << net_s_sqrt_b << std::endl;
+    std::cout << "  ////////////////////////////////////////// " << std::endl;
 
     TString savename = Form("rootfiles/significance_run1categories.root");
 
+    std::cout << std::endl;
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
 

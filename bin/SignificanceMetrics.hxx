@@ -101,61 +101,31 @@ class SignificanceMetric
             return s;
         }
 
-        // if we have a suitable significance function, then this function is determined
-        std::pair<double, double> significanceGivenCut(TH1D* signal, TH1D* background, int cutbin, bool ismin)
+        double significance2(TH1D* hsignal, TH1D* hbackground, TH1D* hnsignal, TH1D* hnbackground)
         {
-            double sIntegral = 0;
-            double bIntegral = 0;
-            double cutvalue = signal->GetBinCenter(cutbin);
-            // the cut is a minimum bound we want the integral from the cut to the end
-            if(ismin)
+            double s2 = 0;              // net significance squared
+            double nbackgroundOut = 0;  // number of background events outside signal region
+            double backgroundOut = 0;   // sum of weights of background outside signal region
+            for(unsigned int i=1; i<=hsignal->GetNbinsX(); i++)
             {
-                sIntegral = signal->Integral(cutbin, signal->GetSize()+1);
-                bIntegral = background->Integral(cutbin, background->GetSize()+1);
-                
+                double ibg = hbackground->GetBinContent(i);    // sum bkg weights in bin i
+                double inbg = hnbackground->GetBinContent(i);  // num background events in bin i
+                double isig = hsignal->GetBinContent(i);       // sum of weights of signal in bin i
+                double insig = hnsignal->GetBinContent(i);     // num signal events in bin i
+
+                // first bin is the amount outside the signal region
+                if(i==1)
+                {
+                    nbackgroundOut = inbg;
+                    backgroundOut  = ibg;
+                }    
+                // other bins are inside signal region 
+                else
+                {
+                    s2 += significance2(isig, ibg, backgroundOut, insig, inbg, nbackgroundOut);
+                }
             }
-            // the cut is a maximum bound we want the integral from beginning to the cut
-            else
-            {
-                sIntegral = signal->Integral(0, cutbin);
-                bIntegral = background->Integral(0, cutbin);
-            }
-            return std::pair<double,double>(cutvalue, significance(sIntegral, bIntegral) );
-        }
-
-        // if we have a suitable significance function, then this function is determined as well
-        void significanceVsCut(std::vector<std::pair<double,double>>& svec, TH1D* signal, TH1D* background, bool ismin)
-        {
-            for(int i=0; i<signal->GetSize()-1; i++)
-            {
-                svec.push_back(significanceGivenCut(signal, background, i, ismin)); 
-            }     
-        }
-
-        static void outputSignificanceVsCut(std::vector<std::pair<double,double>>& svec)
-        {
-            for(unsigned int i=0; i<svec.size(); i++)
-            {   
-                std::cout << svec[i].first << ", " << svec[i].second << std::endl;
-            }   
-            std::cout << std::endl;
-        }
-
-        static TGraph* makeTGraph(std::vector<std::pair<double,double>>& svec, TString name, TString title, TString xtitle, TString ytitle)
-        {
-            TGraph* graph = new TGraph();
-            graph->SetName(name);
-            graph->SetTitle(title);
-
-            for(unsigned int i=0; i<svec.size(); i++)
-            {   
-                graph->SetPoint(i, svec[i].first, svec[i].second);
-            }   
-
-            graph->GetXaxis()->SetTitle(xtitle);
-            graph->GetYaxis()->SetTitle(ytitle);
-
-            return graph;
+       
         }
 };
 
@@ -237,7 +207,7 @@ class PoissonSignificance : public SignificanceMetric
 
         double significance(double signal, double background)
         {
-            if(background <= 0) return 0;
+            if(background <= 0) background = 1;
             if(signal < 0) return 0;
 
             setUncertainty(background);
@@ -256,13 +226,13 @@ class PoissonSignificance : public SignificanceMetric
             //std::cout << "Uncertainty type : " << unctype << std::endl;
             //std::cout << "Uncertainty value: " << unc << std::endl;
 
-            if(background <= 0) return 0;
-            if(nbackground < 10) return 0;
+            if(background <= 0) background = 1;
+            //if(nbackground < 10) return 0;
 
             if(unctype == 1) setUncertainty(backgroundOut);
             else setUncertainty(background);
 
-            double val = signal/std::sqrt(signal + background + unc*unc*background*background);
+            double val = signal/TMath::Sqrt(background + unc*unc*background*background);
             return std::isfinite(val)?val:0;
         }
 };

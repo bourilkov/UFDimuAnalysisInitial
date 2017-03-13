@@ -182,6 +182,7 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
 
         //cnode->output();
         categoryMap[cnode->name] = Category(cnode->name);
+        categoryMap[cnode->name].isTerminal = true;
         return;
     }
     else
@@ -224,19 +225,23 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
 void CategorySelectionRun1::initCategoryMap()
 {
 // Initialize the categories
+
+    // Category(name), Category(name, hide?), Category(name, hide?, isTerminal?)
+    // defaults are hide = false, isTerminal = false
+
     categoryMap["c_ALL"] = Category("c_ALL");
 
     // intermediate categories to make things easier
     categoryMap["c_2_Jet"] = Category("c_2_Jet");
     categoryMap["c_01_Jet"] = Category("c_01_Jet");
 
-    categoryMap["c_2_Jet_VBF_Tight"] = Category("c_2_Jet_VBF_Tight");
-    categoryMap["c_2_Jet_VBF_Loose"] = Category("c_2_Jet_VBF_Loose");
-    categoryMap["c_2_Jet_GGF_Tight"] = Category("c_2_Jet_GGF_Tight");
+    categoryMap["c_2_Jet_VBF_Tight"] = Category("c_2_Jet_VBF_Tight", false, true);
+    categoryMap["c_2_Jet_VBF_Loose"] = Category("c_2_Jet_VBF_Loose", false, true);
+    categoryMap["c_2_Jet_GGF_Tight"] = Category("c_2_Jet_GGF_Tight", false, true);
     categoryMap["c_01_Jet_Tight"] = Category("c_01_Jet_Tight");
     categoryMap["c_01_Jet_Loose"] = Category("c_01_Jet_Loose");
 
-    // intermediate categories to make things easier, don't plot these, hence the true
+    // intermediate categories to make things easier, don't plot these, hence the hide=true
     categoryMap["c_BB"] = Category("c_BB", true);
     categoryMap["c_BO"] = Category("c_BO", true);
     categoryMap["c_BE"] = Category("c_BE", true);
@@ -244,19 +249,19 @@ void CategorySelectionRun1::initCategoryMap()
     categoryMap["c_OE"] = Category("c_OE", true);
     categoryMap["c_EE"] = Category("c_EE", true);
 
-    categoryMap["c_01_Jet_Tight_BB"] = Category("c_01_Jet_Tight_BB");
-    categoryMap["c_01_Jet_Tight_BO"] = Category("c_01_Jet_Tight_BO");
-    categoryMap["c_01_Jet_Tight_BE"] = Category("c_01_Jet_Tight_BE");
-    categoryMap["c_01_Jet_Tight_OO"] = Category("c_01_Jet_Tight_OO");
-    categoryMap["c_01_Jet_Tight_OE"] = Category("c_01_Jet_Tight_OE");
-    categoryMap["c_01_Jet_Tight_EE"] = Category("c_01_Jet_Tight_EE");
+    categoryMap["c_01_Jet_Tight_BB"] = Category("c_01_Jet_Tight_BB", false, true);
+    categoryMap["c_01_Jet_Tight_BO"] = Category("c_01_Jet_Tight_BO", false, true);
+    categoryMap["c_01_Jet_Tight_BE"] = Category("c_01_Jet_Tight_BE", false, true);
+    categoryMap["c_01_Jet_Tight_OO"] = Category("c_01_Jet_Tight_OO", false, true);
+    categoryMap["c_01_Jet_Tight_OE"] = Category("c_01_Jet_Tight_OE", false, true);
+    categoryMap["c_01_Jet_Tight_EE"] = Category("c_01_Jet_Tight_EE", false, true);
 
-    categoryMap["c_01_Jet_Loose_BB"] = Category("c_01_Jet_Loose_BB");
-    categoryMap["c_01_Jet_Loose_BO"] = Category("c_01_Jet_Loose_BO");
-    categoryMap["c_01_Jet_Loose_BE"] = Category("c_01_Jet_Loose_BE");
-    categoryMap["c_01_Jet_Loose_OO"] = Category("c_01_Jet_Loose_OO");
-    categoryMap["c_01_Jet_Loose_OE"] = Category("c_01_Jet_Loose_OE");
-    categoryMap["c_01_Jet_Loose_EE"] = Category("c_01_Jet_Loose_EE");
+    categoryMap["c_01_Jet_Loose_BB"] = Category("c_01_Jet_Loose_BB", false, true);
+    categoryMap["c_01_Jet_Loose_BO"] = Category("c_01_Jet_Loose_BO", false, true);
+    categoryMap["c_01_Jet_Loose_BE"] = Category("c_01_Jet_Loose_BE", false, true);
+    categoryMap["c_01_Jet_Loose_OO"] = Category("c_01_Jet_Loose_OO", false, true);
+    categoryMap["c_01_Jet_Loose_OE"] = Category("c_01_Jet_Loose_OE", false, true);
+    categoryMap["c_01_Jet_Loose_EE"] = Category("c_01_Jet_Loose_EE", false, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -387,19 +392,38 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
     // jet category selection
     if(vars.validJets.size() >= 2)
     {
-        TLorentzVector leadJet = vars.validJets[0];
-        TLorentzVector subleadJet = vars.validJets[1];
-        TLorentzVector dijet = leadJet + subleadJet;
-
-        float dEta = leadJet.Eta() - subleadJet.Eta();
-        float dijetMass = dijet.M();
-
-        if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax)
+        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
+        if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin) // No MET for now
         {
             categoryMap["c_2_Jet"].inCategory = true;
-            if(dijetMass > cDijetMassMinVBFT && TMath::Abs(dEta) > cDijetDeltaEtaMinVBFT){ categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; return; }
-            else if(dijetMass > cDijetMassMinGGFT && vars.dimuCand->pt > cDimuPtMinGGFT){ categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; return; }
-            else{ categoryMap["c_2_Jet_VBF_Loose"].inCategory = true; return; }
+            double mjj_max = -1;
+
+            for(unsigned int i=0; i<vars.validJets.size(); i++)
+            {
+                if(!(vars.validJets[i].Pt() > cLeadPtMin)) break;
+                for(unsigned int j=i+1; j<vars.validJets.size(); j++)
+                {
+                    double dEtajj = vars.validJets[i].Eta() - vars.validJets[j].Eta();
+                    double mjj = (vars.validJets[i] + vars.validJets[j]).M();
+                    if(mjj > mjj_max) mjj_max = mjj;
+                    if(mjj > cDijetMassMinVBFT && TMath::Abs(dEtajj) > cDijetDeltaEtaMinVBFT)
+                    { 
+                        categoryMap["c_2_Jet_VBF_Tight"].inCategory = true; 
+                        return; 
+                    }
+                }
+            }
+
+            if(mjj_max > cDijetMassMinGGFT && vars.dimuCand->pt > cDimuPtMinGGFT)
+            { 
+                categoryMap["c_2_Jet_GGF_Tight"].inCategory = true; 
+                return; 
+            }
+            else
+            { 
+                categoryMap["c_2_Jet_VBF_Loose"].inCategory = true; 
+                return; 
+            }
         }
     }
     if(!categoryMap["c_2_Jet"].inCategory) // fails 2jet preselection enters 01 categories

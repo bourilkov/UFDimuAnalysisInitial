@@ -43,12 +43,22 @@ class Category
            this->hide = hide;
        }
     
+       Category(TString name, bool hide, bool isTerminal)
+       {
+           this->name = name;
+           this->hide = hide;
+           this->isTerminal = isTerminal;
+       }
+    
        // map sample name to vector of events in the category
        std::map<TString, std::vector< std::pair<int, long long int> > > eventsMap;
 
        // Categorizer.evaluate will determine whether an event falls into this category
        // if an event falls into this category the boolean value will be set to true
        bool inCategory = false; 
+
+       // is a final category used for limit setting
+       bool isTerminal = false;
 
        // make a histogram of the category or not
        bool hide = false;
