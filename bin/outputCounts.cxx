@@ -32,6 +32,7 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <iomanip>
 
 //////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------
@@ -464,7 +465,10 @@ int main(int argc, char* argv[])
                                  TMath::Sqrt(s2_over_b), s_over_b, signal, bkg, nsignal, nbkg, vbf, ggf, dy, ttbar);
         file << outstring.Data() << std::endl;
 
-        TString stdoutstring = Form("%s,%f,%f,%f,%f,%f,%f,%f,%f", cname.Data(), lim, TMath::Sqrt(sig0), TMath::Sqrt(s2_over_b), signal, bkg, vbf, ggf, dy, ttbar);
+        
+
+        TString stdoutstring = Form(": %f, %f, %f, %f, %f, %f, %f, %f", lim, TMath::Sqrt(sig0), TMath::Sqrt(s2_over_b), signal, bkg, vbf, ggf, dy, ttbar);
+        std::cout << std::setw(20) << cname.Data();
         std::cout << stdoutstring << std::endl;
     }
     file.close();  
