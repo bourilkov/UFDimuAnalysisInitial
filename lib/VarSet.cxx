@@ -30,6 +30,7 @@ VarSet::VarSet()
     varMap["mu0_eta"]     = &VarSet::mu1_eta;
     varMap["mu1_eta"]     = &VarSet::mu2_eta;
     varMap["mu_res_eta"]  = &VarSet::mu_res_eta;
+    varMap["phi_star"]    = &VarSet::phi_star;
     
     varMap["jet0_pt"]   = &VarSet::jet0_pt;
     varMap["jet1_pt"]   = &VarSet::jet1_pt;
@@ -39,7 +40,9 @@ VarSet::VarSet()
     varMap["m_jj"]          = &VarSet::m_jj;
     varMap["dEta_jj"]       = &VarSet::dEta_jj;
     varMap["dEta_jj_mumu"]  = &VarSet::dEta_jj_mumu;
-    
+    varMap["dPhi_jj_mumu"]  = &VarSet::dPhi_jj_mumu;
+    varMap["zep"]           = &VarSet::zep;
+
     varMap["vbf_jet0_pt"]   = &VarSet::vbf_jet0_pt;
     varMap["vbf_jet1_pt"]   = &VarSet::vbf_jet1_pt;
     varMap["vbf_jet0_eta"]  = &VarSet::vbf_jet0_eta;
@@ -48,6 +51,8 @@ VarSet::VarSet()
     varMap["vbf_m_jj"]          = &VarSet::vbf_m_jj;
     varMap["vbf_dEta_jj"]       = &VarSet::vbf_dEta_jj;
     varMap["vbf_dEta_jj_mumu"]  = &VarSet::vbf_dEta_jj_mumu;
+    varMap["vbf_dPhi_jj_mumu"]  = &VarSet::vbf_dPhi_jj_mumu;
+    varMap["vbf_zep"]           = &VarSet::vbf_zep;
     
     varMap["bjet0_pt"]   = &VarSet::bjet0_pt;
     varMap["bjet1_pt"]   = &VarSet::bjet1_pt;
@@ -77,7 +82,4 @@ VarSet::VarSet()
 
     varMap["mT_b_MET"] = &VarSet::mT_b_MET;
 
-    varMap["zep"]           = &VarSet::zep;
-    varMap["phi_star"]      = &VarSet::phi_star;
-    varMap["dPhi_jj_mumu"]  = &VarSet::dPhi_jj_mumu;
 }

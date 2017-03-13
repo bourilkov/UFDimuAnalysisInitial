@@ -239,8 +239,8 @@ int main(int argc, char* argv[])
           vars["weight"] = s->getScaleFactor(luminosity)*s->getWeight();
 
           //std::cout << i << " !!! SETTING JETS " << std::endl;
-          s->vars.setJets();    // jets sorted and paired by mjj
-          s->vars.setVBFjets(); // jets sorted and paired by vbf criteria
+          //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
+          s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
 
           // put the actual value for each feature into our map
           // then output the map to CSV later

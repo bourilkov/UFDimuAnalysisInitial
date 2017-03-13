@@ -185,6 +185,18 @@ class VarSet
         double mu2_eta()   {  return recoMuons->at(dimuCand->iMu2).eta;   };
         double mu_res_eta(){  return (TMath::Abs(mu1_eta()) + TMath::Abs(mu2_eta()))/2;   };
 
+        // measure of the muon phi separation in the parent's rest frame
+        double phi_star()
+        {
+            double phi_star = 0;
+            double mu_dPhi = TMath::Abs(recoMuons->at(dimuCand->iMu1).phi - recoMuons->at(dimuCand->iMu2).phi);
+            if(mu_dPhi > TMath::Pi()) mu_dPhi = 2*TMath::Pi() - mu_dPhi;
+            double phiACOP = TMath::Pi() - mu_dPhi;
+            double thetaStarEta = TMath::ACos(TMath::TanH((recoMuons->at(dimuCand->iMu1).eta - recoMuons->at(dimuCand->iMu2).eta)/2));
+            phi_star = TMath::Tan(phiACOP/2)*TMath::Sin(thetaStarEta);
+            return phi_star;
+        };
+
         // jet variables
         double jet0_pt() { return (validJets.size()>=1)?validJets[j0].Pt():-999;  };
         double jet1_pt() { return (validJets.size()>=2)?validJets[j1].Pt():-999;  };
@@ -194,6 +206,19 @@ class VarSet
         double m_jj()        { return (validJets.size()>=2)?(validJets[j0]+validJets[j1]).M():-999; };
         double dEta_jj()     { return (validJets.size()>=2)?TMath::Abs(validJets[j0].Eta()-validJets[j1].Eta()):-999; };
         double dEta_jj_mumu(){ return (validJets.size()>=2)?TMath::Abs((validJets[j0]+validJets[j1]).Eta()-dimuCand->eta):-999; };
+
+        double dPhi_jj_mumu()    
+        { 
+            if(validJets.size() < 2) return -999;
+            double dphi = TMath::Abs((validJets[j0] + validJets[j1]).Phi() - dimuCand->phi);
+            if(dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
+        };
+        double zep()
+        { 
+            if(validJets.size() < 2) return -999; 
+            double meanEta = (validJets[j0].Eta() +validJets[j1].Eta())/2;
+            return validJets[j0].Eta() - meanEta;
+        };
 
         // vbf jet variables
         double vbf_jet0_pt() { return (validJets.size()>=1)?validJets[vbf_j0].Pt():-999;  };
@@ -213,6 +238,20 @@ class VarSet
 
         double m_bb()   { return (validBJets.size()>=2)?(validBJets[0]+validBJets[1]).M():-999; };
         double dEta_bb(){ return (validBJets.size()>=2)?TMath::Abs(validBJets[0].Eta()-validBJets[1].Eta()):-999; };
+
+        double vbf_dPhi_jj_mumu()    
+        { 
+            if(validJets.size() < 2) return -999;
+            double dphi = TMath::Abs((validJets[vbf_j0] + validJets[vbf_j1]).Phi() - dimuCand->phi);
+            if(dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
+        };
+
+        double vbf_zep()
+        { 
+            if(validJets.size() < 2) return -999; 
+            double meanEta = (validJets[vbf_j0].Eta() +validJets[vbf_j1].Eta())/2;
+            return validJets[vbf_j0].Eta() - meanEta;
+        };
 
         // # variables
         double N_valid_jets()         { return validJets.size();          };
@@ -244,29 +283,6 @@ class VarSet
             return bmet_t.M();
         };
 
-        // special variables, to be implemented
-        double zep()
-        { 
-            if(validJets.size() < 2) return -999; 
-            double meanEta = (validJets[j0].Eta() +validJets[j1].Eta())/2;
-            return validJets[j0].Eta() - meanEta;
-        };
-        double phi_star()
-        {
-            double phi_star = 0;
-            double mu_dPhi = TMath::Abs(recoMuons->at(dimuCand->iMu1).phi - recoMuons->at(dimuCand->iMu2).phi);
-            if(mu_dPhi > TMath::Pi()) mu_dPhi = 2*TMath::Pi() - mu_dPhi;
-            double phiACOP = TMath::Pi() - mu_dPhi;
-            double thetaStarEta = TMath::ACos(TMath::TanH((recoMuons->at(dimuCand->iMu1).eta - recoMuons->at(dimuCand->iMu2).eta)/2));
-            phi_star = TMath::Tan(phiACOP/2)*TMath::Sin(thetaStarEta);
-            return phi_star;
-        };
-        double dPhi_jj_mumu()    
-        { 
-            if(validJets.size() < 2) return -999;
-            double dphi = TMath::Abs((validJets[j0] + validJets[j1]).Phi() - dimuCand->phi);
-            if(dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
-        };
 };
 
 #endif
