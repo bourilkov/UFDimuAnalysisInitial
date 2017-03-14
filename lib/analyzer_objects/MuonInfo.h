@@ -1,4 +1,3 @@
-
 #ifndef MUON_INFO
 #define MUON_INFO
 
@@ -7,7 +6,6 @@
 #include "ParticleInfo.h"
 
 struct MuonInfo : public ParticleInfo{
-
   Bool_t isTracker   ;
   Bool_t isStandAlone;
   Bool_t isGlobal    ;
@@ -36,6 +34,7 @@ struct MuonInfo : public ParticleInfo{
   Double_t pt_KaMu_clos_down;
 
   Double_t pt_Roch          ;
+  Double_t ptErr_Roch       ;
   Double_t pt_Roch_sys_up   ;
   Double_t pt_Roch_sys_down ;
 
@@ -55,9 +54,10 @@ struct MuonInfo : public ParticleInfo{
   // PF information
   Bool_t isPF;
 
-  Double_t pt_PF ;
-  Double_t eta_PF;
-  Double_t phi_PF;
+  Double_t pt_PF   ;
+  Double_t ptErr_PF;
+  Double_t eta_PF  ;
+  Double_t phi_PF  ;
   
   Float_t sumChargedHadronPtR03  ;  // sum-pt of charged Hadron
   Float_t sumChargedParticlePtR03;  // sum-pt of charged Particles(inludes e/mu)
@@ -80,7 +80,6 @@ struct MuonInfo : public ParticleInfo{
 
   Float_t GEN_pt;
   Float_t GEN_dR;
-
   void init();
   Float_t getMass();
   TLorentzVector get4vec();

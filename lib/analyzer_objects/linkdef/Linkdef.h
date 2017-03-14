@@ -7,8 +7,11 @@
 #pragma link C++ class ParticleInfo+; 
 //#pragma link C++ class std::vector<ParticleInfo>+; 
 
-#pragma link C++ class GenPairInfo+; 
-#pragma link C++ class std::vector<GenPairInfo>+; 
+#pragma link C++ class JetPairInfo+; 
+#pragma link C++ class std::vector<JetPairInfo>+; 
+
+#pragma link C++ class GenMuPairInfo+; 
+#pragma link C++ class std::vector<GenMuPairInfo>+; 
 
 #pragma link C++ class GenParentInfo+; 
 #pragma link C++ class std::vector<GenParentInfo>+; 
@@ -40,8 +43,8 @@
 #pragma link C++ class MuonInfo+; 
 #pragma link C++ class std::vector<MuonInfo>+; 
 
-#pragma link C++ class PairInfo+; 
-#pragma link C++ class std::vector<PairInfo>+; 
+#pragma link C++ class MuPairInfo+; 
+#pragma link C++ class std::vector<MuPairInfo>+; 
 
 #pragma link C++ class MhtInfo+; 
 #pragma link C++ class std::vector<MhtInfo>+; 

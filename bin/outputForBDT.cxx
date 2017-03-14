@@ -25,6 +25,7 @@
 
 #include "TLorentzVector.h"
 #include "TSystem.h"
+#include "TNtuple.h"
 #include <sstream>
 #include <map>
 #include <vector>
@@ -123,6 +124,10 @@ int main(int argc, char* argv[])
       int nbins = 20;
       float massmin = 120;
       float massmax = 130;
+
+      //TFile* tfile = new TFile("rootfiles/bdt/"+s->name+"_bdt_training.root", "RECREATE");
+      //tfile->cd();
+      //TNtuple* ntuple = new TNtuple("theNtuple", "theNtuple");
 
       std::map<TString, double> vars;
       vars["bin"] = -999;
