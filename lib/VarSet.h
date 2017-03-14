@@ -94,10 +94,11 @@ class VarSet
         // get the the value for some variable in one of the structs above
         // by name (string). Use the varMap to get the appropriate function
         // of those below.
+        // Now we can easily output the values for training TString->Value
+        // And evaluate the XML categories via getValue(varTString) > cut
         double getValue(const std::string& name) 
         {
-          // The specific object doesn't have its own function until
-          // some method in the object is called.
+          // Must call the function for this particular instance
           if(varMap[name])
             return (this->*varMap[name])();
           else return -999;

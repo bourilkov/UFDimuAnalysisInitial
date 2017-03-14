@@ -25,6 +25,7 @@
 
 #include "TLorentzVector.h"
 #include "TSystem.h"
+#include "TNtuple.h"
 #include <sstream>
 #include <map>
 #include <vector>
@@ -135,8 +136,12 @@ int main(int argc, char* argv[])
           vars[item.first.c_str()] = -999;
 
       // !!!! output first line of csv to file
-      std::ofstream file("csv/"+s->name+"_bdt_training.csv", std::ofstream::out);
+      std::ofstream file("csv/bdtcsv/"+s->name+"_bdt_training.csv", std::ofstream::out);
       file << EventTools::outputMapKeysCSV(vars).Data() << std::endl;
+
+      // ntuple requires list of variables to be separated by ":" rather than ","
+      TString ntuplevars = EventTools::outputMapKeysCSV(vars).ReplaceAll(",", ":");
+      TNtuple* ntuple = new TNtuple(s->name.Data(), s->name.Data(), ntuplevars.Data());
 
       // Objects to help with the cuts and selections
       JetCollectionCleaner      jetCollectionCleaner;
@@ -257,19 +262,48 @@ int main(int argc, char* argv[])
           // !!!! output event info to file
           file << EventTools::outputMapValuesCSV(vars).Data() << std::endl;
 
+          std::vector<Float_t> varvalues;
+          for(auto& item: vars)
+              varvalues.push_back((Float_t)item.second);
+
+          // fill the ntuple
+          ntuple->Fill(&varvalues[0]);
+
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
 
         } // end dimucand loop
       } // end event loop
 
       file.close();
+
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
-      return 0;
+      return ntuple;
     }; // end sample lambda function
 
     ThreadPool pool(nthreads);
-    std::vector< std::future<int> > results;
+    std::vector< std::future<TNtuple*> > results;
 
     for(auto& s: samplevec)
         results.push_back(pool.enqueue(outputSampleInfo, s));
+
+    std::vector<TNtuple*> ntuples;
+    for(auto && result: results)  // get each ntuple and save it to a tfile
+    {
+        TNtuple* ntuple = result.get();
+        ntuples.push_back(ntuple);
+    }
+
+    for(auto& ntuple: ntuples)
+    {
+        TString sname = ntuple->GetName();
+        ntuple->SetName("theNtuple");
+        ntuple->SetTitle("theNtuple");
+        TString filename = "rootfiles/bdt/"+sname+"_bdt_training.root";
+        std::cout << Form("  /// Writing ntuple to %s \n", filename.Data());
+        TFile* tfile = new TFile(filename,"RECREATE");
+        tfile->cd();
+        ntuple->Write();
+        tfile->Write();
+        tfile->Close();
+    }
 }

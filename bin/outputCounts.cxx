@@ -322,7 +322,7 @@ int main(int argc, char* argv[])
     TList* netlist = new TList();        // list to save all of the net histos
 
 
-    TString csvfilename = "sigcsv/significance.csv";
+    TString csvfilename = "csv/sigcsv/significance.csv";
     std::cout << std::endl << "  /// Exporting counts and significnace to " << csvfilename << " ..." << std::endl;
     std::cout << std::endl;
 
