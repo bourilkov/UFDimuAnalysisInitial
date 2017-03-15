@@ -139,6 +139,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH"  || select == "H2Mu_WH_pos") {
     std::cout << "\nAdding files for H2Mu_WH_pos ..." << std::endl;
     std::vector<TString> in_files;
@@ -156,6 +158,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH" || select == "H2Mu_WH_neg") {
     std::cout << "\nAdding files for H2Mu_WH_neg ..." << std::endl;
     std::vector<TString> in_files;
@@ -178,10 +182,10 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // DYJetsToLL -----------------------------------------------------
   // ================================================================
   
-  float DY_xsec_m50 = 5765; // pb // old value = 6025.2
+  float DY_xsec_m50 = 5765.4; // pb // old value = 6025.2
   float DY_m100to200_factor = 1.235; 
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
+  if (select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
     std::cout << "\nAdding files for ZJets_AMC ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -198,7 +202,9 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
-  if (select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -215,6 +221,160 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_70_100 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_70_100.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_70_100"] = new Sample(in_files, "ZJets_MG_HT_70_100", "background");
+    samples["ZJets_MG_HT_70_100"]->xsec = 206.184;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_100_200 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_100_200.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_100_200"] = new Sample(in_files, "ZJets_MG_HT_100_200", "background");
+    samples["ZJets_MG_HT_100_200"]->xsec = 181.302;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_200_400 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_200_400.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_200_400"] = new Sample(in_files, "ZJets_MG_HT_200_400", "background");
+    samples["ZJets_MG_HT_200_400"]->xsec = 50.4177;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_400_600 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_400_600.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_400_600"] = new Sample(in_files, "ZJets_MG_HT_400_600", "background");
+    samples["ZJets_MG_HT_400_600"]->xsec = 6.98394;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_600_800 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_600_800.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_600_800"] = new Sample(in_files, "ZJets_MG_HT_600_800", "background");
+    samples["ZJets_MG_HT_600_800"]->xsec = 1.68141;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_800_1200 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_800_1200.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_800_1200"] = new Sample(in_files, "ZJets_MG_HT_800_1200", "background");
+    samples["ZJets_MG_HT_800_1200"]->xsec = 0.775392;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_1200_2500 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_1200_2500.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_1200_2500"] = new Sample(in_files, "ZJets_MG_HT_1200_2500", "background");
+    samples["ZJets_MG_HT_1200_2500"]->xsec = 0.186222;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+    std::cout << "\nAdding files for ZJets_MG_HT_2500_inf ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG_HT_2500_inf.root") );
+    } else {
+      for (int i = 1; i <= 48; i++) {
+	in_file.Form( "%s/x%d.root", in_dir.Data(), i);
+	in_files.push_back(in_file);
+      }
+    }
+    samples["ZJets_MG_HT_2500_inf"] = new Sample(in_files, "ZJets_MG_HT_2500_inf", "background");
+    samples["ZJets_MG_HT_2500_inf"]->xsec = 0.004385;
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_hiM") {
     std::cout << "\nAdding files for ZJets_hiM ..." << std::endl;
     std::vector<TString> in_files;
@@ -232,6 +392,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_hiM_SpringPU") {
     std::cout << "\nAdding files for ZJets_hiM_SpringPU ..." << std::endl;
     std::vector<TString> in_files;
@@ -271,6 +433,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "MC" || select == "BACKGROUND" || select == "ttbar" || select == "tt_ll_MG") {
     std::cout << "\nAdding files for tt_ll_MG ..." << std::endl;
     std::vector<TString> in_files;
@@ -314,6 +478,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tW" || select == "tW_neg") {
     std::cout << "\nAdding files for tW_neg ..." << std::endl;
     std::vector<TString> in_files;
@@ -331,6 +497,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tZq") {
     std::cout << "\nAdding files for tZq ..." << std::endl;
     std::vector<TString> in_files;
@@ -346,6 +514,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     samples["tZq"]->xsec = 0.0758; // pb
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //if (select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tZW") {
   //  std::cout << "\nAdding files for tZW ..." << std::endl;
@@ -385,6 +555,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttV" || select == "ttZ") {
     std::cout << "\nAdding files for ttZ ..." << std::endl;
     std::vector<TString> in_files;
@@ -423,6 +595,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
    //if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_2l") {
    //  std::cout << "\nAdding files for WZ_2l ..." << std::endl;
    //  std::vector<TString> in_files;
@@ -457,6 +631,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_2l_2v") {
     std::cout << "\nAdding files for ZZ_2l_2v ..." << std::endl;
     std::vector<TString> in_files;
@@ -474,6 +650,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_2l_2q") {
     std::cout << "\nAdding files for ZZ_2l_2q ..." << std::endl;
     std::vector<TString> in_files;
@@ -491,6 +669,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_4l") {
     std::cout << "\nAdding files for ZZ_4l ..." << std::endl;
     std::vector<TString> in_files;

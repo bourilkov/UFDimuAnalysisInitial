@@ -13,12 +13,12 @@ OBJDIR = ../lib/analyzer_objects/
 CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-MAIN = categorize
+#MAIN = categorize
 #MAIN = dyAndDataForFEWZ
 #MAIN = outputCounts
 #MAIN = synchronize
 #MAIN = example
-#MAIN = dycompare
+MAIN = dycompare
 #MAIN = zcalibration
 #MAIN = fakes
 #MAIN = outputForBDT
