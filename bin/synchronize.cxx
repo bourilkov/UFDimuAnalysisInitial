@@ -143,10 +143,31 @@ int main(int argc, char* argv[])
       std::vector<std::pair<int,long long int>> eventsToCheck;
       //loadEventsFromFile("synchcsv/xCheck.txt", eventsToCheck);
 
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 51570));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 23261));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 32300));
       eventsToCheck.push_back(std::pair<int, long long int>(1, 65309));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 70044));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 85465));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 97203));
       eventsToCheck.push_back(std::pair<int, long long int>(1, 112520));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 20194));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 115968));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 123462));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 160391));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 160532));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 177536));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 179489));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 187698));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 211623));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 211877));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 212289));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 215743));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 232626));
+      eventsToCheck.push_back(std::pair<int, long long int>(1, 241209));
+
+      //eventsToCheck.push_back(std::pair<int, long long int>(1, 51570));
+      //eventsToCheck.push_back(std::pair<int, long long int>(1, 65309));
+      //eventsToCheck.push_back(std::pair<int, long long int>(1, 112520));
+      //eventsToCheck.push_back(std::pair<int, long long int>(1, 20194));
 
       // Output some info about the current file
       bool useMedium2016 = s->sampleType == "data" && s->name != "RunG" && s->name != "RunH";

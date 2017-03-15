@@ -175,6 +175,16 @@ void EventTools::outputEvent(VarSet& vars)
              if(j==vars.validJets.size()-1) std::cout << std::endl;
          }
 
+         for(unsigned int j0=0; j0<vars.validJets.size(); j0++)
+         {
+             for(unsigned int j1=j0+1; j1<vars.validJets.size(); j1++)
+             {
+                 std::cout << "    m_jj(" << j0 << "," << j1 << ")   : " << (vars.validJets[j0] + vars.validJets[j1]).M() 
+                 << ", dEta_jj(" << j0 << "," << j1 << "): " << TMath::Abs(vars.validJets[j0].Eta() - vars.validJets[j1].Eta()) << std::endl;
+             }
+             if(j0==vars.validJets.size()-1) std::cout << std::endl;
+         }
+
          for(unsigned int j=0; j<vars.validBJets.size(); j++)
          {
              std::cout << "  validBjet" << j <<  ": " << ParticleTools::output4vecInfo(vars.validBJets[j]) << std::endl;
