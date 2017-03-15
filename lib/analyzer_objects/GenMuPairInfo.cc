@@ -1,26 +1,28 @@
+#include "GenMuPairInfo.h"
 
-#include "GenPairInfo.h"
-
-void GenPairInfo::init() {
+void GenMuPairInfo::init() {
 
   iMu1      = -999;
   iMu2      = -999;
   mother_ID = -999;
   postFSR   = -999;
+  charge    = -999;
 
   mass   = -999;
   pt     = -999;
   eta    = -999;
-  y      = -999;
+  rapid  = -999;
   phi    = -999;
-  angle  = -999;
+  dR     = -999;
+  dEta   = -999;
+  dPhi   = -999;
   
-} // End void GenPairInfo::init()
+} // End void GenMuPairInfo::init()
 ///////////////////////////////////////////////////////////
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-Float_t GenPairInfo::getMass()
+Float_t GenMuPairInfo::getMass()
 {
     return mass;
 }
@@ -29,7 +31,7 @@ Float_t GenPairInfo::getMass()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-TLorentzVector GenPairInfo::get4vec()
+TLorentzVector GenMuPairInfo::get4vec()
 {
     TLorentzVector v;
     v.SetPtEtaPhiM(pt, eta, phi, getMass());
@@ -40,7 +42,7 @@ TLorentzVector GenPairInfo::get4vec()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-TString GenPairInfo::outputInfo()
+TString GenMuPairInfo::outputInfo()
 {
     TString s = Form("pt: %7.3f, eta: %7.3f, phi: %7.3f, mass: %7.3f", 
                       pt, eta, phi, mass);
@@ -51,7 +53,7 @@ TString GenPairInfo::outputInfo()
 //--------------------------------------------------------
 ///////////////////////////////////////////////////////////
 
-Double_t GenPairInfo::iso()
+Double_t GenMuPairInfo::iso()
 {
     return 0.0;
 }

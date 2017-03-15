@@ -125,6 +125,10 @@ int main(int argc, char* argv[])
       float massmin = 120;
       float massmax = 130;
 
+      //TFile* tfile = new TFile("rootfiles/bdt/"+s->name+"_bdt_training.root", "RECREATE");
+      //tfile->cd();
+      //TNtuple* ntuple = new TNtuple("theNtuple", "theNtuple");
+
       std::map<TString, double> vars;
       vars["bin"] = -999;
       vars["is_signal"] = -999;

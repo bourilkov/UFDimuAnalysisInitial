@@ -16,13 +16,15 @@
 #include "DataFormats.h"
 #include "EventInfo.h"
 #include "MuonInfo.h"
-#include "PairInfo.h"
+#include "MuPairInfo.h"
+#include "JetPairInfo.h"
 #include "EleInfo.h"
 #include "MhtInfo.h"
+#include "MetInfo.h"
 #include "SlimJetInfo.h"
 #include "GenParentInfo.h"
 #include "GenMuonInfo.h"
-#include "GenPairInfo.h"
+#include "GenMuPairInfo.h"
 #include "TLorentzVector.h"
 #include <unordered_map>
 #include <map>
@@ -33,19 +35,20 @@ class VarSet
         VarSet();
         ~VarSet(){};
 
-        // reco weights
+        // reco weights for mc
         float eff_wgt;
         float pu_wgt;
 
         // reco info
         Int_t nVertices;
         EventInfo* eventInfo = 0;
-        PairInfo* dimuCand = 0; // this is a pointer to one of the dimu candidates in the vector
-                                // we don't want to copy the object for ~40 million events
-                                // the other objects/primitives are loaded via TBranch->Get();
+        MuPairInfo* dimuCand = 0; // this is a pointer to one of the dimu candidates in the vector
+                                  // we don't want to copy the object for ~40 million events
+                                  // the other objects/primitives are loaded via TBranch->Get();
         MhtInfo* mht = 0;
+        MetInfo* met = 0;
 
-        std::vector<PairInfo>* recoDimuCands = 0;
+        std::vector<MuPairInfo>* recoDimuCands = 0;
         std::vector<MuonInfo>* recoMuons = 0;
         std::vector<EleInfo>* recoElectrons = 0;
         std::vector<SlimJetInfo>* jets = 0;
@@ -59,9 +62,10 @@ class VarSet
         // gen info
         std::vector<GenParentInfo>* genParents = 0;
         std::vector<GenMuonInfo>* genMuons = 0;
-        std::vector<GenPairInfo>* genDimuons = 0;
+        std::vector<GenMuPairInfo>* genDimuons = 0;
 
         int nPU;
+        float lhe_ht;
 
         // gen weights
         int gen_wgt;

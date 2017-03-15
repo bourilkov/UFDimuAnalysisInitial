@@ -84,6 +84,7 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.recoMuons      = chain->GetBranch("muons");
       branches.jets           = chain->GetBranch("jets");
       branches.mht            = chain->GetBranch("mht");
+      branches.met            = chain->GetBranch("met");
       branches.eventInfo      = chain->GetBranch("event");
       branches.nVertices      = chain->GetBranch("nVertices");
 
@@ -91,6 +92,7 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.recoMuons->SetAddress(&vars.recoMuons);
       branches.jets->SetAddress(&vars.jets);
       branches.mht->SetAddress(&vars.mht);
+      branches.met->SetAddress(&vars.met);
       branches.eventInfo->SetAddress(&vars.eventInfo);
       branches.nVertices->SetAddress(&vars.nVertices);
 
@@ -108,11 +110,13 @@ void Sample::setBranchAddresses(int whichCategories)
           branches.gen_wgt = chain->GetBranch("GEN_wgt");
           branches.pu_wgt  = chain->GetBranch("PU_wgt");
           branches.eff_wgt = chain->GetBranch("IsoMu_eff_3");
+          branches.lhe_ht  = chain->GetBranch("LHE_HT");
 
           branches.gen_wgt->SetAddress(&vars.gen_wgt);
           branches.nPU->SetAddress(&vars.nPU);
           branches.pu_wgt->SetAddress(&vars.pu_wgt);
           branches.eff_wgt->SetAddress(&vars.eff_wgt);
+          branches.lhe_ht->SetAddress(&vars.lhe_ht);
 
           branches.genParents = chain->GetBranch("genParents");
           branches.genMuons   = chain->GetBranch("genMuons");
@@ -155,20 +159,7 @@ void Sample::calculateNoriginal()
 
 int Sample::getEntry(int i)
 {
-    if(branches.nVertices != 0) branches.nVertices->GetEntry(i);
-    if(branches.eventInfo != 0) branches.eventInfo->GetEntry(i);
-    if(branches.mht != 0) branches.mht->GetEntry(i);
-
-    if(branches.recoDimuCands != 0) branches.recoDimuCands->GetEntry(i);
-    if(branches.recoMuons != 0) branches.recoMuons->GetEntry(i);
-    if(branches.recoElectrons != 0) branches.recoElectrons->GetEntry(i);
-    if(branches.jets != 0) branches.jets->GetEntry(i);
-
-    if(branches.eff_wgt != 0) branches.eff_wgt->GetEntry(i);
-    if(branches.pu_wgt != 0) branches.pu_wgt->GetEntry(i);
-    if(branches.nPU != 0) branches.nPU->GetEntry(i);
-    if(branches.gen_wgt != 0) branches.gen_wgt->GetEntry(i);
-
+    branches.getEntry(i);
     return i;
 }
 
@@ -179,7 +170,7 @@ int Sample::getEntry(int i)
 int Sample::getEntry(int i, TEntryList* list)
 {
     int chainnum = list->GetEntry(i);
-    chain->GetEntry(chainnum);
+    branches.getEntry(chainnum);
     return chainnum;
 }
 
