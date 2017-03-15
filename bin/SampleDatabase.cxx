@@ -236,7 +236,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_70_100"] = new Sample(in_files, "ZJets_MG_HT_70_100", "background");
-    samples["ZJets_MG_HT_70_100"]->xsec = 206.184;
+    samples["ZJets_MG_HT_70_100"]->xsec = 0.98*178.952; // old value = 206.184;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -255,7 +255,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_100_200"] = new Sample(in_files, "ZJets_MG_HT_100_200", "background");
-    samples["ZJets_MG_HT_100_200"]->xsec = 181.302;
+    samples["ZJets_MG_HT_100_200"]->xsec = 0.96*181.302;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -274,7 +274,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_200_400"] = new Sample(in_files, "ZJets_MG_HT_200_400", "background");
-    samples["ZJets_MG_HT_200_400"]->xsec = 50.4177;
+    samples["ZJets_MG_HT_200_400"]->xsec = 0.96*50.4177;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -293,7 +293,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_400_600"] = new Sample(in_files, "ZJets_MG_HT_400_600", "background");
-    samples["ZJets_MG_HT_400_600"]->xsec = 6.98394;
+    samples["ZJets_MG_HT_400_600"]->xsec = 0.96*6.98394;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -312,7 +312,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_600_800"] = new Sample(in_files, "ZJets_MG_HT_600_800", "background");
-    samples["ZJets_MG_HT_600_800"]->xsec = 1.68141;
+    samples["ZJets_MG_HT_600_800"]->xsec = 0.96*1.68141;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -331,7 +331,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_800_1200"] = new Sample(in_files, "ZJets_MG_HT_800_1200", "background");
-    samples["ZJets_MG_HT_800_1200"]->xsec = 0.775392;
+    samples["ZJets_MG_HT_800_1200"]->xsec = 0.96*0.775392;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -350,7 +350,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_1200_2500"] = new Sample(in_files, "ZJets_MG_HT_1200_2500", "background");
-    samples["ZJets_MG_HT_1200_2500"]->xsec = 0.186222;
+    samples["ZJets_MG_HT_1200_2500"]->xsec = 0.96*0.186222;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -369,7 +369,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       }
     }
     samples["ZJets_MG_HT_2500_inf"] = new Sample(in_files, "ZJets_MG_HT_2500_inf", "background");
-    samples["ZJets_MG_HT_2500_inf"]->xsec = 0.004385;
+    samples["ZJets_MG_HT_2500_inf"]->xsec = 0.96*0.004385;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 

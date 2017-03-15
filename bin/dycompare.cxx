@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   //float xmax = 200;
 
   TString xname = "HT";
-  int xbins = 3000;
+  int xbins = 300;
   float xmin = 0;
   float xmax = 3000;
 
@@ -84,10 +84,10 @@ int main(int argc, char* argv[])
       sampleVec.push_back(s.second);   // add the sample to the vector of samples which we will run over
 
       // maps sample to histogram
-      histMap[s.second->name] = new TH1D(s.second->name, s.second->name+Form(";%s;", xname), xbins, xmin, xmax);
+      histMap[s.second->name] = new TH1D(s.second->name, s.second->name+Form(";%s;", xname.Data()), xbins, xmin, xmax);
   }    
 
-  histMap["ZJets_MG_HT_0_70"] = new TH1D("ZJets_MG_HT_0_70", TString("ZJets_MG_HT_0_70")+Form(";%s;", xname), xbins, xmin, xmax);
+  histMap["ZJets_MG_HT_0_70"] = new TH1D("ZJets_MG_HT_0_70", TString("ZJets_MG_HT_0_70")+Form(";%s;", xname.Data()), xbins, xmin, xmax);
 
 
   std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
