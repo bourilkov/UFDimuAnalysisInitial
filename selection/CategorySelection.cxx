@@ -392,7 +392,7 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
     // jet category selection
     if(vars.validJets.size() >= 2)
     {
-        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
+        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.met->pt < cMETMax && vars.validBJets.size() == 0)
         if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin) // No MET for now
         {
             categoryMap["c_2_Jet"].inCategory = true;
@@ -553,7 +553,7 @@ void CategorySelectionSynch::evaluate(VarSet& vars)
     // jet category selection
     if(vars.validJets.size() >= 2)
     {
-        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.mht->pt < cMETMax && vars.validBJets.size() == 0)
+        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.met->pt < cMETMax && vars.validBJets.size() == 0)
         if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin && vars.validBJets.size() == 0) // No MET for now
         {
             categoryMap["c_2_Jet"].inCategory = true;
@@ -1016,7 +1016,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
            if(categoryMap["c_0b_VlH"].inCategory)
            {
                //std::cout << "    pass 0b_VlH..." << std::endl;
-               if(vars.mht->pt >= c_0b_VlH_MET_min)
+               if(vars.met->pt >= c_0b_VlH_MET_min)
                {
                     if(vars.validElectrons.size() == c_0b_VlH_We_num_e && vars.validExtraMuons.size() == c_0b_VlH_We_num_mu)    
                         categoryMap["c_0b_VlH_We"].inCategory = true;
@@ -1081,7 +1081,7 @@ void LotsOfCategoriesRun2::evaluate(VarSet& vars)
                if(categoryMap["c_0b_nonVlH_01j"].inCategory)
                {
                    //std::cout << "    pass 0b_nonVlH_01j..." << std::endl;
-                   if(vars.mht->pt > c_0b_nonVlH_01j_MET_min_ZvvH)
+                   if(vars.met->pt > c_0b_nonVlH_01j_MET_min_ZvvH)
                        categoryMap["c_0b_nonVlH_01j_ZvvH"].inCategory = true; 
 
                    else if(vars.dimuCand->pt >= c_0b_nonVlH_01j_dimuPt_min_gfTight)

@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
         // Each category has a map to keep track of histos you want to fill
         // let's make dimuon_mass histos for each category
         // we will fill them after applying cuts and evaluating the categorization
-        c.second.histoMap["dimu_mass"] = new TH1D("GGF_H2Mu_Mass", "GGF_H2Mu_Mass", 120, 65, 185);
+        c.second.histoMap["dimu_mass"] = new TH1D("GGF_H2Mu_Mass_"+c.first, "GGF_H2Mu_Mass_"+c.first, 120, 65, 185);
         c.second.histoMap["dimu_mass"]->GetXaxis()->SetTitle("dimu_mass");
     }
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 
            // Set aliases for the dimuon candidate and its muons so we don't have to type as much
            // access objects and their info in s->vars
-           PairInfo& dimu = s->vars.recoDimuCands->at(0); 
+           MuPairInfo& dimu = s->vars.recoDimuCands->at(0); 
            s->vars.dimuCand = &dimu;
            MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
            MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
                // c.first is the category name, c.second is the category object    
                // only fill histograms for the categories the event fell into
                if(!c.second.inCategory) continue;
-                   c.second.histoMap["mass"]->Fill(dimu.mass, s->getWeight());  // fill the histogram for this category
+                   c.second.histoMap["dimu_mass"]->Fill(dimu.mass, s->getWeight());  // fill the histogram for this category
                                                                                 // weight the event appropriately 
            }
 
@@ -212,14 +212,14 @@ int main(int argc, char* argv[])
 
     std::cout << std::endl;
     std::cout << "Save histograms and print out histo info ... " << std::endl;
-    TFile* f = new TFile("example.root");
+    TFile* f = new TFile("example.root", "RECREATE");
     f->cd();
 
     // c.first is the category name, c.second is the category object
     for(auto &c : categorySelection.categoryMap)
     {
         double luminosity = 36814;
-        TH1D* h = c.second.histoMap["mass"];
+        TH1D* h = c.second.histoMap["dimu_mass"];
         h->Scale(s->getScaleFactor(luminosity));  // scale histogram based upon data luminosity
                                                   // and the xsec of the process (should loop over all the events
                                                   // in the sample for this to be accurate)

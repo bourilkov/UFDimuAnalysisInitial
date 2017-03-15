@@ -266,7 +266,8 @@ class VarSet
         double N_valid_extra_leptons(){ return validExtraMuons.size() + validElectrons.size(); };
 
         // MET
-        double MET(){ return mht->pt; };
+        double MET(){ return met->pt; };
+        double MHT(){ return mht->pt; };
 
         double extra_muon0_pt() { return (validExtraMuons.size()>=1)?validExtraMuons[0].Pt():-999; };
         double extra_muon1_pt() { return (validExtraMuons.size()>=2)?validExtraMuons[1].Pt():-999; };
@@ -281,10 +282,10 @@ class VarSet
         double mT_b_MET()
         { 
             if(validBJets.size() < 1) return -999;
-            TLorentzVector met(mht->pt*TMath::Cos(mht->phi), mht->pt*TMath::Cos(mht->phi), 0, mht->pt);                  
+            TLorentzVector metv(met->pt*TMath::Cos(met->phi), met->pt*TMath::Cos(met->phi), 0, met->pt);                  
             TLorentzVector bjet = validBJets[0];
             TLorentzVector bjet_t(bjet.Px(), bjet.Py(), 0, bjet.Et());
-            TLorentzVector bmet_t = met + bjet_t;
+            TLorentzVector bmet_t = metv + bjet_t;
             return bmet_t.M();
         };
 

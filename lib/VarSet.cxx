@@ -69,6 +69,7 @@ VarSet::VarSet()
     varMap["N_valid_extra_leptons"]  = &VarSet::N_valid_extra_leptons;
     
     varMap["MET"]  = &VarSet::MET;
+    varMap["MHT"]  = &VarSet::MHT;
     
     varMap["extra_muon0_pt"]  = &VarSet::extra_muon0_pt; 
     varMap["extra_muon1_pt"]  = &VarSet::extra_muon1_pt; 
