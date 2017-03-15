@@ -18,10 +18,10 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 #MAIN = outputCounts
 #MAIN = synchronize
 #MAIN = example
-MAIN = dycompare
+#MAIN = dycompare
 #MAIN = zcalibration
 #MAIN = fakes
-#MAIN = outputForBDT
+MAIN = outputForBDT
 
 MAINRULES1 = ${LIBDIR}Sample.o ${LIBDIR}VarSet.o ${LIBDIR}ZCalibration.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o

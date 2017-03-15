@@ -548,7 +548,9 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    GetSamples(samples, "UF");
+    //TString whichDY = "dyAMC";
+    TString whichDY = "dyMG";
+    GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -701,6 +703,14 @@ int main(int argc, char* argv[])
       // Sift the events into the different categories and fill the histograms for each sample x category
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
+        // We are stitching together zjets_ht from 70-inf. We use the inclusive for
+        // ht from 0-70.
+        if(!isData)
+        {
+            s->branches.lhe_ht->GetEntry(i);
+            if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+        }
+
         // only load essential information for the first set of cuts 
         s->branches.recoDimuCands->GetEntry(i);
         s->branches.recoMuons->GetEntry(i);
@@ -712,6 +722,9 @@ int main(int argc, char* argv[])
         // find the first good dimuon candidate and fill info
         for(auto& dimu: (*s->vars.recoDimuCands))
         {
+          // Reset the categorizer in preparation for the next event
+          categorySelection->reset();
+
           // the dimuon candidate and the muons that make up the pair
           s->vars.dimuCand = &dimu; 
           MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
@@ -763,6 +776,7 @@ int main(int argc, char* argv[])
           // Load the rest of the information needed for run2 categories
           s->branches.jets->GetEntry(i);
           s->branches.mht->GetEntry(i);
+          s->branches.met->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
           //eventInfoBranch->GetEntry(i);
@@ -1035,9 +1049,6 @@ int main(int argc, char* argv[])
           //------------------------------------------------------------------
           ////////////////////////////////////////////////////////////////////
 
-          // Reset the categorizer in preparation for the next event
-          categorySelection->reset();
-
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
 
         } // end dimu cand loop //
@@ -1169,8 +1180,8 @@ int main(int argc, char* argv[])
     }
 
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_%s_categories%d%s_%d.root", varname.Data(), (int)min, 
-                            (int)max, islow.Data(), whichCategories, xcategoryString.Data(), (int)luminosity);
+    TString savename = Form("rootfiles/validate_%s_%d_%d_%s_categories%d%s_%d_%s.root", varname.Data(), (int)min, 
+                            (int)max, islow.Data(), whichCategories, xcategoryString.Data(), (int)luminosity, whichDY.Data());
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

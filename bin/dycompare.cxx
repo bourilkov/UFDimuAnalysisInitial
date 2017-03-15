@@ -51,20 +51,25 @@ int main(int argc, char* argv[])
   std::vector<Sample*> sampleVec;
   GetSamples(sampleMap, "UF", "ZJets_MG");
 
+  // Get DY AMC sample so that we can compare that to MG as well
+  std::map<TString, Sample*> sampleMapAMC;
+  GetSamples(sampleMapAMC, "UF", "ZJets_AMC");
+  sampleMap["ZJets_AMC"] = sampleMapAMC["ZJets_AMC"];
+
   int nthreads = 9;        // number of threads to use in parallelization
   float luminosity = 36814;
   float reductionFactor=1;
   std::map<TString, TH1D*> histMap;
 
-  //TString xname = "dimu_mass";
-  //int xbins = 140;
-  //float xmin = 60;
-  //float xmax = 200;
+  TString xname = "dimu_mass";
+  int xbins = 140;
+  float xmin = 60;
+  float xmax = 200;
 
-  TString xname = "HT";
-  int xbins = 300;
-  float xmin = 0;
-  float xmax = 3000;
+  //TString xname = "HT";
+  //int xbins = 300;
+  //float xmin = 0;
+  //float xmax = 3000;
 
   for(auto &s : sampleMap)
   {    
@@ -216,7 +221,7 @@ int main(int argc, char* argv[])
   TCanvas* stack = DiMuPlottingSystem::stackedHistogramsAndRatio(ht, "DY_Compare", "DY_Compare", xname, "Num Entries", true, false, "Inclusive/Stitched");
   stacklist->Add(stack);
 
-  TString savename = "rootfiles/compare_drell_yan.root";
+  TString savename = Form("rootfiles/compare_drell_yan_%s.root", xname.Data());
   std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
 
   TFile* f = new TFile(savename, "RECREATE");
@@ -225,6 +230,7 @@ int main(int argc, char* argv[])
   stacklist->Write();
   hNetHT->Write();
   ht->Write();
+  histMap["ZJets_AMC"]->Write();
 
   f->Close();
 

@@ -74,7 +74,10 @@ int main(int argc, char* argv[])
 
     float reductionFactor = 1;
     float luminosity = 36814;      // pb-1
-    GetSamples(samples, "UF");
+
+    //TString whichDY = "dyAMC";
+    TString whichDY = "dyMG";
+    GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING---------------------------------------------------
@@ -114,7 +117,7 @@ int main(int argc, char* argv[])
     std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
     std::cout << "@@@ nSamples used  : " << samplevec.size() << std::endl;
 
-    auto outputSampleInfo = [luminosity, reductionFactor](Sample* s)
+    auto outputSampleInfo = [whichDY, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
@@ -140,7 +143,7 @@ int main(int argc, char* argv[])
           vars[item.first.c_str()] = -999;
 
       // !!!! output first line of csv to file
-      std::ofstream file("csv/bdtcsv/"+s->name+"_bdt_training.csv", std::ofstream::out);
+      std::ofstream file(Form("csv/bdtcsv/%s_bdt_training_%s.csv", s->name.Data(), whichDY.Data()), std::ofstream::out);
       file << EventTools::outputMapKeysCSV(vars).Data() << std::endl;
 
       // ntuple requires list of variables to be separated by ":" rather than ","
@@ -159,6 +162,12 @@ int main(int argc, char* argv[])
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
+
+        // We are stitching together zjets_ht from 70-inf. We use the inclusive for
+        // ht from 0-70.
+        s->branches.lhe_ht->GetEntry(i);
+        if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+
         // only load essential information for the first set of cuts 
         s->branches.recoDimuCands->GetEntry(i);
         s->branches.recoMuons->GetEntry(i);
@@ -204,6 +213,7 @@ int main(int argc, char* argv[])
           // Load the rest of the information needed
           s->branches.jets->GetEntry(i);
           s->branches.mht->GetEntry(i);
+          s->branches.met->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
 
@@ -302,7 +312,7 @@ int main(int argc, char* argv[])
         TString sname = ntuple->GetName();
         ntuple->SetName("theNtuple");
         ntuple->SetTitle("theNtuple");
-        TString filename = "rootfiles/bdt/"+sname+"_bdt_training.root";
+        TString filename = Form("rootfiles/bdt/%s_bdt_training_%s.root", sname.Data(), whichDY.Data());
         std::cout << Form("  /// Writing ntuple to %s \n", filename.Data());
         TFile* tfile = new TFile(filename,"RECREATE");
         tfile->cd();

@@ -392,8 +392,8 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
     // jet category selection
     if(vars.validJets.size() >= 2)
     {
-        //if(leadJet.Pt() > cLeadPtMin && subleadJet.Pt() > cSubleadPtMin && vars.met->pt < cMETMax && vars.validBJets.size() == 0)
-        if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin) // No MET for now
+        //if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin) // No MET for now
+        if(vars.validJets[0].Pt() > cLeadPtMin && vars.validJets[1].Pt() > cSubleadPtMin && vars.met->pt < cMETMax)
         {
             categoryMap["c_2_Jet"].inCategory = true;
             double mjj_max = -1;

@@ -52,7 +52,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   eras.push_back( std::make_tuple("H", 9014, std::vector<int>{116,  4}, std::vector<TString>{"H_1/170128_235433", "H_2/170128_235449"}) );
   
   for (auto era: eras) {
-    if (select != "DATA" && select!="ALL" && select != "Run"+std::get<0>(era))
+    if (select != "DATA" && !select.Contains("ALL") && select != "Run"+std::get<0>(era))
       continue;
     std::cout << "\nAdding files for Run" << std::get<0>(era) << " ...." << std::endl;
     
@@ -80,7 +80,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // H2Mu_gg ---------------------------------------------------------
   // ================================================================
   
-  if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_gg") {
+  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_gg") {
     std::cout << "\nAdding files for H2Mu_gg ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -101,7 +101,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // H2Mu_VBF ---------------------------------------------------------
   // ================================================================
   
-  if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_VBF") {
+  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VBF") {
     std::cout << "\nAdding files for H2Mu_VBF ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -122,7 +122,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // H2Mu_VH ---------------------------------------------------------
   // ================================================================
   
-  if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_ZH") {
+  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_ZH") {
     std::cout << "\nAdding files for H2Mu_ZH ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -141,7 +141,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH"  || select == "H2Mu_WH_pos") {
+  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH"  || select == "H2Mu_WH_pos") {
     std::cout << "\nAdding files for H2Mu_WH_pos ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -160,7 +160,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH" || select == "H2Mu_WH_neg") {
+  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH" || select == "H2Mu_WH_neg") {
     std::cout << "\nAdding files for H2Mu_WH_neg ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -185,7 +185,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   float DY_xsec_m50 = 5765.4; // pb // old value = 6025.2
   float DY_m100to200_factor = 1.235; 
   
-  if (select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
+  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
     std::cout << "\nAdding files for ZJets_AMC ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -204,7 +204,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL") && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -223,7 +223,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_70_100 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -242,7 +242,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_100_200 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -261,7 +261,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_200_400 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -280,7 +280,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_400_600 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -299,7 +299,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_600_800 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -318,7 +318,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_800_1200 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -337,7 +337,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL")  && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_1200_2500 ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -356,7 +356,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select== "ALL" || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL") && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
     std::cout << "\nAdding files for ZJets_MG_HT_2500_inf ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -416,7 +416,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // TTJets ---------------------------------------------------------
   // ================================================================
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "ttbar" || select == "tt_ll_AMC") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "ttbar" || select == "tt_ll_AMC") {
     std::cout << "\nAdding files for tt_ll_AMC ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -461,7 +461,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // SingleTop ------------------------------------------------------
   // ================================================================
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tW" || select == "tW_pos") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tW" || select == "tW_pos") {
     std::cout << "\nAdding files for tW_pos ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -480,7 +480,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tW" || select == "tW_neg") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tW" || select == "tW_neg") {
     std::cout << "\nAdding files for tW_neg ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -499,7 +499,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tZq") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "singleTop" || select == "tZq") {
     std::cout << "\nAdding files for tZq ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -538,7 +538,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     // TTV ---------------------------------------------------------
     // ================================================================
     
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttV" || select == "ttW") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttV" || select == "ttW") {
     std::cout << "\nAdding files for ttW ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -557,7 +557,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttV" || select == "ttZ") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttV" || select == "ttZ") {
     std::cout << "\nAdding files for ttZ ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -578,7 +578,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // Diboson ------------------------------------------------------
   // ================================================================
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WW") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WW") {
     std::cout << "\nAdding files for WW ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -597,7 +597,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   //if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_2l") {
+   //if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_2l") {
    //  std::cout << "\nAdding files for WZ_2l ..." << std::endl;
    //  std::vector<TString> in_files;
    //  TString in_file;
@@ -614,7 +614,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
    //  std::cout << ".... " << in_files.size() << " files added." << std::endl;
    //}
 
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_3l") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_3l") {
     std::cout << "\nAdding files for WZ_3l ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -633,7 +633,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_2l_2v") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_2l_2v") {
     std::cout << "\nAdding files for ZZ_2l_2v ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -652,7 +652,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_2l_2q") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_2l_2q") {
     std::cout << "\nAdding files for ZZ_2l_2q ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -671,7 +671,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_4l") {
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "ZZ" || select == "ZZ_4l") {
     std::cout << "\nAdding files for ZZ_4l ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -692,7 +692,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // Triboson ------------------------------------------------------
   // ================================================================
   
-  // if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "WWW") {
+  // if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "WWW") {
   //   std::cout << "\nAdding files for WWW ..." << std::endl;
   //   std::vector<TString> in_files;
   //   TString in_file;
@@ -709,7 +709,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   std::cout << ".... " << in_files.size() << " files added." << std::endl;
   // }
 
-  // if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "WWZ") {
+  // if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "WWZ") {
   //   std::cout << "\nAdding files for WWZ ..." << std::endl;
   //   std::vector<TString> in_files;
   //   TString in_file;
@@ -726,7 +726,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   std::cout << ".... " << in_files.size() << " files added." << std::endl;
   // }
 
-  // if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "WZZ") {
+  // if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "WZZ") {
   //   std::cout << "\nAdding files for WZZ ..." << std::endl;
   //   std::vector<TString> in_files;
   //   TString in_file;
@@ -743,7 +743,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   std::cout << ".... " << in_files.size() << " files added." << std::endl;
   // }
 
-  // if (select == "ALL" || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "ZZZ") {
+  // if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VVV" || select == "ZZZ") {
   //   std::cout << "\nAdding files for ZZZ ..." << std::endl;
   //   std::vector<TString> in_files;
   //   TString in_file;

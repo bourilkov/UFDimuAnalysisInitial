@@ -77,7 +77,9 @@ int main(int argc, char* argv[])
 
     float reductionFactor = 1;
     float luminosity = 36814;      // pb-1
-    GetSamples(samples, "UF");
+    //TString whichDY = "dyAMC";
+    TString whichDY = "dyMG";
+    GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING---------------------------------------------------
@@ -168,6 +170,12 @@ int main(int argc, char* argv[])
 
       for(unsigned int i=0; i<s->N/reductionFactor; i++)
       {
+
+        // We are stitching together zjets_ht from 70-inf. We use the inclusive for
+        // ht from 0-70.
+        s->branches.lhe_ht->GetEntry(i);
+        if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+
         // only load essential information for the first set of cuts 
         s->branches.recoDimuCands->GetEntry(i);
         s->branches.recoMuons->GetEntry(i);
@@ -209,6 +217,7 @@ int main(int argc, char* argv[])
           // Load the rest of the information needed
           s->branches.jets->GetEntry(i);
           s->branches.mht->GetEntry(i);
+          s->branches.met->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
 
@@ -322,7 +331,7 @@ int main(int argc, char* argv[])
     TList* netlist = new TList();        // list to save all of the net histos
 
 
-    TString csvfilename = "csv/sigcsv/significance.csv";
+    TString csvfilename = Form("csv/sigcsv/significance_%s.csv", whichDY.Data());
     std::cout << std::endl << "  /// Exporting counts and significnace to " << csvfilename << " ..." << std::endl;
     std::cout << std::endl;
 
@@ -481,7 +490,7 @@ int main(int argc, char* argv[])
     std::cout << "  ### NET S/SQRT(B)   : " << net_s_sqrt_b << std::endl;
     std::cout << "  ////////////////////////////////////////// " << std::endl;
 
-    TString savename = Form("rootfiles/significance_run1categories.root");
+    TString savename = Form("rootfiles/significance_run1categories_%s.root", whichDY.Data());
 
     std::cout << std::endl;
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
