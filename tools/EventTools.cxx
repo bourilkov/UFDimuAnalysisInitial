@@ -179,7 +179,7 @@ void EventTools::outputEvent(VarSet& vars)
          {
              for(unsigned int j1=j0+1; j1<vars.validJets.size(); j1++)
              {
-                 std::cout << "    m_jj(" << j0 << "," << j1 << ")   : " << (vars.validJets[j0] + vars.validJets[j1]).M() 
+                 std::cout << "    m_jj(" << j0 << "," << j1 << "): " << (vars.validJets[j0] + vars.validJets[j1]).M() 
                  << ", dEta_jj(" << j0 << "," << j1 << "): " << TMath::Abs(vars.validJets[j0].Eta() - vars.validJets[j1].Eta()) << std::endl;
              }
              if(j0==vars.validJets.size()-1) std::cout << std::endl;
