@@ -11,6 +11,7 @@ struct VertexInfo {
   Float_t x       ;	
   Float_t y       ;	
   Float_t z       ;	
+  Float_t rho     ;	
   Float_t xErr    ;	
   Float_t yErr    ;	
   Float_t zErr    ;	

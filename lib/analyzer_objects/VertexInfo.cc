@@ -7,6 +7,7 @@ void VertexInfo::init() {
   x        = -999;
   y        = -999;
   z        = -999;
+  rho      = -999;
   xErr     = -999;
   yErr     = -999;
   zErr     = -999;

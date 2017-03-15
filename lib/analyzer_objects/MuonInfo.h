@@ -6,6 +6,7 @@
 #include "ParticleInfo.h"
 
 struct MuonInfo : public ParticleInfo{
+
   Bool_t isTracker   ;
   Bool_t isStandAlone;
   Bool_t isGlobal    ;
@@ -80,6 +81,7 @@ struct MuonInfo : public ParticleInfo{
 
   Float_t GEN_pt;
   Float_t GEN_dR;
+
   void init();
   Float_t getMass();
   TLorentzVector get4vec();
