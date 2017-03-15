@@ -80,7 +80,7 @@ void Sample::setBranchAddresses(int whichCategories)
 {
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
-      branches.recoDimuCands  = chain->GetBranch("pairs");
+      branches.recoDimuCands  = chain->GetBranch("muPairs");
       branches.recoMuons      = chain->GetBranch("muons");
       branches.jets           = chain->GetBranch("jets");
       branches.mht            = chain->GetBranch("mht");
@@ -120,7 +120,7 @@ void Sample::setBranchAddresses(int whichCategories)
 
           branches.genParents = chain->GetBranch("genParents");
           branches.genMuons   = chain->GetBranch("genMuons");
-          branches.genDimuons = chain->GetBranch("genPairs");
+          branches.genDimuons = chain->GetBranch("genMuPairs");
 
           branches.genParents->SetAddress(&vars.genParents);
           branches.genMuons->SetAddress(&vars.genMuons);

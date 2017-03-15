@@ -157,7 +157,7 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << "  nValidElectrons: " << vars.validElectrons.size() << std::endl;
          std::cout << "  nValidExtraLeptons: " << vars.validElectrons.size() + vars.validExtraMuons.size() << std::endl;
          std::cout << std::endl;
-         std::cout << "  MET: " << vars.mht->pt << std::endl;
+         std::cout << "  MET: " << vars.met->pt << std::endl;
          std::cout << std::endl;
          //std::cout << "  nGenJets: " << vars.genJets.nJets << std::endl;
          //std::cout << "  nValidGenJets: " << vars.validGenJets.size() << std::endl;
