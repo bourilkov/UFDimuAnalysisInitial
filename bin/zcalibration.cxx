@@ -137,7 +137,7 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     ymean_min = 90.5;
     ymean_max = 91.5;
     yres_min = 1.5;
-    yres_max = 3.5;
+    yres_max = 3.2;
 
     massmin = 82.2;
     massmax = 100.2;
@@ -148,6 +148,8 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     if(varNumber == 0)
     {
         xname = "phi_plus";
+        yres_min = 1.5;
+        yres_max = 2.5;
         xmin = -3.15;
         xmax = 3.15;
         yres_min = 1.8;
@@ -157,6 +159,8 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     if(varNumber == 1)
     {
         xname = "phi_minus";
+        yres_min = 1.5;
+        yres_max = 2.5;
         xmin = -3.15;
         xmax = 3.15;
         yres_min = 1.8;
@@ -179,6 +183,10 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     if(varNumber == 4)
     {
         xname = "pt_plus";
+        ymean_min = 90.2;
+        ymean_max = 92.2;
+        yres_min = 1.0;
+        yres_max = 5.5;
         xmin = 10;
         xmax = 210;
         xbins = 50;
@@ -188,6 +196,10 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     if(varNumber == 5)
     {
         xname = "pt_minus";
+        ymean_min = 90.2;
+        ymean_max = 92.2;
+        yres_min = 1.0;
+        yres_max = 5.5;
         xmin = 10;
         xmax = 510;
         xbins = 50;
@@ -196,6 +208,8 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     if(varNumber == 6)
     {
         xname = "dimu_pt";
+        ymean_min = 90.2;
+        ymean_max = 91.8;
         xmin = 0;
         xmax = 500;
         xbins=50;

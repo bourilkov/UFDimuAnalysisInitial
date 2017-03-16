@@ -104,7 +104,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, float ymin, float ymax, TStri
 //  TLegend* l = new TLegend(1, 0.15, 0.7, 1.25, "", "brNDC");
  
   // Square-ish top right
-  TLegend* l = new TLegend(0.68, 0.56, 0.88, 0.87, "", "brNDC");
+  TLegend* l = new TLegend(0.653, 0.714, 1, 0.93, "", "brNDC");
 
   // Square-ish top left
   //TLegend* l = new TLegend(0.13, 0.56, 0.33, 0.88, "", "brNDC");
@@ -204,7 +204,9 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, float ymin, float ymax, TStri
               multigraph->Draw("a");
               multigraph->GetXaxis()->SetTitle(xaxistitle);
               multigraph->GetYaxis()->SetTitle(yaxistitle);
+              gPad->Modified();
               if(ymin != ymax) multigraph->GetYaxis()->SetRangeUser(ymin, ymax);
+              gPad->Modified();
           }
       }
 
