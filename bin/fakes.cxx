@@ -125,11 +125,11 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       // cuts to apply to the events in the sample
-      Run2MuonSelectionCuts     run2MuonSelection;
-      Run2EventSelectionCuts80X run2EventSelectionData(true);
+      Run2MuonSelectionCuts  run2MuonSelection;
+      Run2EventSelectionCuts run2EventSelection;
 
       // turn off charge matching
-      run2EventSelectionData.cutset.cuts[0].on = false;
+      run2EventSelection.cutset.cuts[0].on = false;
 
       // turn off isolation
       run2MuonSelection.cutset.cuts[2].on = false;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
           }
           // require that the muons pass the basic run2 selections except for the ones we turned off
           // (opposite sign and isolation are off)
-          if(!run2EventSelectionData.evaluate(s->vars) && s->sampleType.Contains("data"))
+          if(!run2EventSelection.evaluate(s->vars))
           { 
               continue; 
           }

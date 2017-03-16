@@ -149,10 +149,8 @@ int main(int argc, char* argv[])
            // load more information if we have a mc sample
            if(s->sampleType != "data")
            {
-               s->branches.gen_wgt->GetEntry(i);
                s->branches.nPU->GetEntry(i);
-               s->branches.pu_wgt->GetEntry(i);
-               s->branches.eff_wgt->GetEntry(i);
+               s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
                s->branches.genParents->GetEntry(i);
                s->branches.genMuons->GetEntry(i);
                s->branches.genDimuons->GetEntry(i);
@@ -220,7 +218,7 @@ int main(int argc, char* argv[])
     {
         double luminosity = 36814;
         TH1D* h = c.second.histoMap["dimu_mass"];
-        h->Scale(s->getScaleFactor(luminosity));  // scale histogram based upon data luminosity
+        h->Scale(s->getLumiScaleFactor(luminosity));  // scale histogram based upon data luminosity
                                                   // and the xsec of the process (should loop over all the events
                                                   // in the sample for this to be accurate)
         std::cout << Form("category: %s, histo: %s, integral: %f \n", c.first.Data(), "mass", h->Integral());

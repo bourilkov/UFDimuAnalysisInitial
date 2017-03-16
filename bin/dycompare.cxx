@@ -148,10 +148,8 @@ int main(int argc, char* argv[])
           // Load MC branches if MC
           if(s->sampleType!="data")
           {
-              s->branches.gen_wgt->GetEntry(i);
               s->branches.nPU->GetEntry(i);
-              s->branches.pu_wgt->GetEntry(i);
-              s->branches.eff_wgt->GetEntry(i);
+              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
               s->branches.lhe_ht->GetEntry(i);
           }
 
@@ -170,9 +168,9 @@ int main(int argc, char* argv[])
         } // end dimu cand loop //
     } // end event loop //
 
-    histMap[s->name]->Scale(s->getScaleFactor(luminosity));
+    histMap[s->name]->Scale(s->getLumiScaleFactor(luminosity));
     if(s->name == "ZJets_MG")
-        histMap["ZJets_MG_HT_0_70"]->Scale(s->getScaleFactor(luminosity));
+        histMap["ZJets_MG_HT_0_70"]->Scale(s->getLumiScaleFactor(luminosity));
 
     std::cout << Form("  /// Done processing %s \n", s->name.Data());
     return 0;

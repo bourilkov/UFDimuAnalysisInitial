@@ -633,10 +633,8 @@ int main(int argc, char* argv[])
 
           if(!isData)
           {
-              s->branches.gen_wgt->GetEntry(i);
               s->branches.nPU->GetEntry(i);
-              s->branches.pu_wgt->GetEntry(i);
-              s->branches.eff_wgt->GetEntry(i);
+              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
               s->branches.genParents->GetEntry(i);
               s->branches.genMuons->GetEntry(i);
               s->branches.genDimuons->GetEntry(i);
@@ -906,7 +904,7 @@ int main(int argc, char* argv[])
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
       {
-          c.second.histoMap[hkey]->Scale(s->getScaleFactor(luminosity));
+          c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(luminosity));
       }
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());

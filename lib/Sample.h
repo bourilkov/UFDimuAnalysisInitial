@@ -53,7 +53,7 @@ class Sample
         double getWeight();         // get the weight for the histogram based upon the pileup weight and the MC gen weight
 
         // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
-        float getScaleFactor(float luminosity); 
+        float getLumiScaleFactor(float luminosity); 
 
     protected:
 	std::vector<TFile*> files; // files with the ttree

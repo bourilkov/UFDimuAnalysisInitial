@@ -49,7 +49,7 @@ class DiMuPlottingSystem
         // ====================================================
 
         static THStack* stackComparison(TList* list, TString title, TString xaxistitle, TString yaxistitle, bool log = true, bool stats = false, int legend = 0);
-        static TCanvas* overlay(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
+        static TCanvas* overlay(TList* list, float ymin, float ymax, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
 
         static float ratioError2(float numerator, float numeratorError2, float denominator, float denominatorError2);
         static void  getBinningForRatio(TH1D* numerator, TH1D* denominator, std::vector<Double_t>& newBins, float maxPercentError = 0.1);

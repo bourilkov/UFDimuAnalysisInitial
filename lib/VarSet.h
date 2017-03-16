@@ -36,8 +36,25 @@ class VarSet
         ~VarSet(){};
 
         // reco weights for mc
-        float eff_wgt;
-        float pu_wgt;
+        float eff_wgt;            // use this if you don't match MC to trigger
+                                  // scales mc to trigger passed data based on pt,eta
+
+        float isoMu_SF_3;  // match MC to trigger, account for discrepancy from there
+        float isoMu_SF_4;  // scale factors change for different eras hence the 3 and 4
+        float muID_SF_3;   // match MC to muID, adjust to data from there
+        float muID_SF_4;   // ...
+        float muIso_SF_3;  // cut mc based on iso, adjust to data from there
+        float muIso_SF_4;  // ...
+
+        float sf()
+        {
+            // average the scale factors for the different eras and multiply all of them
+            // to get the net scale factor
+            return 0.5*(isoMu_SF_3 + isoMu_SF_4)*0.5*(muID_SF_3 + muID_SF_4)*0.5*(muIso_SF_3 + muIso_SF_4);
+        }
+
+        float pu_wgt;      // weight mc based upon PU to match data PU distribution
+        
 
         // reco info
         Int_t nVertices;

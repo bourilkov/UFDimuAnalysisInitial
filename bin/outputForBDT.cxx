@@ -217,10 +217,8 @@ int main(int argc, char* argv[])
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
 
-          s->branches.gen_wgt->GetEntry(i);
           s->branches.nPU->GetEntry(i);
-          s->branches.pu_wgt->GetEntry(i);
-          s->branches.eff_wgt->GetEntry(i);
+          s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -255,7 +253,7 @@ int main(int argc, char* argv[])
           // nonfeature variables
           vars["bin"] = bin;
           vars["is_signal"] = s->sampleType.Contains("signal")?1:0;
-          vars["weight"] = s->getScaleFactor(luminosity)*s->getWeight();
+          vars["weight"] = s->getLumiScaleFactor(luminosity)*s->getWeight();
 
           //std::cout << i << " !!! SETTING JETS " << std::endl;
           //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets

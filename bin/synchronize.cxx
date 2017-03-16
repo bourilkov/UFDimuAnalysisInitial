@@ -248,6 +248,7 @@ int main(int argc, char* argv[])
           // Load the rest of the information needed for run2 categories
           s->branches.jets->GetEntry(i);
           s->branches.mht->GetEntry(i);
+          s->branches.met->GetEntry(i);
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
           s->branches.eventInfo->GetEntry(i);
@@ -268,7 +269,7 @@ int main(int argc, char* argv[])
           // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
           CollectionCleaner::cleanByDR(s->vars.validBJets, s->vars.validMuons, 0.4);
-          //CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
           //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
           
           if(EventTools::eventInVector(e, eventsToCheck)) // Adrian gave a list of events to look at for synch purposes

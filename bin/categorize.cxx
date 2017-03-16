@@ -548,8 +548,8 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    //TString whichDY = "dyAMC";
-    TString whichDY = "dyMG";
+    TString whichDY = "dyAMC";
+    //TString whichDY = "dyMG";
     GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
@@ -621,7 +621,8 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, xmlfile, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, 
+                               whichDY, xmlfile, luminosity, reductionFactor](Sample* s)
     {
       bool isblinded = true;              // negative binning: unblind data in 120-130 GeV 
       if(binning < 0) isblinded = false;
@@ -784,10 +785,8 @@ int main(int argc, char* argv[])
           // Load MC branches if MC
           if(!isData)
           {
-              s->branches.gen_wgt->GetEntry(i);
               s->branches.nPU->GetEntry(i);
-              s->branches.pu_wgt->GetEntry(i);
-              s->branches.eff_wgt->GetEntry(i);
+              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
           }
 
           // clear vectors for the valid collections
@@ -1057,7 +1056,7 @@ int main(int argc, char* argv[])
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
       {
-          c.second.histoMap[hkey]->Scale(s->getScaleFactor(luminosity));
+          c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(luminosity));
       }
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
@@ -1161,7 +1160,7 @@ int main(int argc, char* argv[])
         netlist->Add(hNetBkg);
         netlist->Add(groupedlist);
        
-        stack->SaveAs("imgs/"+varname+"_"+cname+".png");
+        stack->SaveAs("imgs/"+varname+"_"+cname+"_"+whichDY+".png");
     }
     std::cout << std::endl;
     bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded

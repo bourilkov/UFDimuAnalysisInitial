@@ -221,10 +221,8 @@ int main(int argc, char* argv[])
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
 
-          s->branches.gen_wgt->GetEntry(i);
           s->branches.nPU->GetEntry(i);
-          s->branches.pu_wgt->GetEntry(i);
-          s->branches.eff_wgt->GetEntry(i);
+          s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -278,7 +276,7 @@ int main(int argc, char* argv[])
           {
               if(h.first.Contains("weights"))
               {
-                  h.second->Scale(s->getScaleFactor(luminosity));
+                  h.second->Scale(s->getLumiScaleFactor(luminosity));
                   //if(s->sampleType == "signal") std::cout << Form("    %s, %s, %f\n", c.first.Data(), h.first.Data(), h.second->Integral());
               }
           }

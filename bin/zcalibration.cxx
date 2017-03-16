@@ -130,8 +130,15 @@ void combineDataRunInfo(std::map<TString, ZCalibration*>& zcalmap)
 //////////////////////////////////////////////////////////////////
 
 void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massmax, int& massbins, 
-                      float& xmin, float& xmax, int& xbins, TString& xname, std::vector<Float_t>& binning)
+                      float& xmin, float& xmax, int& xbins, TString& xname, std::vector<Float_t>& binning, 
+                      float& ymean_min, float& ymean_max, float& yres_min, float& yres_max)
 {
+
+    ymean_min = 90.5;
+    ymean_max = 91.5;
+    yres_min = 1.5;
+    yres_max = 3.5;
+
     massmin = 82.2;
     massmax = 100.2;
     massbins = 62;
@@ -143,6 +150,8 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
         xname = "phi_plus";
         xmin = -3.15;
         xmax = 3.15;
+        yres_min = 1.8;
+        yres_max = 2.2;
     }
 
     if(varNumber == 1)
@@ -150,6 +159,8 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
         xname = "phi_minus";
         xmin = -3.15;
         xmax = 3.15;
+        yres_min = 1.8;
+        yres_max = 2.2;
     }
 
     if(varNumber == 2)
@@ -212,18 +223,20 @@ int main(int argc, char* argv[])
 {
     gROOT->SetBatch();
     int varNumber = 0;
-    int muID = 0;
+    int muID = 1;
+    TString whichDY = "dyMG";
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
         if(i==1) ss >> varNumber;
         if(i==2) ss >> muID;
+        if(i==3) whichDY = ss.str().c_str();
     }   
 
     float nthreads = 8;
     float luminosity = 36814;
-    float reductionFactor = 1;
+    float reductionFactor = 10;
     std::map<TString, Sample*> samples;
     std::vector<Sample*> samplevec;
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
@@ -233,18 +246,18 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
     
     TString xname;
-    float fitsig, massmin, massmax, xmin, xmax;
+    float fitsig, massmin, massmax, xmin, xmax, ymean_min, ymean_max, yres_min, yres_max;
     int massbins, xbins;
     std::vector<Float_t> binning;
 
-    initPlotSettings(varNumber, fitsig, massmin, massmax, massbins, xmin, xmax, xbins, xname, binning);
+    initPlotSettings(varNumber, fitsig, massmin, massmax, massbins, xmin, xmax, xbins, xname, binning, ymean_min, ymean_max, yres_min, yres_max);
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    GetSamples(samples, "UF");
+    GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -261,8 +274,7 @@ int main(int argc, char* argv[])
 
     for(auto &i : samples)
     {
-        if(i.second->sampleType != "data" && i.second->name != "ZJets_AMC") continue;
-        //if(i.second->name != "RunE") continue;
+        if(!(i.second->sampleType == "data" || i.second->name == "ZJets_AMC" || i.second->name == "ZJets_MG")) continue;
 
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
@@ -318,7 +330,7 @@ int main(int argc, char* argv[])
       Run2EventSelectionCuts run2EventSelectionMC;
 
       // use tight isolation
-      run2MuonSelection.cMaxRelIso = 0.12;
+      run2MuonSelection.cMaxRelIso = 0.25;
 
       // will probably want one for each type of mass
       ZCalibration* zcal_pf   = 0; 
@@ -380,6 +392,7 @@ int main(int argc, char* argv[])
               continue; 
           }
 
+   
           // complicated muon ID selection
           bool isTight = false;
           bool isMedium = false;
@@ -401,10 +414,15 @@ int main(int argc, char* argv[])
           }
           if(muID == 1)
           {
+              if(isMedium) ;
+              else continue;
+          }
+          if(muID == -1)
+          {
               if(!isTight && isMedium) ;
               else continue;
           }
-          if(muID == 2)
+          if(muID == -2)
           {
               if(!isTight && !isMedium && isMedium2016) ;
               else continue;
@@ -415,10 +433,8 @@ int main(int argc, char* argv[])
           // mc branches
           if(s->sampleType != "data")
           {
-              s->branches.gen_wgt->GetEntry(i);
               s->branches.nPU->GetEntry(i);
-              s->branches.pu_wgt->GetEntry(i);
-              s->branches.eff_wgt->GetEntry(i);
+              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
           }
 
           if(varNumber == 0) 
@@ -583,6 +599,7 @@ int main(int argc, char* argv[])
         // name by sample_MASSTYPE 
         TString title = zcal_key;
         title = title.ReplaceAll("_mass", "")+Form("_muID%d", muID);
+        title = title.ReplaceAll("-", "n");
 
         mean_graph->SetTitle(title);
         res_graph->SetTitle(title);
@@ -686,18 +703,28 @@ int main(int argc, char* argv[])
     for(auto& item: overlayMap)
     {   
         TString yname;
+        float ymin = -999;
+        float ymax = -999;
 
         if(item.first.Contains("Mean"))
+        {
             yname = "Fit Mean (GeV)";
+            ymin = 90.5;
+            ymax = 91.5;
+        }
         else
+        {
             yname = "Fit Resolution (GeV)";
+            ymin = 1.5;
+            ymax = 3.5;
+        }
 
-        TCanvas* c = DiMuPlottingSystem::overlay(item.second, item.first+Form("_muID%d", muID), item.first+Form("_muID%d", muID), xname, yname, false);
+        TCanvas* c = DiMuPlottingSystem::overlay(item.second, ymin, ymax, item.first+Form("_muID%d", muID), item.first+Form("_muID%d", muID), xname, yname, false);
         overlays_list->Add(c);
-        c->SaveAs("imgs/"+item.first+Form("_muID%d", muID)+"_"+xname+".png");
+        c->SaveAs("imgs/"+item.first+Form("_muID%d", muID)+"_"+xname+"_"+whichDY+".png");
     }   
 
-    TString savename = Form("rootfiles/zcalibration_%s_muID%d_data_MC.root", xname.Data(), muID);
+    TString savename = Form("rootfiles/zcalibration_%s_muID%d_data_MC_%s.root", xname.Data(), muID, whichDY.Data());
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
     TFile* savefile = new TFile(savename, "RECREATE");

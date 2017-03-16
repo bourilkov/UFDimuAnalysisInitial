@@ -13,11 +13,12 @@ from ROOT import *
 
 
 dirname   = '/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/'
-filenames = ['validate_blinded_dimu_mass_PF_50_200_nolow_run1categories_36814.root', 
-             'validate_blinded_dimu_mass_PF_50_200_low_run1categories_36814.root'
+filenames = ['validate_blinded_dimu_mass_PF_50_200_nolow_run1categories_36814_dyAMC.root', 
+             'validate_blinded_dimu_mass_PF_50_200_nolow_run1categories_36814_dyMG.root',
+             'compare_drell_yan_dimu_mass.root',
+             'compare_drell_yan_HT.root'
             ]
 
-filename = dirname+filenames[0]
 
 categories = ['c_ALL',
               'c_2_Jet',
@@ -40,13 +41,18 @@ categories = ['c_ALL',
               'c_01_Jet_Loose_OE',
               'c_01_Jet_Loose_EE'
               ]
-category = 'c_01_Jet_Tight_BB'
 
+category = 'c_01_Jet_Tight_BB'
 samples = ['VH', 'H2Mu_VBF', 'H2Mu_gg', 'Diboson_plus', 'TTbar_Plus_SingleTop', 'Drell_Yan', 'Net_Data']
+
+filename = dirname+filenames[2]
 getlist = []
 
-for sample in samples:
-    getlist.append((filename, 'net_histos/%s_%s' % (category, sample)))
+#for sample in samples:
+#    getlist.append((filename, 'net_histos/%s_%s' % (category, sample)))
+
+getlist.append( (filename, 'Net_DY_HT') )
+getlist.append( (filename, 'ZJets_AMC') )
 
 print "\n =========== GET ================== \n" 
 hlist = tools.get(getlist)
@@ -57,5 +63,7 @@ newBins = tools.getRebinEdges(hdata, hmc, max_err=0.1)
 print newBins
 rebin_hlist = tools.rebin(hlist, newBins) #rebinned to var bin width
 srebin_hlist = tools.scaleByBinWidth(rebin_hlist, newBins) # rebinned to var bin width and wide bins are scaled down
+srebin_hlist[0].SetTitle('ZJets_MG');
+
 print "\n =========== STACK AND RATIO ====== \n" 
-tools.stackAndRatio(srebin_hlist, title=category)
+tools.stackAndRatio(srebin_hlist, title='Drell_Yan_MC_AMC_vs_Madgraph', ytitleratio='AMC/MG', yrange=(1e3, 1e7))

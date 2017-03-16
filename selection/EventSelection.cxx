@@ -212,6 +212,7 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
 
     // require that there are zero electrons
     if(!(vars.validElectrons.size() == 0)) return false;
+    if(!(vars.validExtraMuons.size() == 0)) return false;
 
     return true;
 }

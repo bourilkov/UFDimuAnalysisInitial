@@ -134,6 +134,12 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     if(rlist==0):
         rlist = histo_list
 
+    for h in histo_list:
+        h.SetStats(False)
+
+    for h in rlist:
+        h.SetStats(False)
+
     c = TCanvas()
     pad1 = TPad("pad1", "pad1", 0,0.3,1,1.0)
     pad1.SetBottomMargin(0.0125)
@@ -170,6 +176,7 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     hlast.SetFillColor(0)
     legend.AddEntry(hlast, hlast.GetTitle(), "p")
     hlast.Draw("epsames")
+    legend.Draw("SAME");
 
     # change to bottom pad and draw the ratio plot
     c.cd()

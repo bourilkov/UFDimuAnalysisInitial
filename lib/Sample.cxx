@@ -112,11 +112,25 @@ void Sample::setBranchAddresses(int whichCategories)
           branches.eff_wgt = chain->GetBranch("IsoMu_eff_3");
           branches.lhe_ht  = chain->GetBranch("LHE_HT");
 
+          branches.isoMu_SF_3 = chain->GetBranch("IsoMu_SF_3");
+          branches.isoMu_SF_4 = chain->GetBranch("IsoMu_SF_4");
+          branches.muID_SF_3  = chain->GetBranch("MuID_SF_3");
+          branches.muID_SF_4  = chain->GetBranch("MuID_SF_4");
+          branches.muIso_SF_3 = chain->GetBranch("MuIso_SF_3");
+          branches.muIso_SF_4 = chain->GetBranch("MuIso_SF_4");
+
           branches.gen_wgt->SetAddress(&vars.gen_wgt);
           branches.nPU->SetAddress(&vars.nPU);
           branches.pu_wgt->SetAddress(&vars.pu_wgt);
           branches.eff_wgt->SetAddress(&vars.eff_wgt);
           branches.lhe_ht->SetAddress(&vars.lhe_ht);
+
+          branches.isoMu_SF_3->SetAddress(&vars.isoMu_SF_3); 
+          branches.isoMu_SF_4->SetAddress(&vars.isoMu_SF_4); 
+          branches.muID_SF_3->SetAddress(&vars.muID_SF_3); 
+          branches.muID_SF_4->SetAddress(&vars.muID_SF_4); 
+          branches.muIso_SF_3->SetAddress(&vars.muIso_SF_3); 
+          branches.muIso_SF_4->SetAddress(&vars.muIso_SF_4); 
 
           branches.genParents = chain->GetBranch("genParents");
           branches.genMuons   = chain->GetBranch("genMuons");
@@ -182,9 +196,9 @@ double Sample::getWeight()
 {
 // Assumes getEntry has already been called to load the appropriate values.
 // Gets the weight for the histogram depending on the sample type 
-    if(sampleType.EqualTo("data")) return 1.0;
-    else if(lumiWeights == 0) return 1.0*vars.gen_wgt*vars.pu_wgt;
-    else return 1.0*vars.gen_wgt*lumiWeights->weight(vars.nPU);
+    if(sampleType == "data") return 1.0;
+    else if(lumiWeights == 0) return 1.0*vars.gen_wgt*vars.pu_wgt*vars.sf();
+    else return 1.0*vars.gen_wgt*lumiWeights->weight(vars.nPU)*vars.sf();
     //else return 1.0*vars.gen_wgt;
 }
 
@@ -192,7 +206,7 @@ double Sample::getWeight()
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
-float Sample::getScaleFactor(float luminosity)
+float Sample::getLumiScaleFactor(float luminosity)
 {
 // Scale the MC histograms based upon the data luminosity, the number of events
 // that the CMSSW analyzer looked at, and the xsec for the process

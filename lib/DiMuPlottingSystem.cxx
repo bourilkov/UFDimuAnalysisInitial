@@ -95,7 +95,7 @@ void DiMuPlottingSystem::arrangeLegend(TCanvas* c, int i)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log)
+TCanvas* DiMuPlottingSystem::overlay(TList* ilist, float ymin, float ymax, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log)
 {
 // Overlay itmes in the list. 
 
@@ -104,13 +104,13 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
 //  TLegend* l = new TLegend(1, 0.15, 0.7, 1.25, "", "brNDC");
  
   // Square-ish top right
-  //TLegend* l = new TLegend(0.68, 0.56, 0.88, 0.87, "", "brNDC");
+  TLegend* l = new TLegend(0.68, 0.56, 0.88, 0.87, "", "brNDC");
 
   // Square-ish top left
   //TLegend* l = new TLegend(0.13, 0.56, 0.33, 0.88, "", "brNDC");
   
   // Wide rectangle top right
-  TLegend* l = new TLegend(0.846, 0.854, 1.0, 1.0, "", "brNDC");
+  //TLegend* l = new TLegend(0.846, 0.854, 1.0, 1.0, "", "brNDC");
   TCanvas* c = new TCanvas(name);
   c->SetTitle(title);
   c->SetGridx(1);
@@ -174,6 +174,11 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
                   stack->SetMaximum(stack->GetMaximum()*1.5);
                   if(minimum > 0) stack->SetMinimum(minimum*0.5);
                   else stack->SetMinimum(minMax*10e-3);
+                  if(ymin != ymax)
+                  {
+                      stack->SetMinimum(ymin);
+                      stack->SetMaximum(ymax);
+                  }
               }
           }
       }
@@ -199,6 +204,7 @@ TCanvas* DiMuPlottingSystem::overlay(TList* ilist, TString name, TString title, 
               multigraph->Draw("a");
               multigraph->GetXaxis()->SetTitle(xaxistitle);
               multigraph->GetYaxis()->SetTitle(yaxistitle);
+              if(ymin != ymax) multigraph->GetYaxis()->SetRangeUser(ymin, ymax);
           }
       }
 
@@ -279,6 +285,10 @@ THStack* DiMuPlottingSystem::stackComparison(TList* ilist, TString title, TStrin
           stack->Draw("hist");
           stack->GetXaxis()->SetTitle(xaxistitle);
           stack->GetYaxis()->SetTitle(yaxistitle);
+          stack->GetYaxis()->SetLabelFont(43);
+          stack->GetYaxis()->SetLabelSize(15);
+          stack->GetXaxis()->SetTitle("");
+          stack->GetXaxis()->SetLabelSize(0.000001);
           
           // overlay the mc error band
           TH1D* sum = (TH1D*) stack->GetStack()->Last()->Clone();
@@ -559,7 +569,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
 
      // Upper pad
     TPad *pad1 = new TPad(TString("pad1")+first->GetName(), "pad1", 0, 0.3, 1, 1.0);
-    pad1->SetBottomMargin(0); 
+    pad1->SetBottomMargin(0.0125); 
     //pad1->SetGridx();         // Vertical grid
     //pad1->SetGridy();         // horizontal grid
     pad1->Draw();             // Draw the upper pad: pad1
@@ -585,7 +595,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     // Lower pad
     c->cd();          // Go back to the main canvas before defining pad2
     TPad *pad2 = new TPad(TString("pad2_")+name, "pad2", 0, 0.05, 1, 0.3);
-    pad2->SetTopMargin(0);
+    pad2->SetTopMargin(0.05);
     pad2->SetBottomMargin(0.2);
     pad2->SetGridy(); // horizontal grid
     pad2->Draw();
@@ -630,7 +640,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetYaxis()->SetNdivisions(505);
     hratio->GetYaxis()->SetTitleSize(20);
     hratio->GetYaxis()->SetTitleFont(43);
-    hratio->GetYaxis()->SetTitleOffset(0.7);
+    hratio->GetYaxis()->SetTitleOffset(0.6*1.55);
     hratio->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
     hratio->GetYaxis()->SetLabelSize(15);
 
@@ -638,7 +648,7 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     hratio->GetXaxis()->SetTitle(xaxistitle);
     hratio->GetXaxis()->SetTitleSize(20);
     hratio->GetXaxis()->SetTitleFont(43);
-    hratio->GetXaxis()->SetTitleOffset(4.);
+    hratio->GetXaxis()->SetTitleOffset(0.8*4.);
     hratio->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
     hratio->GetXaxis()->SetLabelSize(15);
 
