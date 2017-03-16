@@ -137,7 +137,7 @@ void initPlotSettings(int varNumber, float& fitsig, float& massmin, float& massm
     ymean_min = 90.5;
     ymean_max = 91.5;
     yres_min = 1.5;
-    yres_max = 3.2;
+    yres_max = 3.3;
 
     massmin = 82.2;
     massmax = 100.2;
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
 
     float nthreads = 8;
     float luminosity = 36814;
-    float reductionFactor = 10;
+    float reductionFactor = 1;
     std::map<TString, Sample*> samples;
     std::vector<Sample*> samplevec;
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
@@ -723,14 +723,14 @@ int main(int argc, char* argv[])
         if(item.first.Contains("Mean"))
         {
             yname = "Fit Mean (GeV)";
-            ymin = 90.5;
-            ymax = 91.5;
+            ymin = ymean_min;
+            ymax = ymean_max;
         }
         else
         {
             yname = "Fit Resolution (GeV)";
-            ymin = 1.5;
-            ymax = 3.5;
+            ymin = yres_min;
+            ymax = yres_max;
         }
 
         TCanvas* c = DiMuPlottingSystem::overlay(item.second, ymin, ymax, item.first+Form("_muID%d", muID), item.first+Form("_muID%d", muID), xname, yname, false);
