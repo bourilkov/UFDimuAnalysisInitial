@@ -165,17 +165,6 @@ int main(int argc, char* argv[])
       //eventsToCheck.push_back(std::pair<int, long long int>(1, 232626));
       //eventsToCheck.push_back(std::pair<int, long long int>(1, 241209));
 
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 51570));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 65309));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 112520));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 20194));
-
-      // Andrea's Requests
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 9));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 173));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 478));
-      eventsToCheck.push_back(std::pair<int, long long int>(1, 831));
-
       // Output some info about the current file
       bool useMedium2016 = s->sampleType == "data" && s->name != "RunG" && s->name != "RunH";
       std::cout << Form("  /// Processing %s with useMedium2016 = %d \n", s->name.Data(), (int)useMedium2016);
@@ -279,7 +268,7 @@ int main(int argc, char* argv[])
           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
           //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
           
-          if(EventTools::eventInVector(e, eventsToCheck)) // Adrian gave a list of events to look at for synch purposes
+          if(EventTools::eventInVector(e, eventsToCheck) || true) // Adrian gave a list of events to look at for synch purposes
              EventTools::outputEvent(s->vars);
 
           ///////////////////////////////////////////////////////////////////
@@ -288,35 +277,35 @@ int main(int argc, char* argv[])
 
           if(!synchMuonSelection.evaluate(s->vars)) 
           {
-              if(EventTools::eventInVector(e, eventsToCheck))
+              if(EventTools::eventInVector(e, eventsToCheck) || true)
                   std::cout << "   !!! Fail Muon Selection !!!" << std::endl;
 
               continue; 
           }
           if(!synchEventSelection.evaluate(s->vars))
           { 
-              if(EventTools::eventInVector(e, eventsToCheck))
+              if(EventTools::eventInVector(e, eventsToCheck) || true)
                   std::cout << "   !!! Fail Event Selection !!!" << std::endl;
 
               continue; 
           }
           if( useMedium2016 && (!mu1.isMediumID2016 || !mu2.isMediumID2016) )
           { 
-              if(EventTools::eventInVector(e, eventsToCheck))
+              if(EventTools::eventInVector(e, eventsToCheck) || true)
                   std::cout << "   !!! Fail Medium ID 2016 !!!" << std::endl;
 
               continue; 
           }
           if( !useMedium2016 && (!mu1.isMediumID || !mu2.isMediumID) )
           { 
-              if(EventTools::eventInVector(e, eventsToCheck))
+              if(EventTools::eventInVector(e, eventsToCheck) || true)
                   std::cout << "   !!! Fail Medium ID !!!" << std::endl;
 
               continue; 
           }
           if(!mu1.isGlobal || !mu1.isTracker || !mu2.isGlobal || !mu2.isTracker)
           {
-              if(EventTools::eventInVector(e, eventsToCheck))
+              if(EventTools::eventInVector(e, eventsToCheck) || true)
                   std::cout << "   !!! Fail isGlobal isTracker !!!" << std::endl;
 
               continue;
@@ -340,7 +329,7 @@ int main(int argc, char* argv[])
               c.second.eventsMap[hkey].push_back(e);
           } // end category loop
 
-          if(EventTools::eventInVector(e, eventsToCheck))
+          if(EventTools::eventInVector(e, eventsToCheck) || true)
             categorySelection->outputResults();
 
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop

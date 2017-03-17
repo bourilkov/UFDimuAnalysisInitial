@@ -548,8 +548,8 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    TString whichDY = "dyAMC";
-    //TString whichDY = "dyMG";
+    //TString whichDY = "dyAMC";
+    TString whichDY = "dyMG";
     GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
