@@ -1,7 +1,10 @@
 # MakeFile
 
+#ROOTLIBS = $(shell root-config --libdir) 
+#ROOTINCS = $(shell root-config --incdir)  
+
 CC = g++ 
-LIBFLAGS = `root-config --libs` -O3 -lXMLIO -lMLP -lMinuit
+LIBFLAGS = `root-config --libs` -O3 -lXMLIO -lMLP -lMinuit -lTMVA -lTMVAGui
 
 LIBDIR = ../lib/
 SDIR = ../selection/
@@ -10,12 +13,13 @@ TDIR = ../tools/
 THREADDIR = ../threadpool/
 OBJDIR = ../lib/analyzer_objects/
 
-CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
+CFLAGS = -I $(ROOTINCS) -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
+MAIN = TMVAClassification_H2Mu
 #MAIN = categorize
 #MAIN = dyAndDataForFEWZ
-MAIN = outputCounts
+#MAIN = outputCounts
 #MAIN = synchronize
 #MAIN = example
 #MAIN = dycompare
