@@ -13,15 +13,15 @@ TDIR = ../tools/
 THREADDIR = ../threadpool/
 OBJDIR = ../lib/analyzer_objects/
 
-CFLAGS = -I $(ROOTINCS) -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
+CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -c -g `root-config --cflags`
 
 # The name of the .cxx file you want to compile into an executable
-MAIN = TMVAClassification_H2Mu
+#MAIN = TMVAClassification_H2Mu
 #MAIN = categorize
 #MAIN = dyAndDataForFEWZ
 #MAIN = outputCounts
 #MAIN = synchronize
-#MAIN = example
+MAIN = example
 #MAIN = dycompare
 #MAIN = zcalibration
 #MAIN = fakes
