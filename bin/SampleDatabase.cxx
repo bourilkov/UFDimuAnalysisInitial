@@ -31,7 +31,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   if (location == "UF")
     in_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
   else if (location == "CERN")
-    in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Jan28";
+    in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13_hiM";
   else
     std::cout << "\n\nInput location is " << location << ", not UF or CERN.  NOT AN OPTION!!!\n\n" << std::endl;
   
@@ -88,7 +88,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       in_files.push_back( TString(in_dir+"signal/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8_H2Mu_gg.root") );
     } else {
       for (int i = 1; i <= 1; i++) {
-	in_file.Form( "%s/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/170128_235508/0000/tuple_%d.root", in_dir.Data(), i);
+	in_file.Form( "%s/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/170315_104928/0000/tuple_%d.root", in_dir.Data(), i);
 	in_files.push_back(in_file);
       }
     }
@@ -204,15 +204,15 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if ((select.Contains("ALL") && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG") {
+  if ((select.Contains("ALL") && select.Contains("MG")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_MG" || select == "ZJets_MG_incl") {
     std::cout << "\nAdding files for ZJets_MG ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"dy/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_ZJets_MG.root") );
     } else {
-      for (int i = 1; i <= 48; i++) {
-	in_file.Form( "%s/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/ZJets_MG/170130_063203/0000/tuple_%d.root", in_dir.Data(), i);
+      for (int i = 1; i <= 2; i++) {
+	in_file.Form( "%s/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/ZJets_MG/170315_223246/0000/tuple_%d.root", in_dir.Data(), i);
 	in_files.push_back(in_file);
       }
     }
