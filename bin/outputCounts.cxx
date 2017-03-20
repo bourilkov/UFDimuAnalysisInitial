@@ -55,13 +55,15 @@ int main(int argc, char* argv[])
     // save the errors for the histogram correctly so they depend upon 
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
+    TString xmlfile = "";
     int nthreads = 10;
 
     for(int i=1; i<argc; i++)
     {   
         std::stringstream ss; 
         ss << argv[i];
-        ss >> nthreads;
+        if(i==1) xmlfile = ss.str().c_str();
+        if(i==2) ss >> nthreads;
     }   
 
     // Not sure that we need a map if we have a vector
@@ -94,7 +96,7 @@ int main(int argc, char* argv[])
     
     for(auto &i : samples)
     {
-        if(i.second->sampleType == "data") continue;
+        //if(i.second->sampleType == "data") continue;
 
         // Output some info about the current file
         std::cout << "  /// Preprocessing " << i.second->name << std::endl;
@@ -118,10 +120,12 @@ int main(int argc, char* argv[])
     std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
     std::cout << "@@@ nSamples used  : " << samplevec.size() << std::endl;
 
-    auto outputSampleInfo = [luminosity, reductionFactor](Sample* s)
+    auto outputSampleInfo = [xmlfile, luminosity, reductionFactor](Sample* s)
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
+
+      bool isData = s->sampleType == "data";
 
       float interval = 0.5;
       int nbins = 20;
@@ -136,7 +140,9 @@ int main(int argc, char* argv[])
       Run2MuonSelectionCuts  run2MuonSelection;
       Run2EventSelectionCuts run2EventSelection;
 
-      Categorizer* categorySelection = new CategorySelectionRun1();
+      Categorizer* categorySelection = 0;
+      if(xmlfile.Contains(".xml")) categorySelection = new XMLCategorizer(xmlfile); 
+      else categorySelection = new CategorySelectionRun1();
 
       TString hkeyn;
       TString hkeyw;
@@ -173,8 +179,11 @@ int main(int argc, char* argv[])
 
         // We are stitching together zjets_ht from 70-inf. We use the inclusive for
         // ht from 0-70.
-        s->branches.lhe_ht->GetEntry(i);
-        if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+        if(!isData)
+        {
+            s->branches.lhe_ht->GetEntry(i);
+            if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+        }
 
         // only load essential information for the first set of cuts 
         s->branches.recoDimuCands->GetEntry(i);
@@ -200,6 +209,11 @@ int main(int argc, char* argv[])
           {
               continue;
           }
+          // only keep data in the sidebands
+          if(isData && dimu.mass > massmin && dimu.mass < massmax)
+          {
+              continue;
+          }
           // usual cuts
           if(!mu1.isMediumID || !mu2.isMediumID)
           { 
@@ -221,8 +235,11 @@ int main(int argc, char* argv[])
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
 
-          s->branches.nPU->GetEntry(i);
-          s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
+          if(!isData)
+          {
+              s->branches.nPU->GetEntry(i);
+              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
+          }
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -240,6 +257,10 @@ int main(int argc, char* argv[])
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
+
+          //std::cout << i << " !!! SETTING JETS " << std::endl;
+          //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
+          s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
 
           categorySelection->evaluate(s->vars);
 
@@ -274,7 +295,7 @@ int main(int argc, char* argv[])
       {
           for(auto& h: c.second.histoMap)
           {
-              if(h.first.Contains("weights"))
+              if(h.first.Contains("weights") && !isData)
               {
                   h.second->Scale(s->getLumiScaleFactor(luminosity));
                   //if(s->sampleType == "signal") std::cout << Form("    %s, %s, %f\n", c.first.Data(), h.first.Data(), h.second->Integral());
@@ -299,7 +320,9 @@ int main(int argc, char* argv[])
    // Gather all the Histos into one Categorizer----------------------
    ///////////////////////////////////////////////////////////////////
 
-    Categorizer* cAll = new CategorySelectionRun1();
+    Categorizer* cAll = 0;
+    if(xmlfile.Contains(".xml")) cAll = new XMLCategorizer(xmlfile);
+    else cAll = new CategorySelectionRun1();
 
     // get histos from all categorizers and put them into one
     for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
@@ -313,8 +336,9 @@ int main(int argc, char* argv[])
                 cAll->categoryMap[category.first].histoMap[h.first] = h.second;
                 cAll->categoryMap[category.first].histoList->Add(h.second);
 
-                if(h.first.Contains("H2Mu")) cAll->categoryMap[category.first].signalList->Add(h.second);
-                else                         cAll->categoryMap[category.first].bkgList->Add(h.second);
+                if(h.first.Contains("H2Mu"))      cAll->categoryMap[category.first].signalList->Add(h.second);
+                else if(h.first.Contains("Run"))  cAll->categoryMap[category.first].dataList->Add(h.second);
+                else                              cAll->categoryMap[category.first].bkgList->Add(h.second);
             }
         }
     }
@@ -328,8 +352,16 @@ int main(int argc, char* argv[])
     TList* datalist = new TList();       // list to save all of the data histos
     TList* netlist = new TList();        // list to save all of the net histos
 
+    TString xcategoryString = "run1";
+    if(xmlfile.Contains(".xml")) 
+    {    
+        Ssiz_t i = xmlfile.Last('/');
+        xcategoryString = xmlfile(i+1, xmlfile.Length()); // get the name of the xmlfile without all the /path/to/dir/ business 
+        xcategoryString = xcategoryString.ReplaceAll(".xml", ""); 
+    }    
+    xcategoryString = "_"+xcategoryString;
 
-    TString csvfilename = Form("csv/sigcsv/significance_%s.csv", whichDY.Data());
+    TString csvfilename = Form("csv/sigcsv/significance%s_categories_%s.csv", xcategoryString.Data(), whichDY.Data());
     std::cout << std::endl << "  /// Exporting counts and significnace to " << csvfilename << " ..." << std::endl;
     std::cout << std::endl;
 
@@ -357,12 +389,12 @@ int main(int argc, char* argv[])
     mlim["c_2_Jet_GGF_Tight"] =  8.84;
     mlim["c_2_Jet_VBF_Loose"] =  5.17;
 
-    SignificanceMetric* s0 = new AsimovSignificance(0);
-    SignificanceMetric* s1 = new AsimovSignificance(1);
-    SignificanceMetric* s2 = new AsimovSignificance(2);
-    SignificanceMetric* s3 = new AsimovSignificance(3);
-    SignificanceMetric* s4 = new AsimovSignificance(4);
-    SignificanceMetric* s5 = new AsimovSignificance(5);
+    SignificanceMetric* s0 = new PoissonSignificance(0, 200, true);
+    SignificanceMetric* s1 = new PoissonSignificance(1, 200, true);
+    SignificanceMetric* s2 = new PoissonSignificance(2, 200, true);
+    SignificanceMetric* s3 = new PoissonSignificance(3, 200, true);
+    SignificanceMetric* s4 = new PoissonSignificance(4, 200, true);
+    SignificanceMetric* s5 = new PoissonSignificance(5, 200, true);
 
     double net_significance = 0;
     double net_s_sqrt_b = 0;
@@ -394,12 +426,15 @@ int main(int argc, char* argv[])
 
         TIter isig(c.second.signalList);
         TIter ibkg(c.second.bkgList);
+        TIter idata(c.second.dataList);
         TObject* obj = 0;
 
         TList* signalListNum = new TList();
         TList* signalListW = new TList();
         TList* bkgListNum = new TList();
         TList* bkgListW = new TList();
+        TList* dataListNum = new TList();
+        TList* dataListW = new TList();
 
         // filter num/weight histos to appropriate lists
         TH1D* hvbf = 0;
@@ -429,18 +464,30 @@ int main(int argc, char* argv[])
             }
         }
 
+        while(obj = idata())
+        {
+            TH1D* h = (TH1D*) obj;
+            if(TString(h->GetName()).Contains("num")) dataListNum->Add(h);
+            if(TString(h->GetName()).Contains("weights")) 
+                dataListW->Add(h);
+        }
+
         // num histos
         TH1D* hNetSignalNum = DiMuPlottingSystem::addHists(signalListNum, c.first+"_Num_Signal", "Num Signal");
         TH1D* hNetBkgNum    = DiMuPlottingSystem::addHists(bkgListNum,    c.first+"_Num_Bkg",    "Num Background");
+        TH1D* hNetDataNum   = DiMuPlottingSystem::addHists(dataListNum,    c.first+"_Num_Data",  "Num Data");
 
         // weighted histos
         TH1D* hNetSignalW = DiMuPlottingSystem::addHists(signalListW, c.first+"_Net_Signal", "Net Signal");
         TH1D* hNetBkgW    = DiMuPlottingSystem::addHists(bkgListW,    c.first+"_Net_Bkg",    "Net Background");
+        TH1D* hNetDataW   = DiMuPlottingSystem::addHists(dataListW,   c.first+"_Net_Data",   "Net Data");
 
         netlist->Add(hNetSignalW);
         netlist->Add(hNetBkgW);
+        netlist->Add(hNetDataW);
         netlist->Add(hNetSignalNum);
         netlist->Add(hNetBkgNum);
+        netlist->Add(hNetDataNum);
 
         // signal region is in bins [2,nbins], bin1 is the amount outside the signal region
         // we want the counts inside the signal region
@@ -456,12 +503,12 @@ int main(int argc, char* argv[])
 
         s_over_b = signal/bkg;
         s2_over_b = signal*signal/bkg;
-        sig0 = s0->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
-        sig1 = s1->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
-        sig2 = s2->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
-        sig3 = s3->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
-        sig4 = s4->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
-        sig5 = s5->significance2(hNetSignalW, hNetBkgW, hNetSignalNum, hNetBkgNum);
+        sig0 = s0->significance2(hNetSignalW, hNetBkgW, hNetDataW, hNetSignalNum, hNetBkgNum, hNetDataNum);
+        sig1 = s1->significance2(hNetSignalW, hNetBkgW, hNetDataW, hNetSignalNum, hNetBkgNum, hNetDataNum);
+        sig2 = s2->significance2(hNetSignalW, hNetBkgW, hNetDataW, hNetSignalNum, hNetBkgNum, hNetDataNum);
+        sig3 = s3->significance2(hNetSignalW, hNetBkgW, hNetDataW, hNetSignalNum, hNetBkgNum, hNetDataNum);
+        sig4 = s4->significance2(hNetSignalW, hNetBkgW, hNetDataW, hNetSignalNum, hNetBkgNum, hNetDataNum);
+        sig5 = s5->significance2(hNetSignalW, hNetBkgW, hNetDataW, hNetSignalNum, hNetBkgNum, hNetDataNum);
 
         if(c.second.isTerminal) net_significance += sig0;
         if(c.second.isTerminal) net_s_sqrt_b += s2_over_b;
@@ -488,7 +535,7 @@ int main(int argc, char* argv[])
     std::cout << "  ### NET S/SQRT(B)   : " << net_s_sqrt_b << std::endl;
     std::cout << "  ////////////////////////////////////////// " << std::endl;
 
-    TString savename = Form("rootfiles/significance_run1categories_%s.root", whichDY.Data());
+    TString savename = Form("rootfiles/significance%s_categories_%s.root", xcategoryString.Data(), whichDY.Data());
 
     std::cout << std::endl;
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
