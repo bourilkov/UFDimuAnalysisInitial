@@ -439,10 +439,10 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"singletop/ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_pos.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+      in_file.Form( "%s/ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_pos_1/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
+      in_file.Form( "%s/ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_pos_2/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
     }
     samples["tW_pos"] = new Sample(in_files, "tW_pos", "background");
     samples["tW_pos"]->xsec = 35.85; // pb
@@ -458,10 +458,10 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"singletop/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_neg.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+      in_file.Form( "%s/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_neg_1/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
+      in_file.Form( "%s/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_neg_2/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
     }
     samples["tW_neg"] = new Sample(in_files, "tW_neg", "background");
     samples["tW_neg"]->xsec = 35.85; // pb
@@ -477,9 +477,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"singletop/tZq_ll_4f_13TeV-amcatnlo-pythia8_tZq.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
+      in_file.Form( "%s/tZq_ll_4f_13TeV-amcatnlo-pythia8/tZq/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
     }
     samples["tZq"] = new Sample(in_files, "tZq", "background");
     samples["tZq"]->xsec = 0.0758; // pb
@@ -495,10 +494,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //  if (location == "UF") {
   //    in_files.push_back( TString(in_dir+"singletop/ST_tWll_5f_LO_13TeV-MadGraph-pythia8_tZW.root") );
   //  } else {
-  //    // for (int i = 1; i <= 1; i++) {
-  //    // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-  //    // 	in_files.push_back(in_file);
-  //    // }
+  //    in_file.Form( "%s/ST_tWll_5f_LO_13TeV-MadGraph-pythia8/tZW/NTuple_0.root", in_dir.Data() );
+  //    in_files.push_back(in_file);
   //  }
   //  samples["tZW"] = new Sample(in_files, "tZW", "background");
   //  samples["tZW"]->xsec = -999; // pb
@@ -516,10 +513,10 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"ttv/TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_ttW.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+      in_file.Form( "%s/TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8/ttW_1/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
+      in_file.Form( "%s/TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8/ttW_2/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
     }
     samples["ttW"] = new Sample(in_files, "ttW", "background");
     samples["ttW"]->xsec = 0.2043; // pb
@@ -535,10 +532,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"ttv/TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8_ttZ.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+      in_file.Form( "%s/TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV-amcatnlo-pythia8/ttZ/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
     }
     samples["ttZ"] = new Sample(in_files, "ttZ", "background");
     samples["ttZ"]->xsec = 0.2529; // pb
@@ -556,10 +551,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"diboson/WWTo2L2Nu_13TeV-powheg_WW.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+      in_file.Form( "%s/WWTo2L2Nu_13TeV-powheg/WW/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
     }
     samples["WW"] = new Sample(in_files, "WW", "background");
     samples["WW"]->xsec = 12.46; // pb
@@ -575,10 +568,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
    //  if (location == "UF") {
    //    in_files.push_back( TString(in_dir+"diboson/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_WZ_2l.root") );
    //  } else {
-   //    // for (int i = 1; i <= 1; i++) {
-   //    // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-   //    // 	in_files.push_back(in_file);
-   //    // }
+   //   in_file.Form( "%s/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/WZ_2l/NTuple_0.root", in_dir.Data() );
+   //   in_files.push_back(in_file);
    //  }
    //  samples["WZ_2l"] = new Sample(in_files, "WZ_2l", "background");
    //  samples["WZ_2l"]->xsec = ; // pb
@@ -592,10 +583,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"diboson/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_WZ_3l_AMC.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+     in_file.Form( "%s/WZTo3LNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/WZ_3l_AMC/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
     }
     samples["WZ_3l"] = new Sample(in_files, "WZ_3l", "background");
     samples["WZ_3l"]->xsec = 2.113; // pb
@@ -611,10 +600,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"diboson/ZZTo2L2Nu_13TeV_powheg_pythia8_ZZ_2l_2v.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+     in_file.Form( "%s/ZZTo2L2Nu_13TeV_powheg_pythia8/ZZ_2l_2v/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
     }
     samples["ZZ_2l_2v"] = new Sample(in_files, "ZZ_2l_2v", "background");
     samples["ZZ_2l_2v"]->xsec = 0.564; // pb
@@ -630,10 +617,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"diboson/ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_ZZ_2l_2q.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+     in_file.Form( "%s/ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/ZZ_2l_2q/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
     }
     samples["ZZ_2l_2q"] = new Sample(in_files, "ZZ_2l_2q", "background");
     samples["ZZ_2l_2q"]->xsec = 3.22; // pb
@@ -649,10 +634,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"diboson/ZZTo4L_13TeV-amcatnloFXFX-pythia8_ZZ_4l_AMC.root") );
     } else {
-      // for (int i = 1; i <= 1; i++) {
-      // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-      // 	in_files.push_back(in_file);
-      // }
+     in_file.Form( "%s/ZZTo4L_13TeV-amcatnloFXFX-pythia8/ZZ_4l_AMC/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
     }
     samples["ZZTo4L"] = new Sample(in_files, "ZZTo4L", "background");
     samples["ZZTo4L"]->xsec = 1.212; // pb
@@ -670,10 +653,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   if (location == "UF") {
   //     in_files.push_back( TString(in_dir+"triboson/WWW_4F_TuneCUETP8M1_13TeV-amcatnlo-pythia8_WWW.root") );
   //   } else {
-  //     // for (int i = 1; i <= 1; i++) {
-  //     // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-  //     // 	in_files.push_back(in_file);
-  //     // }
+  //   in_file.Form( "%s/WWW_4F_TuneCUETP8M1_13TeV-amcatnlo-pythia8/WWW/NTuple_0.root", in_dir.Data() );
+  //   in_files.push_back(in_file);
   //   }
   //   samples["WWW"] = new Sample(in_files, "WWW", "background");
   //   samples["WWW"]->xsec = -999; // pb
@@ -687,9 +668,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   if (location == "UF") {
   //     in_files.push_back( TString(in_dir+"triboson/WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_WWZ.root") );
   //   } else {
-  //     // for (int i = 1; i <= 1; i++) {
-  //     // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-  //     // 	in_files.push_back(in_file);
+  //   in_file.Form( "%s/WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8/WWZ/NTuple_0.root", in_dir.Data() );
+  //   in_files.push_back(in_file);
   //     // }
   //   }
   //   samples["WWZ"] = new Sample(in_files, "WWZ", "background");
@@ -704,10 +684,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   if (location == "UF") {
   //     in_files.push_back( TString(in_dir+"triboson/WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_WZZ.root") );
   //   } else {
-  //     // for (int i = 1; i <= 1; i++) {
-  //     // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-  //     // 	in_files.push_back(in_file);
-  //     // }
+  //   in_file.Form( "%s/WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8/WZZ/NTuple_0.root", in_dir.Data() );
+  //   in_files.push_back(in_file);
   //   }
   //   samples["WZZ"] = new Sample(in_files, "WZZ", "background");
   //   samples["WZZ"]->xsec = -999; // pb
@@ -721,10 +699,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //   if (location == "UF") {
   //     in_files.push_back( TString(in_dir+"triboson/ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_ZZZ.root") );
   //   } else {
-  //     // for (int i = 1; i <= 1; i++) {
-  //     // 	in_file.Form( "%s///NTuple_0.root", in_dir.Data() );
-  //     // 	in_files.push_back(in_file);
-  //     // }
+  //   in_file.Form( "%s/ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8/ZZZ/NTuple_0.root", in_dir.Data() );
+  //   in_files.push_back(in_file);
   //   }
   //   samples["ZZZ"] = new Sample(in_files, "ZZZ", "background");
   //   samples["ZZZ"]->xsec = -999; // pb
