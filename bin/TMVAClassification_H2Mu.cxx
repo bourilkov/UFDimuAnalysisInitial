@@ -38,22 +38,24 @@
 // Extra tools - AWB 13.03.17
 #include "TMVA_helper.h"
 
-const int MAX_EVT    = 1000;
-const int MAX_SIG    =  500;
-const int MAX_BKG    =  500;
-const int REPORT_EVT =   10;
+const int MAX_EVT    = 100;
+const int MAX_SIG    =  50;
+const int MAX_BKG    =  50;
+const int REPORT_EVT =   1;
 
-const int MAX_TR_SIG = 1000;
-const int MAX_TR_BKG = 1000;
+const int MAX_TR_SIG = 10;
+const int MAX_TR_BKG = 10;
 
 const double PI = 3.14159265359;
 const double BIT = 0.000001; // Tiny value or offset
+
+const double LUMI = 36814; // pb-1 
 
 using namespace TMVA;
 
 void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
-   // TMVA::Tools::Instance();  // Broken - AWB 17.03.17
+   TMVA::Tools::Instance();
 
    // Default MVA methods to be trained + tested
    std::map<std::string,int> Use;
@@ -108,12 +110,8 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // Select methods (don't look at this code - not of interest)
    std::vector<TString> mlist;
    if (myMethodList != "") {
-     // Should be "" for normal use cases - AWB 17.03.17
-     std::cout << "\n\nWHY ARE WE USING myMethodList = " << myMethodList << " !!!  Exiting." << std::endl;
-     exit(1);
      for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) it->second = 0;
-
-     // mlist = gTools().SplitString( myMethodList, ',' ); // Broken - AWB 17.03.17
+     mlist = gTools().SplitString( myMethodList, ',' );
      for (UInt_t i=0; i<mlist.size(); i++) {
        std::string regMethod(mlist[i]);
        
@@ -126,6 +124,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        Use[regMethod] = 1;
      }
    }
+
    
    // --------------------------------------------------------------------------------------------------
 
@@ -135,7 +134,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/EMTF/HiggsToMuMu";
    out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVAClassification_H2Mu_18_03_13_test.root", out_dir.Data() );
+   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_20_test.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
@@ -150,28 +149,43 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // or "CERN" if you at CERN. "ALL" specifies that we want to load the Data
    // and all of the MC samples. Can loop through and remove the ones you don't want 
    // to use if you desire or just grab the ones you care about from the map.
-   GetSamples(samples, "CERN", "H2Mu_gg" );
-   GetSamples(samples, "CERN", "ZJets_MG_incl");
+   GetSamples(samples, "CERN_hiM", "SIGNAL" );
+   GetSamples(samples, "CERN_hiM", "ZJets_MG");
+   GetSamples(samples, "CERN_hiM", "tt_ll_MG");
 
    std::cout << std::endl << "\nGot the samples" << std::endl;
 
-   // Grab the gluon gluon fusion Higgs to mu mu sample
-   Sample* samp_sig = samples["H2Mu_gg"];
-   Sample* samp_bkg = samples["ZJets_MG"];
+   // Tuple of sample and sample ID
+   std::vector< std::tuple<Sample*, int> > sig_samps;
+   std::vector< std::tuple<Sample*, int> > bkg_samps;
+   std::vector< std::tuple<Sample*, int> > dat_samps;
+   std::vector< std::tuple<Sample*, int> > all_samps;
 
-   std::cout << "Using signal sample " << samp_sig->name << std::endl;
-   std::cout << "Using background sample " << samp_bkg->name << std::endl;
+   sig_samps.push_back( std::make_tuple(samples["H2Mu_gg"],     -1) );
+   sig_samps.push_back( std::make_tuple(samples["H2Mu_VBF"],    -2) );
+   sig_samps.push_back( std::make_tuple(samples["H2Mu_ZH"],     -3) );
+   sig_samps.push_back( std::make_tuple(samples["H2Mu_WH_pos"], -4) );
+   sig_samps.push_back( std::make_tuple(samples["H2Mu_WH_neg"], -5) );
+
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG"],              + 1) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_70_100"],    + 2) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_100_200"],   + 3) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_200_400"],   + 4) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_400_600"],   + 5) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_600_800"],   + 6) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_800_1200"],  + 7) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_1200_2500"], + 8) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_2500_inf"],  + 9) );
+   bkg_samps.push_back( std::make_tuple(samples["tt_ll_MG"],              +10) );
+
+   all_samps.insert( all_samps.end(), sig_samps.begin(), sig_samps.end() );
+   all_samps.insert( all_samps.end(), bkg_samps.begin(), bkg_samps.end() );
+   all_samps.insert( all_samps.end(), dat_samps.begin(), dat_samps.end() );
 
    // Get branches, set addresses
    // Tells the TTree that it should load the event information into samp->vars
-   samp_sig->setBranchAddresses(2);
-   samp_bkg->setBranchAddresses(2);
-
-   // Tuple of sample, sample ID, and MC weight
-   std::vector< std::tuple<Sample*, int, float> > in_samps;
-   in_samps.push_back( std::make_tuple(samp_sig, -1, 1.0) );
-   in_samps.push_back( std::make_tuple(samp_bkg, +1, 1.0) );
-
+   for (int iSamp = 0; iSamp < all_samps.size(); iSamp++)
+     std::get<0>(all_samps.at(iSamp))->setBranchAddresses(2);
 
    //////////////////////////////////////////////////////////////////
    ///  Factories: Use different sets of variables, weights, etc. ///
@@ -220,7 +234,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    ///  Spectator variables: not used in training, but saved in output tree  ///
    /////////////////////////////////////////////////////////////////////////////
    
-   spec_vars.push_back( TMVA_var( "dimu_mass",    "mass(#mu#mu)",            "GeV", 'F', -77 ) ); // 0x01
+   spec_vars.push_back( TMVA_var( "samp_ID",    "Sample ID",            "", 'I', -77 ) );
+   spec_vars.push_back( TMVA_var( "samp_wgt",   "Sample weight",        "", 'F', -77 ) );
+   spec_vars.push_back( TMVA_var( "LHE_HT",     "Sample weight",     "GeV", 'F', -77 ) );
+   spec_vars.push_back( TMVA_var( "dimu_mass",  "mass(#mu#mu)",      "GeV", 'F', -77 ) );
 
    assert( in_vars.size() > 0 );   // You need at least one input variable
    // Order is important: input variables first, then specator
@@ -263,17 +280,16 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    UInt_t nTest_sig  = 0;
    UInt_t nTest_bkg  = 0;
 
-   for (int iSamp = 0; iSamp < in_samps.size(); iSamp++) {
-     Sample* samp   = std::get<0>(in_samps.at(iSamp));
-     int   samp_ID  = std::get<1>(in_samps.at(iSamp));
-     float samp_wgt = std::get<2>(in_samps.at(iSamp));
+   for (int iSamp = 0; iSamp < all_samps.size(); iSamp++) {
+     Sample* samp   = std::get<0>(all_samps.at(iSamp));
+     int   samp_ID  = std::get<1>(all_samps.at(iSamp));
      
      std::cout << "Looping over the events in the sample" << std::endl;
      // for (UInt_t iEvt = 0; iEvt < samp->GetEntries(); iEvt++) { // TODO: fix. - AWB 18.03.17
      for (UInt_t iEvt = 0; iEvt < MAX_EVT; iEvt++) {
        if (nEvt > MAX_EVT) break;
-       if (samp_ID < 0 && nEvt_sig > MAX_SIG) break;
-       if (samp_ID > 0 && nEvt_bkg > MAX_BKG) break;
+       if (samp_ID < 0 && nEvt_sig > MAX_SIG / sig_samps.size()) break;
+       if (samp_ID > 0 && nEvt_bkg > MAX_BKG / bkg_samps.size()) break;
        if ( (nEvt % REPORT_EVT) == 0 )
 	 std::cout << "Looking at event " << nEvt << std::endl;
 
@@ -281,6 +297,22 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        // samp->branches.object (load info) <-> samp->vars.object (access info)
        samp->branches.recoDimuCands->GetEntry(iEvt);
        samp->branches.recoMuons->GetEntry(iEvt);
+       samp->branches.jets->GetEntry(iEvt);
+       samp->branches.met->GetEntry(iEvt);
+       samp->branches.mht->GetEntry(iEvt);
+       samp->branches.eventInfo->GetEntry(iEvt);
+       samp->branches.nVertices->GetEntry(iEvt);
+       if (samp->sampleType != "data") {
+	 samp->branches.nPU->GetEntry(iEvt);
+	 samp->branches.getEntryWeightsMC(iEvt); // GEN wgt, PU wgt, and HLT, MuID, and MuIso scale factors
+       }
+
+       std::cout << "Event " << iEvt << ", sample " << samp->name << " has weight " << samp->getWeight() 
+		 << ", lumi scale factor " << samp->getLumiScaleFactor(LUMI) 
+		 << ", and LHE HT = " << samp->vars.lhe_ht << std::endl;
+       
+       Double_t samp_wgt = samp->getWeight() * samp->getLumiScaleFactor(LUMI);
+       Double_t LHE_HT   = samp->vars.lhe_ht;
 
        if (samp->vars.recoDimuCands->size() == 0)
 	 continue;
@@ -290,9 +322,9 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        MuonInfo& mu1 = samp->vars.recoMuons->at(dimu.iMu1);
        MuonInfo& mu2 = samp->vars.recoMuons->at(dimu.iMu2);
 
-       std::cout << "Dimuon mass = " << dimu.mass << ", pT = " << dimu.pt << ", eta = " << dimu.eta << std::endl;
-       std::cout << "Muon 1 pT = " << mu1.pt << ", eta = " << mu1.eta << std::endl;
-       std::cout << "Muon 2 pT = " << mu2.pt << ", eta = " << mu2.eta << std::endl;
+       // std::cout << "Dimuon mass = " << dimu.mass << ", pT = " << dimu.pt << ", eta = " << dimu.eta << std::endl;
+       // std::cout << "Muon 1 pT = " << mu1.pt << ", eta = " << mu1.eta << std::endl;
+       // std::cout << "Muon 2 pT = " << mu2.pt << ", eta = " << mu2.eta << std::endl;
 
        Double_t dimu_mass = dimu.mass;
        Double_t dimu_pt   = dimu.pt;
@@ -340,6 +372,12 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	   ///  Spectator variables  ///
 	   /////////////////////////////
 	   
+	   if ( vName == "samp_ID" )
+	     var_vals.at(iVar) = samp_ID;
+	   if ( vName == "samp_wgt" )
+	     var_vals.at(iVar) = samp_wgt;
+	   if ( vName == "LHE_HT" )
+	     var_vals.at(iVar) = LHE_HT;
 	   if ( vName == "dimu_mass" )
 	     var_vals.at(iVar) = dimu_mass;
 	   
@@ -350,26 +388,25 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	 Double_t bkg_evt_weight = 1.0;
 	     
 	 // Load values into event
-	 if ( (iEvt % 2) == 0 && nTrain_sig < MAX_TR_SIG && nTrain_bkg < MAX_TR_BKG ) {
-	   if (samp_ID < 0) {
+	 if (samp_ID < 0) {
+	   if ( (iEvt % 2) == 0 && nTrain_sig < MAX_TR_SIG ) {
 	     std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, sig_evt_weight );
 	     if (iFact == 0) nTrain_sig += 1;
-	   }
-	   else if (samp_ID > 0) {
-	     std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, bkg_evt_weight );
-	     if (iFact == 0) nTrain_bkg += 1;
-	   }
-	 }
-	 else {
-	   if (samp_ID < 0) {
+	   } else {
 	     std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, sig_evt_weight );
 	     if (iFact == 0) nTest_sig += 1;
-	   } 
-	   else if (samp_ID > 0) {
+	   }
+	 }
+	 if (samp_ID > 0) {
+	   if ( (iEvt % 2) == 0 && nTrain_bkg < MAX_TR_BKG ) {
+	     std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, bkg_evt_weight );
+	     if (iFact == 0) nTrain_bkg += 1;
+	   } else {
 	     std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, bkg_evt_weight );
 	     if (iFact == 0) nTest_bkg += 1;
 	   }
 	 }
+
 
        } // End loop: for (UInt_t iFact = 0; iFact < factories.size(); iFact++) 
        
@@ -377,7 +414,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        if (samp_ID < 0) nEvt_sig += 1;
        if (samp_ID > 0) nEvt_bkg += 1;
      } // End loop: for (UInt_t iEvt = 0; iEvt < samp->GetEntries(); iEvt++)
-   } // End loop: for (int iSamp = 0; iSamp < in_samps.size(); iSamp++)
+   } // End loop: for (int iSamp = 0; iSamp < all_samps.size(); iSamp++)
 
 
    std::cout << "******* Made it out of the event loop *******" << std::endl;
