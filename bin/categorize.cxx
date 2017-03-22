@@ -812,6 +812,13 @@ int main(int argc, char* argv[])
           // CATEGORIZE -----------------------------------------------------
           ///////////////////////////////////////////////////////////////////
 
+          if(whichCategories == 3)
+          {
+              //std::cout << i << " !!! SETTING JETS " << std::endl;
+              //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
+              s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
+          }
+
           // Figure out which category the event belongs to
           categorySelection->evaluate(s->vars);
 
@@ -1172,8 +1179,8 @@ int main(int argc, char* argv[])
     TString xcategoryString = "";
     if(whichCategories==3) 
     {
-        xcategoryString = xmlfile; 
-        xcategoryString = xcategoryString.ReplaceAll("xml/", "");
+        Ssiz_t i = xmlfile.Last('/');
+        xcategoryString = xmlfile(i+1, xmlfile.Length()); // get the name of the xmlfile without all the /path/to/dir/ business 
         xcategoryString = xcategoryString.ReplaceAll(".xml", "");
         xcategoryString = "_"+xcategoryString;
     }

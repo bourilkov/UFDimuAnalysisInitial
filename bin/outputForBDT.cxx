@@ -26,6 +26,7 @@
 #include "TLorentzVector.h"
 #include "TSystem.h"
 #include "TNtuple.h"
+#include "TRandom3.h"
 #include <sstream>
 #include <map>
 #include <vector>
@@ -92,7 +93,7 @@ int main(int argc, char* argv[])
     
     for(auto &i : samples)
     {
-        if(i.second->sampleType == "data") continue;
+        //if(i.second->sampleType == "data") continue;
         //if(i.second->name != "H2Mu_gg") continue;
 
         // Output some info about the current file
@@ -121,6 +122,9 @@ int main(int argc, char* argv[])
     {
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
+
+      bool isData = s->sampleType == "data";
+      TRandom3 r;
 
       int bin = -1;
       float interval = 0.5;
@@ -165,8 +169,11 @@ int main(int argc, char* argv[])
 
         // We are stitching together zjets_ht from 70-inf. We use the inclusive for
         // ht from 0-70.
-        s->branches.lhe_ht->GetEntry(i);
-        if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+        if(!isData)
+        {
+            s->branches.lhe_ht->GetEntry(i);
+            if(s->name == "ZJets_MG" && s->vars.lhe_ht >= 70) continue;
+        }
 
         // only load essential information for the first set of cuts 
         s->branches.recoDimuCands->GetEntry(i);
@@ -191,11 +198,22 @@ int main(int argc, char* argv[])
           MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
           MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
 
-          // only want to train on events that are in the higgs mass window
+          // only train on events that are in the mass window
           if(!(dimu.mass > 110 && dimu.mass < 160))
           {
               continue;
           }
+          // only keep data in the sidebands
+          if(isData && dimu.mass > massmin && dimu.mass < massmax)
+          {
+              continue;
+          }
+          // randomly throw away half the data to avoid over training
+          // weight each data event 2x later to make up for this
+          //if(isData && r.Rndm() > 0.5)
+          //{
+          //    continue;
+          //}
           // usual cuts
           if(!mu1.isMediumID || !mu2.isMediumID)
           { 
@@ -217,8 +235,11 @@ int main(int argc, char* argv[])
           s->branches.nVertices->GetEntry(i);
           s->branches.recoElectrons->GetEntry(i);
 
-          s->branches.nPU->GetEntry(i);
-          s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
+          if(!isData)
+          {
+              s->branches.nPU->GetEntry(i);
+              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
+          }
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -252,8 +273,10 @@ int main(int argc, char* argv[])
 
           // nonfeature variables
           vars["bin"] = bin;
-          vars["is_signal"] = s->sampleType.Contains("signal")?1:0;
-          vars["weight"] = s->getLumiScaleFactor(luminosity)*s->getWeight();
+          if(isData) vars["is_signal"] = -1;
+          else vars["is_signal"] = s->sampleType.Contains("signal")?1:0;
+          if(isData) vars["weight"] = 1;
+          else vars["weight"] = s->getLumiScaleFactor(luminosity)*s->getWeight();
 
           //std::cout << i << " !!! SETTING JETS " << std::endl;
           //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
