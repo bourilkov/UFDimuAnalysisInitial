@@ -153,21 +153,21 @@ int main(int argc, char* argv[])
         ///////////////////////////////////////////////////////////////////
         
         // only load essential information for the first set of cuts 
-        s->branches.recoDimuCands->GetEntry(i);
-        s->branches.recoMuons->GetEntry(i);
+        s->branches.muPairs->GetEntry(i);
+        s->branches.muons->GetEntry(i);
 
         // require exactly two muons
-        if(s->vars.recoMuons->size() != 2) continue;
-        if(s->vars.recoDimuCands->size() < 1) continue;
+        if(s->vars.muons->size() != 2) continue;
+        if(s->vars.muPairs->size() < 1) continue;
         bool found_good_dimuon = false;
 
         // find the first good dimuon candidate and fill info
-        for(auto& dimu: (*s->vars.recoDimuCands))
+        for(auto& dimu: (*s->vars.muPairs))
         {
           // set the appropriate dimuon for the cuts
           s->vars.dimuCand = &dimu;
-          MuonInfo& mu1 = s->vars.recoMuons->at(s->vars.dimuCand->iMu1);
-          MuonInfo& mu2 = s->vars.recoMuons->at(s->vars.dimuCand->iMu2);
+          MuonInfo& mu1 = s->vars.muons->at(s->vars.dimuCand->iMu1);
+          MuonInfo& mu2 = s->vars.muons->at(s->vars.dimuCand->iMu2);
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------

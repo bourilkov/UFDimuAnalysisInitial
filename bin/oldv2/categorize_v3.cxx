@@ -535,29 +535,29 @@ int main(int argc, char* argv[])
       std::cout << "  /// Getting branches " << s->name << std::endl;
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
-      TBranch* recoDimuCandsBranch  = s->tree->GetBranch("pairs");
-      TBranch* recoMuonsBranch      = s->tree->GetBranch("muons");
+      TBranch* muPairsBranch  = s->tree->GetBranch("pairs");
+      TBranch* muonsBranch      = s->tree->GetBranch("muons");
       TBranch* jetsBranch           = s->tree->GetBranch("jets");
       TBranch* mhtBranch            = s->tree->GetBranch("mht");
       TBranch* eventInfoBranch      = s->tree->GetBranch("event");
       TBranch* nVerticesBranch      = s->tree->GetBranch("nVertices");
 
       std::cout << "  /// Setting branch addresses " << s->name << std::endl;
-      recoDimuCandsBranch->SetAddress(&s->vars.recoDimuCands);
-      recoMuonsBranch->SetAddress(&s->vars.recoMuons);
+      muPairsBranch->SetAddress(&s->vars.muPairs);
+      muonsBranch->SetAddress(&s->vars.muons);
       jetsBranch->SetAddress(&s->vars.jets);
       mhtBranch->SetAddress(&s->vars.mht);
       eventInfoBranch->SetAddress(&s->vars.eventInfo);
       nVerticesBranch->SetAddress(&s->vars.nVertices);
 
       // extra branches needed for run 2 categories
-      TBranch* recoElectronsBranch  = 0;
+      TBranch* electronsBranch  = 0;
 
       if(whichCategories == 2)
       {
           std::cout << "  /// Run2 category branches " << s->name << std::endl;
-          recoElectronsBranch = s->tree->GetBranch("eles");
-          recoElectronsBranch->SetAddress(&s->vars.recoElectrons);
+          electronsBranch = s->tree->GetBranch("eles");
+          electronsBranch->SetAddress(&s->vars.electrons);
       }
 
       // extra branches needed for MC samples
@@ -589,11 +589,11 @@ int main(int argc, char* argv[])
       {
 
         // only load essential information for the first set of cuts 
-        recoDimuCandsBranch->GetEntry(i);
-        recoMuonsBranch->GetEntry(i);
+        muPairsBranch->GetEntry(i);
+        muonsBranch->GetEntry(i);
 
         // insert loop over pairs
-        if(s->vars.recoDimuCands->size() >= 1) s->vars.dimuCand = &s->vars.recoDimuCands->at(0);
+        if(s->vars.muPairs->size() >= 1) s->vars.dimuCand = &s->vars.muPairs->at(0);
         else continue;
 
         ///////////////////////////////////////////////////////////////////
@@ -608,7 +608,7 @@ int main(int argc, char* argv[])
         { 
             continue; 
         }
-        if(!s->vars.recoMuons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.recoMuons->at(s->vars.dimuCand->iMu2).isTightID)
+        if(!s->vars.muons->at(s->vars.dimuCand->iMu1).isTightID || !s->vars.muons->at(s->vars.dimuCand->iMu2).isTightID)
         { 
             continue; 
         }
@@ -641,7 +641,7 @@ int main(int argc, char* argv[])
         if(whichCategories == 2)
         {
             // load extra branches needed by run 2 categories
-            //recoElectronsBranch->GetEntry(i);
+            //electronsBranch->GetEntry(i);
 
             // clear vectors for the valid collections
             s->vars.validMuons.clear();
@@ -693,16 +693,16 @@ int main(int argc, char* argv[])
 
             if(varname.EqualTo("mu_pt"))
             {
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).pt, s->getWeight());
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).pt, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.muons->at(0).pt, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.muons->at(1).pt, s->getWeight());
                 continue;
             }
 
             // recoMu_Eta
             if(varname.EqualTo("mu_eta"))
             {
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(0).eta, s->getWeight());
-                c.second.histoMap[hkey]->Fill(s->vars.recoMuons->at(1).eta, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.muons->at(0).eta, s->getWeight());
+                c.second.histoMap[hkey]->Fill(s->vars.muons->at(1).eta, s->getWeight());
                 continue;
             }
 

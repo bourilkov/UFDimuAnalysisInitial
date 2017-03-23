@@ -2,14 +2,14 @@
   - keep track of information for a sample and perform basic functions
       % is it a signal, background, or data sample?
       % keep track of the file and ttree for the sample
-  - Sample->vars has all of the objects (muons, jets, etc) for the events, e.g. Sample->vars.recoMuons
+  - Sample->vars has all of the objects (muons, jets, etc) for the events, e.g. Sample->vars.muons
   - has functions to calculate things like the weight for the sample in the histogram
   - has a PU Reweighting object for the sample as well
 
 * VarSet.h
   - has all of the objects for an event in a sample
       % Sample->vars is a VarSet with all of the info needed for cuts, plotting
-      % s->vars->recoMuons->at(0).pt for instance
+      % s->vars->muons->at(0).pt for instance
   - passed into Cut.evaluate(s->vars) or CategorySelection.evaluate(s->vars) to select or categorize the event
 
 * DiMuPlottingSystem

@@ -145,8 +145,8 @@ void EventTools::outputEvent(VarSet& vars)
          std::cout << "  dimu_mass_PF: " << vars.dimuCand->mass_PF << std::endl;
          std::cout << "  dimu_pt: " << vars.dimuCand->pt << std::endl;
          std::cout << std::endl;
-         std::cout << "  mu1: " << vars.recoMuons->at(vars.dimuCand->iMu1).outputInfo() << std::endl;
-         std::cout << "  mu2: " << vars.recoMuons->at(vars.dimuCand->iMu2).outputInfo() << std::endl;
+         std::cout << "  mu1: " << vars.muons->at(vars.dimuCand->iMu1).outputInfo() << std::endl;
+         std::cout << "  mu2: " << vars.muons->at(vars.dimuCand->iMu2).outputInfo() << std::endl;
          std::cout << std::endl;
          std::cout << "  nJets: " << vars.jets->size() << std::endl;
          std::cout << "  nValidJets: " << vars.validJets.size() << std::endl;

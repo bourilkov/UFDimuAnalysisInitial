@@ -447,8 +447,8 @@ int main(int argc, char* argv[])
         //FEWZselection.cutset.cuts[7].on = false;
         //FEWZselection.cutset.cuts[8].on = false;
 
-        //if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1] && useRecoMuCuts)
-        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
+        //if(!s->vars.muons.isTightMuon[0] || !s->vars.muons.isTightMuon[1] && useRecoMuCuts)
+        if(!s->vars.muons.isTightMuon[0] || !s->vars.muons.isTightMuon[1])
         {
             continue; 
         }
@@ -484,16 +484,16 @@ int main(int argc, char* argv[])
             {
                 if(c.second.inCategory)
                 {
-                    c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.pt[0]:gen_mu0.pt, s->getWeight());
-                    c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.pt[1]:gen_mu1.pt, s->getWeight());
+                    c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.muons.pt[0]:gen_mu0.pt, s->getWeight());
+                    c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.muons.pt[1]:gen_mu1.pt, s->getWeight());
                 }
             }
 
             // recoMu_Eta
             if(varname.EqualTo("mu_eta"))
             {
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.eta[0]:gen_mu0.eta, s->getWeight());
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.recoMuons.eta[1]:gen_mu1.eta, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.muons.eta[0]:gen_mu0.eta, s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(useRecoToPlotMu?s->vars.muons.eta[1]:gen_mu1.eta, s->getWeight());
             }
 
             // NPV

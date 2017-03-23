@@ -46,36 +46,36 @@ EleCollectionCleaner::EleCollectionCleaner(float electronSelectionPtMin, float e
 
 void EleCollectionCleaner::getValidElectrons(VarSet& vars, std::vector<TLorentzVector>& electronvec)
 {
-    for(unsigned int j=0; j < vars.recoElectrons->size(); ++j)
+    for(unsigned int j=0; j < vars.electrons->size(); ++j)
     {
         bool id = false;
-        if(cElectronSelectionID == 0) id = vars.recoElectrons->at(j).isTightID; 
-        if(cElectronSelectionID == 1) id = vars.recoElectrons->at(j).isMediumID; 
-        if(cElectronSelectionID == 2) id = vars.recoElectrons->at(j).isLooseID; 
-        if(cElectronSelectionID == 3) id = vars.recoElectrons->at(j).isVetoID; 
+        if(cElectronSelectionID == 0) id = vars.electrons->at(j).isTightID; 
+        if(cElectronSelectionID == 1) id = vars.electrons->at(j).isMediumID; 
+        if(cElectronSelectionID == 2) id = vars.electrons->at(j).isLooseID; 
+        if(cElectronSelectionID == 3) id = vars.electrons->at(j).isVetoID; 
 
         // crack in the hcal
-        double eta = TMath::Abs(vars.recoElectrons->at(j).eta);
+        double eta = TMath::Abs(vars.electrons->at(j).eta);
         if(!(eta < 1.4442 || (eta >  1.566 && eta < cElectronSelectionEtaMax)) )
             continue;
 
         // Pt, Eta and ID
-        if(!(vars.recoElectrons->at(j).pt > cElectronSelectionPtMin && TMath::Abs(vars.recoElectrons->at(j).eta) < cElectronSelectionEtaMax && id)) 
+        if(!(vars.electrons->at(j).pt > cElectronSelectionPtMin && TMath::Abs(vars.electrons->at(j).eta) < cElectronSelectionEtaMax && id)) 
             continue;
 
         // Conversion Veto
-        if(!vars.recoElectrons->at(j).passConversionVeto)
+        if(!vars.electrons->at(j).passConversionVeto)
             continue;
 
         // missing inner hits
-        if(!(TMath::Abs(vars.recoElectrons->at(j).missingInnerHits) <= 1))
+        if(!(TMath::Abs(vars.electrons->at(j).missingInnerHits) <= 1))
             continue;
 
         // isolation
-        if(!(vars.recoElectrons->at(j).iso() <= cElectronSelectionIsoMax))
+        if(!(vars.electrons->at(j).iso() <= cElectronSelectionIsoMax))
             continue;
 
         // passes all selections, add to valid extra electrons
-        electronvec.push_back(vars.recoElectrons->at(j).get4vec());
+        electronvec.push_back(vars.electrons->at(j).get4vec());
     }
 }
