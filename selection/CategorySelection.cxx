@@ -342,51 +342,51 @@ void CategorySelectionRun1::evaluate(VarSet& vars)
 
     // Geometric Categories
     // Barrel Barrel
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < 0.8) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < 0.8) 
         categoryMap["c_BB"].inCategory = true;
 
     // Overlap Overlap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta)>=0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta)<1.6 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta)>=0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta)<1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta)>=0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta)<1.6 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta)>=0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta)<1.6) 
         categoryMap["c_OO"].inCategory = true;
 
     // Endcap Endcap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= 1.6 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= 1.6 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= 1.6) 
         categoryMap["c_EE"].inCategory = true;
 
     // Barrel Overlap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < 1.6) 
         categoryMap["c_BO"].inCategory = true;
 
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < 1.6) 
         categoryMap["c_BO"].inCategory = true;
 
     // Barrel Endcap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= 1.6) 
         categoryMap["c_BE"].inCategory = true;
 
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= 1.6) 
         categoryMap["c_BE"].inCategory = true;
 
     // Overlap Endcap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < 1.6 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < 1.6 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= 1.6) 
         categoryMap["c_OE"].inCategory = true;
 
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= 0.8 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < 1.6 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= 1.6) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= 0.8 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < 1.6 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= 1.6) 
         categoryMap["c_OE"].inCategory = true;
 
     // jet category selection
@@ -688,8 +688,8 @@ void CategorySelectionFEWZ::evaluate(VarSet& vars)
 // Determine which category the event belongs to
 
     float dimu_mass = vars.dimuCand->mass;
-    float eta0 = vars.recoMuons->at(vars.dimuCand->iMu1).eta;
-    float eta1 = vars.recoMuons->at(vars.dimuCand->iMu2).eta;
+    float eta0 = vars.muons->at(vars.dimuCand->iMu1).eta;
+    float eta1 = vars.muons->at(vars.dimuCand->iMu2).eta;
     unsigned int njets = vars.validJets.size();
 
     // Should cut out all events that don't fall into the wide mass window in earlier selection stage
@@ -905,49 +905,49 @@ void LotsOfCategoriesRun2::evaluateMuonGeometry(VarSet& vars)
 
     // Geometric Categories
     // Barrel Barrel
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < c_geo_bmax && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < c_geo_bmax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < c_geo_bmax && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < c_geo_bmax) 
         categoryMap["c_BB"].inCategory = true;
 
     // Overlap Overlap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta)>=c_geo_bmax 
-      && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta)<c_geo_omax 
-      && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta)>=c_geo_bmax 
-      && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta)<c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta)>=c_geo_bmax 
+      && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta)<c_geo_omax 
+      && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta)>=c_geo_bmax 
+      && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta)<c_geo_omax) 
         categoryMap["c_OO"].inCategory = true;
 
     // Endcap Endcap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= c_geo_omax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= c_geo_omax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= c_geo_omax) 
         categoryMap["c_EE"].inCategory = true;
 
     // Barrel Overlap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < c_geo_bmax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= c_geo_bmax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < c_geo_bmax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= c_geo_bmax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < c_geo_omax) 
         categoryMap["c_BO"].inCategory = true;
 
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < c_geo_bmax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= c_geo_bmax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < c_geo_bmax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= c_geo_bmax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < c_geo_omax) 
         categoryMap["c_BO"].inCategory = true;
 
     // Barrel Endcap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < c_geo_bmax 
-      && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < c_geo_bmax 
+      && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= c_geo_omax) 
         categoryMap["c_BE"].inCategory = true;
 
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < c_geo_bmax && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < c_geo_bmax && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= c_geo_omax) 
         categoryMap["c_BE"].inCategory = true;
 
     // Overlap Endcap
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= c_geo_bmax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) < c_geo_omax 
-      && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= c_geo_bmax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) < c_geo_omax 
+      && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= c_geo_omax) 
         categoryMap["c_OE"].inCategory = true;
 
-    if(TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) >= c_geo_bmax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu2).eta) < c_geo_omax 
-       && TMath::Abs(vars.recoMuons->at(vars.dimuCand->iMu1).eta) >= c_geo_omax) 
+    if(TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) >= c_geo_bmax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu2).eta) < c_geo_omax 
+       && TMath::Abs(vars.muons->at(vars.dimuCand->iMu1).eta) >= c_geo_omax) 
         categoryMap["c_OE"].inCategory = true;
 }
 

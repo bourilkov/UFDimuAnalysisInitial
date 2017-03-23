@@ -121,30 +121,30 @@ int main(int argc, char* argv[])
     {
        // load info from the ttree into s->vars
        // s->branches.object (load info) <-> s->vars.object (access info)
-       s->branches.recoDimuCands->GetEntry(i);
-       s->branches.recoMuons->GetEntry(i);
+       s->branches.muPairs->GetEntry(i);
+       s->branches.muons->GetEntry(i);
 
-       if(s->vars.recoDimuCands->size() > 0)
+       if(s->vars.muPairs->size() > 0)
        {
            // reset the categories so we get the correct categorization for this event
            categorySelection.reset();
 
            // let's only fill the histograms for events with one dimuon candidate
-           if(s->vars.recoDimuCands->size() != 1) continue;
+           if(s->vars.muPairs->size() != 1) continue;
 
            // Set aliases for the dimuon candidate and its muons so we don't have to type as much
            // access objects and their info in s->vars
-           MuPairInfo& dimu = s->vars.recoDimuCands->at(0); 
+           MuPairInfo& dimu = s->vars.muPairs->at(0); 
            s->vars.dimuCand = &dimu;
-           MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
-           MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
+           MuonInfo& mu1 = s->vars.muons->at(dimu.iMu1);
+           MuonInfo& mu2 = s->vars.muons->at(dimu.iMu2);
 
            // Load the rest of the information we might need
            s->branches.jets->GetEntry(i);
            s->branches.mht->GetEntry(i);
            s->branches.eventInfo->GetEntry(i);
            s->branches.nVertices->GetEntry(i);
-           s->branches.recoElectrons->GetEntry(i);
+           s->branches.electrons->GetEntry(i);
 
            // load more information if we have a mc sample
            if(s->sampleType != "data")
@@ -195,12 +195,12 @@ int main(int argc, char* argv[])
            // see ../lib/VarSet.h to see what other objects we have access to
            // see ../lib/analyzer_objects/ to look at the information you can access
            // for the different objects like pt, eta, etc
-           for(auto& dimu: (*s->vars.recoDimuCands))
+           for(auto& dimu: (*s->vars.muPairs))
            {
                std::cout << i << " dimu: " << dimu.outputInfo() << std::endl;
                // some fields you can access: dimu.mass, dimu.pt, dimu.eta, etc
            }
-           for(auto& m: (*s->vars.recoMuons))
+           for(auto& m: (*s->vars.muons))
            {
                std::cout << i << " muon: " << m.outputInfo() << std::endl;
                // some fields you can access: mu.pt, mu.eta, etc

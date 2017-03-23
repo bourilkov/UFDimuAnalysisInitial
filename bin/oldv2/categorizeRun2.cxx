@@ -594,7 +594,7 @@ int main(int argc, char* argv[])
         ///////////////////////////////////////////////////////////////////
 
         //std::cout << "Apply tight mu..." << std::endl;
-        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
+        if(!s->vars.muons.isTightMuon[0] || !s->vars.muons.isTightMuon[1])
         { 
             continue; 
         }
@@ -646,16 +646,16 @@ int main(int argc, char* argv[])
             {
                 if(c.second.inCategory)
                 {
-                    c.second.histoMap[hkey]->Fill(s->vars.recoMuons.pt[0], s->getWeight());
-                    c.second.histoMap[hkey]->Fill(s->vars.recoMuons.pt[1], s->getWeight());
+                    c.second.histoMap[hkey]->Fill(s->vars.muons.pt[0], s->getWeight());
+                    c.second.histoMap[hkey]->Fill(s->vars.muons.pt[1], s->getWeight());
                 }
             }
 
             // recoMu_Eta
             if(varname.EqualTo("mu_eta"))
             {
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[0], s->getWeight());
-                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.recoMuons.eta[1], s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.muons.eta[0], s->getWeight());
+                if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.muons.eta[1], s->getWeight());
             }
 
             // NPV

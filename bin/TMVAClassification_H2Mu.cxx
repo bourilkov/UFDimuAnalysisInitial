@@ -31,20 +31,23 @@
 // Specific includes for UFDimuAnalysis
 #include "Sample.h"
 #include "SampleDatabase.cxx"
-#include "EventSelection.h"
 #include "MuonSelection.h"
+#include "EventSelection.h"
 #include "CategorySelection.h"
+#include "MuonCollectionCleaner.h"
+#include "JetCollectionCleaner.h"
+#include "EleCollectionCleaner.h"
 
 // Extra tools - AWB 13.03.17
 #include "TMVA_helper.h"
 
-const int MAX_EVT    = 100;
-const int MAX_SIG    =  50;
-const int MAX_BKG    =  50;
-const int REPORT_EVT =   1;
+const int MAX_EVT    = 1000000;
+const int MAX_SIG    =  500000;
+const int MAX_BKG    =  500000;
+const int REPORT_EVT =    1000;
 
-const int MAX_TR_SIG = 10;
-const int MAX_TR_BKG = 10;
+const int MAX_TR_SIG = 10000000;
+const int MAX_TR_BKG = 10000000;
 
 const double PI = 3.14159265359;
 const double BIT = 0.000001; // Tiny value or offset
@@ -131,10 +134,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // Here the preparation phase begins
 
    // Create a new root output file
-   TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/EMTF/HiggsToMuMu";
-   out_dir = ".";
+   TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/TMVA";
+   // out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_20_test.root", out_dir.Data() );
+   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_23_test.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
@@ -184,8 +187,32 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
    // Get branches, set addresses
    // Tells the TTree that it should load the event information into samp->vars
-   for (int iSamp = 0; iSamp < all_samps.size(); iSamp++)
+   for (int iSamp = 0; iSamp < all_samps.size(); iSamp++) {
      std::get<0>(all_samps.at(iSamp))->setBranchAddresses(2);
+     std::get<0>(all_samps.at(iSamp))->calculateNoriginal();
+   }
+
+   // Objects to help clean valid objects from the net collections in samp->vars
+   JetCollectionCleaner   jetCollectionCleaner;
+   MuonCollectionCleaner  muonCollectionCleaner;
+   EleCollectionCleaner   eleCollectionCleaner;
+
+   // Objects to cut events from the analysis
+   // See selection/MuonSelection.h or selection/EventSelection.h
+   // Choose from an available option or make your own implementing the interface
+   // Use selection.evaluate(samp->vars) to see whether an event passes or fails the cuts
+   Run2MuonSelectionCuts   run2MuonSelection;
+   Run2EventSelectionCuts  run2EventSelectionMC;
+
+   // Object to categorize the event appropriately.  Can make your own categorizer or use one of those in
+   //   selection/CategorySelection.h.  Use one defined there or make your own implementing the interface.
+   
+   // Categorizer object has a map of the different categories in Categorizer.categoryMap<TString, Category>
+   //   which maps the category name to the Category object
+   // Then each category object can store histograms in category.histoMap<TString, TH1D*>
+   // Use categorySelection.evaluate(s->vars) to see which category the event falls into
+   CategorySelectionRun1 categorySelection;
+
 
    //////////////////////////////////////////////////////////////////
    ///  Factories: Use different sets of variables, weights, etc. ///
@@ -201,11 +228,19 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // var name and value vectors, and hex bit masks for input variables.
    // Each hex bit represents four variables, e.g. 0x1 would select only the 1st variable, 
    // 0xf the 1st 4, 0xff the 1st 8, 0xa the 2nd and 4th, 0xf1 the 1st and 5th-8th, etc.
-   std::vector< std::tuple<TMVA::Factory*, TMVA::DataLoader*, TString, std::vector<TString>, std::vector<Double_t>, int> > factories;
+   std::vector< std::tuple<TMVA::Factory*, TMVA::DataLoader*, TString, std::vector<TString>, std::vector<Double_t>, int, int, int> > factories;
 
-   factories.push_back( std::make_tuple( nullF, nullL, "f_0xffff",
-   					 var_names, var_vals, 0xffff) );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_muVars", var_names, var_vals, 
+   // 					 0xffff, 0x0000, 0x0000) );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_jetVars", var_names, var_vals, 
+   // 					 0x0000, 0xffff, 0x0000) );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_evtVars", var_names, var_vals, 
+   // 					 0x0000, 0x0000, 0xfffe) );
 
+   factories.push_back( std::make_tuple( nullF, nullL, "f_BASE", var_names, var_vals, 
+					 0x001c, 0x0ff0, 0x0011) );
+   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+					 0x045c, 0x0fff, 0x001e) );
 
 
    // Initialize factories and dataloaders
@@ -216,18 +251,59 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
    // Defined in interface/MVA_helper.h
    // TMVA_var(TString name, TString descr, TString unit, TString type, Double_t def_val)
-   std::vector<TMVA_var> in_vars;   // All input variables
-   std::vector<TMVA_var> spec_vars; // All spectator variables
-   std::vector<TMVA_var> all_vars;  // All variables
+   std::vector<TMVA_var> mu_vars;    // Muon input variables
+   std::vector<TMVA_var> jet_vars;   // Jet input variables
+   std::vector<TMVA_var> evt_vars;   // Global event / combined object input variables
+   // std::vector<TMVA_var> in_vars;    // All input variables
+   std::vector<TMVA_var> spec_vars;  // All spectator variables
+   // std::vector<TMVA_var> all_vars;   // All variables
    
    /////////////////////////////////////////////////////////
    ///  Input variables: used in BDT to estimate the pT  ///
    /////////////////////////////////////////////////////////
-   
-   in_vars.push_back( TMVA_var( "dimu_pt",   "p_{T}(#mu#mu)",       "GeV", 'F', -88 ) ); // 0x0000 0001
-   in_vars.push_back( TMVA_var( "dimu_eta",  "#eta(#mu#mu)",           "", 'F', -88 ) ); // 0x0000 0002  
-   in_vars.push_back( TMVA_var( "mu1_eta",   "#eta(#mu1)",             "", 'F', -88 ) ); // 0x0000 0004
-   in_vars.push_back( TMVA_var( "mu2_eta",   "#eta(#mu2)",             "", 'F', -88 ) ); // 0x0000 0008
+
+   // Muon variables
+   mu_vars.push_back( TMVA_var( "mu1_pt",     "p_{T}(#mu1)",       "GeV", 'F', -88 ) ); // 0x0001
+   mu_vars.push_back( TMVA_var( "mu2_pt",     "p_{T}(#mu2)",       "GeV", 'F', -88 ) ); // 0x0002
+   mu_vars.push_back( TMVA_var( "mu1_eta",    "#eta(#mu1)",           "", 'F', -88 ) ); // 0x0004
+   mu_vars.push_back( TMVA_var( "mu2_eta",    "#eta(#mu2)",           "", 'F', -88 ) ); // 0x0008
+
+   mu_vars.push_back( TMVA_var( "dimu_pt",    "p_{T}(#mu#mu)",     "GeV", 'F', -88 ) ); // 0x0010
+   mu_vars.push_back( TMVA_var( "dimu_dMass", "#sigma M(#mu#mu)",  "GeV", 'F', -88 ) ); // 0x0020
+   mu_vars.push_back( TMVA_var( "dimu_eta",   "#eta(#mu#mu)",         "", 'F', -88 ) ); // 0x0040  
+   mu_vars.push_back( TMVA_var( "dimu_rapid", "rapid(#mu#mu)",        "", 'F', -88 ) ); // 0x0080 
+
+   mu_vars.push_back( TMVA_var( "dimu_dR",    "dR(#mu#mu)",           "", 'F', -88 ) ); // 0x0100
+   mu_vars.push_back( TMVA_var( "dimu_dEta",  "d#eta(#mu#mu)",        "", 'F', -88 ) ); // 0x0200
+   mu_vars.push_back( TMVA_var( "dimu_dPhi",  "d#phi(#mu#mu)",        "", 'F', -88 ) ); // 0x0400  
+   mu_vars.push_back( TMVA_var( "dimu_dPhiS", "d#phi*(#mu#mu)",       "", 'F', -88 ) ); // 0x0800 
+
+   // Jet variables
+   jet_vars.push_back( TMVA_var( "jet1_pt",     "p_{T}(jet1)",       "GeV", 'F', -88 ) ); // 0x0001
+   jet_vars.push_back( TMVA_var( "jet2_pt",     "p_{T}(jet2)",       "GeV", 'F', -88 ) ); // 0x0002
+   jet_vars.push_back( TMVA_var( "jet1_eta",    "#eta(jet1)",           "", 'F', -88 ) ); // 0x0004
+   jet_vars.push_back( TMVA_var( "jet2_eta",    "#eta(jet2)",           "", 'F', -88 ) ); // 0x0008
+
+   jet_vars.push_back( TMVA_var( "dijet1_mass", "1^{st} M(jj)",      "GeV", 'F', -88 ) ); // 0x0010
+   jet_vars.push_back( TMVA_var( "dijet2_mass", "2^{nd} M(jj)",      "GeV", 'F', -88 ) ); // 0x0020
+   jet_vars.push_back( TMVA_var( "dijet3_mass", "3^{rd} M(jj)",      "GeV", 'F', -88 ) ); // 0x0040
+   jet_vars.push_back( TMVA_var( "dijet4_mass", "4^{th} M(jj)",      "GeV", 'F', -88 ) ); // 0x0080
+
+   jet_vars.push_back( TMVA_var( "dijet1_dEta", "1^{st} d#eta(jj)",     "", 'F', -88 ) ); // 0x0100
+   jet_vars.push_back( TMVA_var( "dijet2_dEta", "2^{nd} d#eta(jj)",     "", 'F', -88 ) ); // 0x0200
+   jet_vars.push_back( TMVA_var( "dijet3_dEta", "3^{rd} d#eta(jj)",     "", 'F', -88 ) ); // 0x0400
+   jet_vars.push_back( TMVA_var( "dijet4_dEta", "4^{th} d#eta(jj)",     "", 'F', -88 ) ); // 0x0800
+
+   // Global event variables
+   evt_vars.push_back( TMVA_var( "nJets",       "# of jets",            "", 'I', -88 ) ); // 0x0001
+   evt_vars.push_back( TMVA_var( "nJetsCent",   "# of central jets",    "", 'I', -88 ) ); // 0x0002
+   evt_vars.push_back( TMVA_var( "nJetsFwd",    "# of forward jets",    "", 'I', -88 ) ); // 0x0004
+   evt_vars.push_back( TMVA_var( "nBMed",       "# of medium b-tags",   "", 'I', -88 ) ); // 0x0008
+
+   evt_vars.push_back( TMVA_var( "MET",         "MET",               "GeV", 'F', -88 ) ); // 0x0010
+   evt_vars.push_back( TMVA_var( "MHT",         "MHT",               "GeV", 'F', -88 ) ); // 0x0020
+   evt_vars.push_back( TMVA_var( "MT_had",      "M_{T} of jets",     "GeV", 'F', -88 ) ); // 0x0040
+   evt_vars.push_back( TMVA_var( "mass_had",    "Mass of jets",      "GeV", 'F', -88 ) ); // 0x0080
 
 
    /////////////////////////////////////////////////////////////////////////////
@@ -238,21 +314,17 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    spec_vars.push_back( TMVA_var( "samp_wgt",   "Sample weight",        "", 'F', -77 ) );
    spec_vars.push_back( TMVA_var( "LHE_HT",     "Sample weight",     "GeV", 'F', -77 ) );
    spec_vars.push_back( TMVA_var( "dimu_mass",  "mass(#mu#mu)",      "GeV", 'F', -77 ) );
-
-   assert( in_vars.size() > 0 );   // You need at least one input variable
-   // Order is important: input variables first, then specator
-   all_vars.insert( all_vars.end(), in_vars.begin(), in_vars.end() );
-   all_vars.insert( all_vars.end(), spec_vars.begin(), spec_vars.end() );
+   spec_vars.push_back( TMVA_var( "BASE_cat",   "BASELINE category",    "", 'I', -77 ) );
 
 
    // Fill each factory with the correct set of variables
    for (UInt_t iFact = 0; iFact < factories.size(); iFact++) {
      std::cout << "\n*** Factory " << std::get<2>(factories.at(iFact)) << " variables ***" << std::endl;
        
-     std::cout << "*** Input ***" << std::endl;
-     for (UInt_t i = 0; i < in_vars.size(); i++) {
-       if ( 0x1 & (std::get<5>(factories.at(iFact)) >> i) ) { // Hex bit mask for in_vars
-   	 TMVA_var v = in_vars.at(i);
+     std::cout << "*** Input muon variables ***" << std::endl;
+     for (UInt_t i = 0; i < mu_vars.size(); i++) {
+       if ( 0x1 & (std::get<5>(factories.at(iFact)) >> i) ) { // Hex bit mask for mu_vars
+   	 TMVA_var v = mu_vars.at(i);
    	 std::cout << v.name << std::endl;
    	 std::get<1>(factories.at(iFact))->AddVariable( v.name, v.descr, v.unit, v.type ); // Add var to dataloader 
    	 std::get<3>(factories.at(iFact)).push_back( v.name );    // Add to vector of var names
@@ -260,7 +332,29 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        }
      }
 
-     std::cout << "*** Spectator ***" << std::endl;
+     std::cout << "*** Input jet variables ***" << std::endl;
+     for (UInt_t i = 0; i < jet_vars.size(); i++) {
+       if ( 0x1 & (std::get<6>(factories.at(iFact)) >> i) ) { // Hex bit mask for jet_vars
+   	 TMVA_var v = jet_vars.at(i);
+   	 std::cout << v.name << std::endl;
+   	 std::get<1>(factories.at(iFact))->AddVariable( v.name, v.descr, v.unit, v.type ); // Add var to dataloader 
+   	 std::get<3>(factories.at(iFact)).push_back( v.name );    // Add to vector of var names
+   	 std::get<4>(factories.at(iFact)).push_back( v.def_val ); // Add to vector of var values
+       }
+     }
+
+     std::cout << "*** Input event variables ***" << std::endl;
+     for (UInt_t i = 0; i < evt_vars.size(); i++) {
+       if ( 0x1 & (std::get<7>(factories.at(iFact)) >> i) ) { // Hex bit mask for evt_vars
+   	 TMVA_var v = evt_vars.at(i);
+   	 std::cout << v.name << std::endl;
+   	 std::get<1>(factories.at(iFact))->AddVariable( v.name, v.descr, v.unit, v.type ); // Add var to dataloader 
+   	 std::get<3>(factories.at(iFact)).push_back( v.name );    // Add to vector of var names
+   	 std::get<4>(factories.at(iFact)).push_back( v.def_val ); // Add to vector of var values
+       }
+     }
+
+     std::cout << "*** Spectator variables ***" << std::endl;
      for (UInt_t i = 0; i < spec_vars.size(); i++) {
        TMVA_var v = spec_vars.at(i);
        std::cout << v.name << std::endl;
@@ -269,6 +363,14 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        std::get<4>(factories.at(iFact)).push_back( v.def_val );
      }
    } // End loop: for (UInt_t iFact = 0; iFact < factories.size(); iFact++)
+
+   // in_vars.insert( in_vars.end(), mu_vars.begin(),  mu_vars.end()  );
+   // in_vars.insert( in_vars.end(), jet_vars.begin(), jet_vars.end() );
+   // in_vars.insert( in_vars.end(), evt_vars.begin(), evt_vars.end() );
+   // assert( in_vars.size() > 0 );   // You need at least one input variable
+   // // Order is important: input variables first, then specator
+   // all_vars.insert( all_vars.end(), in_vars.begin(), in_vars.end() );
+   // all_vars.insert( all_vars.end(), spec_vars.begin(), spec_vars.end() );
 
 
    std::cout << "\n******* About to loop over samples *******" << std::endl;
@@ -281,64 +383,150 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    UInt_t nTest_bkg  = 0;
 
    for (int iSamp = 0; iSamp < all_samps.size(); iSamp++) {
-     Sample* samp   = std::get<0>(all_samps.at(iSamp));
-     int   samp_ID  = std::get<1>(all_samps.at(iSamp));
+     Sample* samp  = std::get<0>(all_samps.at(iSamp));
+     int   samp_ID = std::get<1>(all_samps.at(iSamp));
      
-     std::cout << "Looping over the events in the sample" << std::endl;
-     // for (UInt_t iEvt = 0; iEvt < samp->GetEntries(); iEvt++) { // TODO: fix. - AWB 18.03.17
-     for (UInt_t iEvt = 0; iEvt < MAX_EVT; iEvt++) {
+     std::cout << "Looping over the " << samp->N << " events in sample " << samp->name << std::endl;
+     for (UInt_t iEvt = 0; iEvt < samp->N; iEvt++) {
        if (nEvt > MAX_EVT) break;
-       if (samp_ID < 0 && nEvt_sig > MAX_SIG / sig_samps.size()) break;
-       if (samp_ID > 0 && nEvt_bkg > MAX_BKG / bkg_samps.size()) break;
+       if ( samp_ID < 0 && nEvt_sig > ((MAX_SIG * (iSamp + 1))                    / sig_samps.size()) ) break;
+       if ( samp_ID > 0 && nEvt_bkg > ((MAX_BKG * (iSamp + 1 - sig_samps.size())) / bkg_samps.size()) ) break;
        if ( (nEvt % REPORT_EVT) == 0 )
 	 std::cout << "Looking at event " << nEvt << std::endl;
 
+       
+       ////////////////////////////////////////////////////////
+       ///  Begin block mostly lifted from bin/example.cxx  ///
+       ////////////////////////////////////////////////////////
+
        // Load info from the ttree into samp->vars
        // samp->branches.object (load info) <-> samp->vars.object (access info)
-       samp->branches.recoDimuCands->GetEntry(iEvt);
-       samp->branches.recoMuons->GetEntry(iEvt);
-       samp->branches.jets->GetEntry(iEvt);
-       samp->branches.met->GetEntry(iEvt);
-       samp->branches.mht->GetEntry(iEvt);
-       samp->branches.eventInfo->GetEntry(iEvt);
-       samp->branches.nVertices->GetEntry(iEvt);
-       if (samp->sampleType != "data") {
-	 samp->branches.nPU->GetEntry(iEvt);
-	 samp->branches.getEntryWeightsMC(iEvt); // GEN wgt, PU wgt, and HLT, MuID, and MuIso scale factors
-       }
+       samp->branches.muPairs->GetEntry(iEvt);
 
-       std::cout << "Event " << iEvt << ", sample " << samp->name << " has weight " << samp->getWeight() 
-		 << ", lumi scale factor " << samp->getLumiScaleFactor(LUMI) 
-		 << ", and LHE HT = " << samp->vars.lhe_ht << std::endl;
-       
-       Double_t samp_wgt = samp->getWeight() * samp->getLumiScaleFactor(LUMI);
-       Double_t LHE_HT   = samp->vars.lhe_ht;
-
-       if (samp->vars.recoDimuCands->size() == 0)
+       if (samp->vars.muPairs->size() == 0)
+	 continue;
+       if ( samp->vars.muPairs->at(0).mass < 120 ||
+	    samp->vars.muPairs->at(0).mass > 130 )
 	 continue;
 
-       MuPairInfo& dimu = samp->vars.recoDimuCands->at(0); 
-       samp->vars.dimuCand = &dimu;
-       MuonInfo& mu1 = samp->vars.recoMuons->at(dimu.iMu1);
-       MuonInfo& mu2 = samp->vars.recoMuons->at(dimu.iMu2);
+       // getEntry from lib/BranchSet.h allows us to set all of the branches at once
+       samp->branches.getEntry(iEvt);
 
+       // Reset the categories so we get the correct categorization for this event
+       categorySelection.reset();
+
+       // Set the Higgs dimuon candidate pair
+       samp->vars.dimuCand = &(samp->vars.muPairs->at(0));
+       
+       // Clear vectors for the valid collections
+       samp->vars.validMuons.clear();
+       samp->vars.validExtraMuons.clear();
+       samp->vars.validElectrons.clear();
+       samp->vars.validJets.clear();
+       samp->vars.validBJets.clear();
+
+       // Load valid collections from samp->vars raw collections
+       muonCollectionCleaner.getValidMuons(samp->vars, samp->vars.validMuons, samp->vars.validExtraMuons);
+       jetCollectionCleaner.getValidJets(samp->vars, samp->vars.validJets, samp->vars.validBJets);
+       eleCollectionCleaner.getValidElectrons(samp->vars, samp->vars.validElectrons);
+
+       // Clean jets from muons
+       CollectionCleaner::cleanByDR(samp->vars.validJets, samp->vars.validMuons, 0.4);
+
+       // Can now categorize the event with our categorizer
+       categorySelection.evaluate(samp->vars);
+       // // See which categories the event fell into
+       // std::cout << std::endl << "\nCategorizing event " << iEvt << " ..." << std::endl;
+       // categorySelection.outputResults();
+
+       // Look at each category
+       Int_t BASE_cat = 0;
+       for (auto &cat : categorySelection.categoryMap) {
+	 // cat.first is the category name, cat.second is the category object
+	 if (!cat.second.inCategory) continue;
+	 if (cat.first == "c_01_Jet_Loose_EE") BASE_cat =  1;
+	 if (cat.first == "c_01_Jet_Loose_OE") BASE_cat =  2;
+	 if (cat.first == "c_01_Jet_Loose_BE") BASE_cat =  3;
+	 if (cat.first == "c_01_Jet_Loose_OO") BASE_cat =  4;
+	 if (cat.first == "c_01_Jet_Loose_BO") BASE_cat =  5;
+	 if (cat.first == "c_01_Jet_Loose_BB") BASE_cat =  6;
+	 if (cat.first == "c_01_Jet_Tight_EE") BASE_cat =  7;
+	 if (cat.first == "c_01_Jet_Tight_OE") BASE_cat =  8;
+	 if (cat.first == "c_01_Jet_Tight_BE") BASE_cat =  9;
+	 if (cat.first == "c_01_Jet_Tight_OO") BASE_cat = 10;
+	 if (cat.first == "c_01_Jet_Tight_BO") BASE_cat = 11;
+	 if (cat.first == "c_01_Jet_Tight_BB") BASE_cat = 12;
+	 if (cat.first == "c_2_Jet_GGF_Tight") BASE_cat = 13;
+	 if (cat.first == "c_2_Jet_VBF_Loose") BASE_cat = 14;
+	 if (cat.first == "c_2_Jet_VBF_Tight") BASE_cat = 15;
+	 // std::cout << "In category " << cat.first << std::endl;
+       }
+       if (BASE_cat == 0) continue;
+
+       //////////////////////////////////////////////////////
+       ///  End block mostly lifted from bin/example.cxx  ///
+       //////////////////////////////////////////////////////
+
+       MuPairInfo& dimu = samp->vars.muPairs->at(0); 
+       MuonInfo& mu1 = samp->vars.muons->at(dimu.iMu1);
+       MuonInfo& mu2 = samp->vars.muons->at(dimu.iMu2);
+
+       Double_t samp_wgt = samp->getWeight() * samp->getLumiScaleFactor(LUMI);
+       if (samp_ID < 0 && 1.0 * MAX_SIG / sig_samps.size() < samp->N) 
+	 samp_wgt *= (1.0 * samp->N * sig_samps.size() / MAX_SIG);
+       if (samp_ID > 0 && 1.0 * MAX_BKG / bkg_samps.size() < samp->N) 
+	 samp_wgt *= (1.0 * samp->N * bkg_samps.size() / MAX_BKG);
+       Double_t LHE_HT   = samp->vars.lhe_ht;
+
+       // std::cout << "Event " << iEvt << ", sample " << samp->name << " has weight " << samp->getWeight() 
+       // 		 << ", lumi scale factor " << samp->getLumiScaleFactor(LUMI) << " (total = " << samp_wgt
+       // 		 << "), and LHE HT = " << LHE_HT << std::endl;
+       
        // std::cout << "Dimuon mass = " << dimu.mass << ", pT = " << dimu.pt << ", eta = " << dimu.eta << std::endl;
        // std::cout << "Muon 1 pT = " << mu1.pt << ", eta = " << mu1.eta << std::endl;
        // std::cout << "Muon 2 pT = " << mu2.pt << ", eta = " << mu2.eta << std::endl;
-
-       Double_t dimu_mass = dimu.mass;
-       Double_t dimu_pt   = dimu.pt;
-       Double_t dimu_eta  = dimu.eta;
 
        Double_t mu1_pt  = mu1.pt;
        Double_t mu1_eta = mu1.eta;
        Double_t mu2_pt  = mu2.pt;
        Double_t mu2_eta = mu2.eta;
 
-       // if ( mu_pt < PTMIN && isMC ) continue;
-       // if ( mu_pt > PTMAX && isMC ) continue;
-       // if ( fabs( mu_eta ) < ETAMIN && isMC ) continue;
-       // if ( fabs( mu_eta ) > ETAMAX && isMC ) continue;
+       Double_t dimu_pt    = dimu.pt;
+       Double_t dimu_mass  = dimu.mass;
+       Double_t dimu_dMass = dimu.massErr;
+       Double_t dimu_eta   = dimu.eta;
+       Double_t dimu_rapid = dimu.rapid;
+
+       Double_t dimu_dR    = dimu.dR;
+       Double_t dimu_dEta  = dimu.dEta;
+       Double_t dimu_dPhi  = dimu.dPhi;
+       Double_t dimu_dPhiS = dimu.dPhiStar;
+
+       Double_t jet1_pt  = (samp->vars.jets->size() > 0) ? samp->vars.jets->at(0).pt  : 0;
+       Double_t jet2_pt  = (samp->vars.jets->size() > 1) ? samp->vars.jets->at(1).pt  : 0;
+       Double_t jet1_eta = (samp->vars.jets->size() > 0) ? samp->vars.jets->at(0).eta : 0;
+       Double_t jet2_eta = (samp->vars.jets->size() > 1) ? samp->vars.jets->at(1).eta : 0;
+
+       Double_t dijet1_mass = (samp->vars.jetPairs->size() > 0) ? samp->vars.jetPairs->at(0).mass : 0;
+       Double_t dijet2_mass = (samp->vars.jetPairs->size() > 1) ? samp->vars.jetPairs->at(1).mass : 0;
+       Double_t dijet3_mass = (samp->vars.jetPairs->size() > 2) ? samp->vars.jetPairs->at(2).mass : 0;
+       Double_t dijet4_mass = (samp->vars.jetPairs->size() > 3) ? samp->vars.jetPairs->at(3).mass : 0;
+
+       Double_t dijet1_dEta = (samp->vars.jetPairs->size() > 0) ? samp->vars.jetPairs->at(0).dEta : 0;
+       Double_t dijet2_dEta = (samp->vars.jetPairs->size() > 1) ? samp->vars.jetPairs->at(1).dEta : 0;
+       Double_t dijet3_dEta = (samp->vars.jetPairs->size() > 2) ? samp->vars.jetPairs->at(2).dEta : 0;
+       Double_t dijet4_dEta = (samp->vars.jetPairs->size() > 3) ? samp->vars.jetPairs->at(3).dEta : 0;
+
+       Double_t nJets     = samp->vars.nJets;
+       Double_t nJetsCent = samp->vars.nJetsCent;
+       Double_t nJetsFwd  = samp->vars.nJetsFwd;
+       Double_t nBMed     = samp->vars.nBMed;
+
+       Double_t MET      = samp->vars.met->pt;
+       Double_t MHT      = samp->vars.mht->pt;
+       Double_t MT_had   = samp->vars.mht->MT_had;
+       Double_t mass_had = samp->vars.mht->mass_had;
+
 	   
        /////////////////////////////////////////////////////
        ///  Loop over factories and set variable values  ///
@@ -357,15 +545,80 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	   ///  Input variables  ///
 	   /////////////////////////
 	   
-	   // Muon kinematics
-	   if ( vName == "dimu_pt" )
-	     var_vals.at(iVar) = dimu_pt;
-	   if ( vName == "dimu_eta" )
-	     var_vals.at(iVar) = dimu_eta;
+	   // Muon variables
+	   if ( vName == "mu1_pt" )
+	     var_vals.at(iVar) = mu1_pt;
+	   if ( vName == "mu2_pt" )
+	     var_vals.at(iVar) = mu2_pt;
 	   if ( vName == "mu1_eta" )
 	     var_vals.at(iVar) = mu1_eta;
 	   if ( vName == "mu2_eta" )
 	     var_vals.at(iVar) = mu2_eta;
+
+	   if ( vName == "dimu_pt" )
+	     var_vals.at(iVar) = dimu_pt;
+	   if ( vName == "dimu_dMass" )
+	     var_vals.at(iVar) = dimu_dMass;
+	   if ( vName == "dimu_eta" )
+	     var_vals.at(iVar) = dimu_eta;
+	   if ( vName == "dimu_rapid" )
+	     var_vals.at(iVar) = dimu_rapid;
+
+	   if ( vName == "dimu_dR" )
+	     var_vals.at(iVar) = dimu_dR;
+	   if ( vName == "dimu_dEta" )
+	     var_vals.at(iVar) = dimu_dEta;
+	   if ( vName == "dimu_dPhi" )
+	     var_vals.at(iVar) = dimu_dPhi;
+	   if ( vName == "dimu_dPhiS" )
+	     var_vals.at(iVar) = dimu_dPhiS;
+
+	   // Jet variables
+	   if ( vName == "jet1_pt" )
+	     var_vals.at(iVar) = jet1_pt;
+	   if ( vName == "jet2_pt" )
+	     var_vals.at(iVar) = jet2_pt;
+	   if ( vName == "jet1_eta" )
+	     var_vals.at(iVar) = jet1_eta;
+	   if ( vName == "jet2_eta" )
+	     var_vals.at(iVar) = jet2_eta;
+
+	   if ( vName == "dijet1_mass" )
+	     var_vals.at(iVar) = dijet1_mass;
+	   if ( vName == "dijet2_mass" )
+	     var_vals.at(iVar) = dijet2_mass;
+	   if ( vName == "dijet3_mass" )
+	     var_vals.at(iVar) = dijet3_mass;
+	   if ( vName == "dijet4_mass" )
+	     var_vals.at(iVar) = dijet4_mass;
+
+	   if ( vName == "dijet1_dEta" )
+	     var_vals.at(iVar) = dijet1_dEta;
+	   if ( vName == "dijet2_dEta" )
+	     var_vals.at(iVar) = dijet2_dEta;
+	   if ( vName == "dijet3_dEta" )
+	     var_vals.at(iVar) = dijet3_dEta;
+	   if ( vName == "dijet4_dEta" )
+	     var_vals.at(iVar) = dijet4_dEta;
+
+	   // Global event variables
+	   if ( vName == "nJets" )
+	     var_vals.at(iVar) = nJets;
+	   if ( vName == "nJetsCent" )
+	     var_vals.at(iVar) = nJetsCent;
+	   if ( vName == "nJetsFwd" )
+	     var_vals.at(iVar) = nJetsFwd;
+	   if ( vName == "nBMed" )
+	     var_vals.at(iVar) = nBMed;
+
+	   if ( vName == "MET" )
+	     var_vals.at(iVar) = MET;
+	   if ( vName == "MHT" )
+	     var_vals.at(iVar) = MHT;
+	   if ( vName == "MT_had" )
+	     var_vals.at(iVar) = MT_had;
+	   if ( vName == "mass_had" )
+	     var_vals.at(iVar) = mass_had;
 
 
 	   /////////////////////////////
@@ -380,6 +633,8 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	     var_vals.at(iVar) = LHE_HT;
 	   if ( vName == "dimu_mass" )
 	     var_vals.at(iVar) = dimu_mass;
+	   if ( vName == "BASE_cat" )
+	     var_vals.at(iVar) = BASE_cat;
 	   
 	 } // End loop: for (UInt_t iVar = 0; iVar < var_names.size(); iVar++)
 	     
