@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
         { 
             continue; 
         }
-        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
+        if(!s->vars.muons.isTightMuon[0] || !s->vars.muons.isTightMuon[1])
         { 
             continue; 
         }

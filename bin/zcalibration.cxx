@@ -374,20 +374,20 @@ int main(int argc, char* argv[])
         ///////////////////////////////////////////////////////////////////
         
         // only load essential information for the first set of cuts 
-        s->branches.recoDimuCands->GetEntry(i);
-        s->branches.recoMuons->GetEntry(i);
+        s->branches.muPairs->GetEntry(i);
+        s->branches.muons->GetEntry(i);
 
         // need a dimuon candidate to fill the zmass
-        if(s->vars.recoDimuCands->size() < 1) continue;
-        if(s->vars.recoMuons->size() < 2) continue;
+        if(s->vars.muPairs->size() < 1) continue;
+        if(s->vars.muons->size() < 2) continue;
         bool found_good_dimuon = false;
 
         // find the first good dimuon candidate and fill info
-        for(auto& dimu: (*s->vars.recoDimuCands))
+        for(auto& dimu: (*s->vars.muPairs))
         {
           s->vars.dimuCand = &dimu;
-          MuonInfo& mu1 = s->vars.recoMuons->at(dimu.iMu1);
-          MuonInfo& mu2 = s->vars.recoMuons->at(dimu.iMu2);
+          MuonInfo& mu1 = s->vars.muons->at(dimu.iMu1);
+          MuonInfo& mu2 = s->vars.muons->at(dimu.iMu2);
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------

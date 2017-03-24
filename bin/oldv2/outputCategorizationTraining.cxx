@@ -339,7 +339,7 @@ int main(int argc, char* argv[])
             continue;
         }
         // usual cuts
-        if(!s->vars.recoMuons.isTightMuon[0] || !s->vars.recoMuons.isTightMuon[1])
+        if(!s->vars.muons.isTightMuon[0] || !s->vars.muons.isTightMuon[1])
         { 
             continue; 
         }
@@ -357,10 +357,10 @@ int main(int argc, char* argv[])
         }
 
         vars["dimu_pt"] = s->vars.dimuCand.recoCandPtPF;
-        vars["mu0_pt"] = s->vars.recoMuons.pt[0];
-        vars["mu1_pt"] = s->vars.recoMuons.pt[1];
-        vars["mu0_eta"] = s->vars.recoMuons.eta[0];
-        vars["mu1_eta"] = s->vars.recoMuons.eta[1];
+        vars["mu0_pt"] = s->vars.muons.pt[0];
+        vars["mu1_pt"] = s->vars.muons.pt[1];
+        vars["mu0_eta"] = s->vars.muons.eta[0];
+        vars["mu1_eta"] = s->vars.muons.eta[1];
 
         vars["N_valid_jets"] = s->vars.validJets.size();
         if(s->vars.validJets.size() >= 1) vars["jet0_pt"] = s->vars.validJets[0].Pt();

@@ -50,7 +50,7 @@ Sample::Sample(std::vector<TString> ifilenames, TString iname, TString isampleTy
     lumiWeights = 0;
     xsec = -999; 
     lumi = -999;
-    
+
     setBranchAddresses();
     calculateNoriginal();
 }
@@ -80,27 +80,38 @@ void Sample::setBranchAddresses(int whichCategories)
 {
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
-      branches.recoDimuCands  = chain->GetBranch("muPairs");
-      branches.recoMuons      = chain->GetBranch("muons");
-      branches.jets           = chain->GetBranch("jets");
-      branches.mht            = chain->GetBranch("mht");
-      branches.met            = chain->GetBranch("met");
-      branches.eventInfo      = chain->GetBranch("event");
-      branches.nVertices      = chain->GetBranch("nVertices");
+      branches.muons      = chain->GetBranch("muons");
+      branches.muPairs    = chain->GetBranch("muPairs");
+      branches.jets       = chain->GetBranch("jets");
+      branches.jetPairs   = chain->GetBranch("jetPairs");
+      branches.mht        = chain->GetBranch("mht");
+      branches.met        = chain->GetBranch("met");
+      branches.eventInfo  = chain->GetBranch("event");
+      branches.nVertices  = chain->GetBranch("nVertices");
+      branches.nJets      = chain->GetBranch("nJets");
+      branches.nJetsCent  = chain->GetBranch("nJetsCent");
+      branches.nJetsFwd   = chain->GetBranch("nJetsFwd");
+      branches.nBMed      = chain->GetBranch("nBMed");
 
-      branches.recoDimuCands->SetAddress(&vars.recoDimuCands);
-      branches.recoMuons->SetAddress(&vars.recoMuons);
+
+      branches.muons->SetAddress(&vars.muons);
+      branches.muPairs->SetAddress(&vars.muPairs);
       branches.jets->SetAddress(&vars.jets);
+      branches.jetPairs->SetAddress(&vars.jetPairs);
       branches.mht->SetAddress(&vars.mht);
       branches.met->SetAddress(&vars.met);
       branches.eventInfo->SetAddress(&vars.eventInfo);
       branches.nVertices->SetAddress(&vars.nVertices);
+      branches.nJets->SetAddress(&vars.nJets);
+      branches.nJetsCent->SetAddress(&vars.nJetsCent);
+      branches.nJetsFwd->SetAddress(&vars.nJetsFwd);
+      branches.nBMed->SetAddress(&vars.nBMed);
 
       // extra branches needed for run 2 categories
       if(whichCategories == 2)
       {    
-          branches.recoElectrons = chain->GetBranch("eles");
-          branches.recoElectrons->SetAddress(&vars.recoElectrons);
+          branches.electrons = chain->GetBranch("eles");
+          branches.electrons->SetAddress(&vars.electrons);
       }
 
       // extra branches needed for MC samples

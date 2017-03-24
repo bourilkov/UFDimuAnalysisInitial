@@ -104,8 +104,8 @@ bool Run2EventSelectionCuts::evaluate(VarSet& vars)
     if(!(vars.dimuCand->mass > cDimuMassMin) && cutset.cuts[2].on) return false;
 
     // Pt cuts on leading muon
-    MuonInfo& mu1 = vars.recoMuons->at(vars.dimuCand->iMu1);
-    MuonInfo& mu2 = vars.recoMuons->at(vars.dimuCand->iMu2);
+    MuonInfo& mu1 = vars.muons->at(vars.dimuCand->iMu1);
+    MuonInfo& mu2 = vars.muons->at(vars.dimuCand->iMu2);
 
     if(!cutset.cuts[1].on) ;
     else if((mu1.isHltMatched[2] || mu1.isHltMatched[3]) && mu1.pt > cTrigMuPtMin) ;
@@ -199,8 +199,8 @@ bool SynchEventSelectionCuts::evaluate(VarSet& vars)
     if(!(vars.dimuCand->mass > cDimuMassMin)) return false;
 
     // Pt cuts on leading muon
-    MuonInfo& mu1 = vars.recoMuons->at(vars.dimuCand->iMu1);
-    MuonInfo& mu2 = vars.recoMuons->at(vars.dimuCand->iMu2);
+    MuonInfo& mu1 = vars.muons->at(vars.dimuCand->iMu1);
+    MuonInfo& mu2 = vars.muons->at(vars.dimuCand->iMu2);
 
     // 2 and 3 should be isoMu24 and isoTkMu24
     if(!( (mu1.isHltMatched[2] && mu1.pt > cTrigMuPtMin) || (mu1.isHltMatched[3] && mu1.pt > cTrigMuPtMin) 
@@ -313,13 +313,13 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     int mu1 = vars.dimuCand->iMu1;
     int mu2 = vars.dimuCand->iMu2;
 
-    leadPt = TMath::Max(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
-    subleadPt = TMath::Min(vars.recoMuons->at(mu1).pt, vars.recoMuons->at(mu2).pt);
-    eta0 = vars.recoMuons->at(mu1).eta;
-    eta1 = vars.recoMuons->at(mu2).eta;
+    leadPt = TMath::Max(vars.muons->at(mu1).pt, vars.muons->at(mu2).pt);
+    subleadPt = TMath::Min(vars.muons->at(mu1).pt, vars.muons->at(mu2).pt);
+    eta0 = vars.muons->at(mu1).eta;
+    eta1 = vars.muons->at(mu2).eta;
     dimu_mass = vars.dimuCand->mass;
-    charge0 = vars.recoMuons->at(mu1).charge;
-    charge1 = vars.recoMuons->at(mu2).charge;
+    charge0 = vars.muons->at(mu1).charge;
+    charge1 = vars.muons->at(mu2).charge;
 
     // if a muon fails any of the criterea that are turned on then reutrn false
     if(cutset.cuts[0].on)
@@ -352,11 +352,11 @@ bool FEWZCompareCuts::evaluate(VarSet& vars)
     }
     if(cutset.cuts[7].on)
     {
-        if(!(vars.recoMuons->at(mu1).iso() <= cMaxRelIso) ) return false;
+        if(!(vars.muons->at(mu1).iso() <= cMaxRelIso) ) return false;
     }
     if(cutset.cuts[8].on)
     {
-        if(!(vars.recoMuons->at(mu2).iso() <= cMaxRelIso) ) return false;
+        if(!(vars.muons->at(mu2).iso() <= cMaxRelIso) ) return false;
     }
     return true;
 }

@@ -58,6 +58,10 @@ class VarSet
 
         // reco info
         Int_t nVertices;
+        Int_t nJets;
+        Int_t nJetsCent;
+        Int_t nJetsFwd;
+        Int_t nBMed;
         EventInfo* eventInfo = 0;
         MuPairInfo* dimuCand = 0; // this is a pointer to one of the dimu candidates in the vector
                                   // we don't want to copy the object for ~40 million events
@@ -65,10 +69,11 @@ class VarSet
         MhtInfo* mht = 0;
         MetInfo* met = 0;
 
-        std::vector<MuPairInfo>* recoDimuCands = 0;
-        std::vector<MuonInfo>* recoMuons = 0;
-        std::vector<EleInfo>* recoElectrons = 0;
+        std::vector<MuonInfo>* muons = 0;
+        std::vector<MuPairInfo>* muPairs = 0;
+        std::vector<EleInfo>* electrons = 0;
         std::vector<SlimJetInfo>* jets = 0;
+        std::vector<JetPairInfo>* jetPairs = 0;
 
         std::vector<TLorentzVector> validMuons;
         std::vector<TLorentzVector> validExtraMuons;
@@ -130,20 +135,20 @@ class VarSet
           if(ctype == "PF") 
           {
               dimuCand->mass = dimuCand->mass_PF;
-              recoMuons->at(dimuCand->iMu1).pt = recoMuons->at(dimuCand->iMu1).pt_PF;
-              recoMuons->at(dimuCand->iMu2).pt = recoMuons->at(dimuCand->iMu2).pt_PF;
+              muons->at(dimuCand->iMu1).pt = muons->at(dimuCand->iMu1).pt_PF;
+              muons->at(dimuCand->iMu2).pt = muons->at(dimuCand->iMu2).pt_PF;
           }
           else if(ctype == "Roch") 
           {
               dimuCand->mass = dimuCand->mass_Roch;
-              recoMuons->at(dimuCand->iMu1).pt = recoMuons->at(dimuCand->iMu1).pt_Roch;
-              recoMuons->at(dimuCand->iMu2).pt = recoMuons->at(dimuCand->iMu2).pt_Roch;
+              muons->at(dimuCand->iMu1).pt = muons->at(dimuCand->iMu1).pt_Roch;
+              muons->at(dimuCand->iMu2).pt = muons->at(dimuCand->iMu2).pt_Roch;
           }
           else if(ctype == "KaMu") 
           {
               dimuCand->mass = dimuCand->mass_KaMu;
-              recoMuons->at(dimuCand->iMu1).pt = recoMuons->at(dimuCand->iMu1).pt_KaMu;
-              recoMuons->at(dimuCand->iMu2).pt = recoMuons->at(dimuCand->iMu2).pt_KaMu;
+              muons->at(dimuCand->iMu1).pt = muons->at(dimuCand->iMu1).pt_KaMu;
+              muons->at(dimuCand->iMu2).pt = muons->at(dimuCand->iMu2).pt_KaMu;
           }
         }
 
@@ -201,20 +206,20 @@ class VarSet
         // muon variables
         // indexed by 1,2 in analyzer instead of 0,1 so there is a mismatch in naming convention here
         double dimu_pt()   {  return dimuCand->pt;                        };
-        double mu1_pt()    {  return recoMuons->at(dimuCand->iMu1).pt;    };
-        double mu2_pt()    {  return recoMuons->at(dimuCand->iMu2).pt;    };
-        double mu1_eta()   {  return recoMuons->at(dimuCand->iMu1).eta;   };
-        double mu2_eta()   {  return recoMuons->at(dimuCand->iMu2).eta;   };
+        double mu1_pt()    {  return muons->at(dimuCand->iMu1).pt;    };
+        double mu2_pt()    {  return muons->at(dimuCand->iMu2).pt;    };
+        double mu1_eta()   {  return muons->at(dimuCand->iMu1).eta;   };
+        double mu2_eta()   {  return muons->at(dimuCand->iMu2).eta;   };
         double mu_res_eta(){  return (TMath::Abs(mu1_eta()) + TMath::Abs(mu2_eta()))/2;   };
 
         // measure of the muon phi separation in the parent's rest frame
         double phi_star()
         {
             double phi_star = 0;
-            double mu_dPhi = TMath::Abs(recoMuons->at(dimuCand->iMu1).phi - recoMuons->at(dimuCand->iMu2).phi);
+            double mu_dPhi = TMath::Abs(muons->at(dimuCand->iMu1).phi - muons->at(dimuCand->iMu2).phi);
             if(mu_dPhi > TMath::Pi()) mu_dPhi = 2*TMath::Pi() - mu_dPhi;
             double phiACOP = TMath::Pi() - mu_dPhi;
-            double thetaStarEta = TMath::ACos(TMath::TanH((recoMuons->at(dimuCand->iMu1).eta - recoMuons->at(dimuCand->iMu2).eta)/2));
+            double thetaStarEta = TMath::ACos(TMath::TanH((muons->at(dimuCand->iMu1).eta - muons->at(dimuCand->iMu2).eta)/2));
             phi_star = TMath::Tan(phiACOP/2)*TMath::Sin(thetaStarEta);
             return phi_star;
         };
