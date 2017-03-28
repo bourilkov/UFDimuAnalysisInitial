@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
       // Fewer bins for lowstats categories if necessary
       int lowstatsbins = bins/5;
 
-      // If we are dealing with NPV or N_valid_jets then don't change the binning
+      // If we are dealing with NPV or nValJets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
 
       // Keep track of which histogram (sample and variable) to fill in the category

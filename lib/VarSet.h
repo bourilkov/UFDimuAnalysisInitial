@@ -26,8 +26,15 @@
 #include "GenMuonInfo.h"
 #include "GenMuPairInfo.h"
 #include "TLorentzVector.h"
+
+#include <iostream>
+#include <string>
+#include <sstream>
 #include <unordered_map>
 #include <map>
+
+const int N_JETS      = 4;
+const int N_JET_PAIRS = 4;
 
 class VarSet
 {
@@ -116,6 +123,7 @@ class VarSet
         // map variable string to variable value via function pointers
         // uses functions below
         std::unordered_map<std::string, double(VarSet::*)()> varMap;
+        std::unordered_map<std::string, double(VarSet::*)(int)> varMapI;
 
         // get the the value for some variable in one of the structs above
         // by name (string). Use the varMap to get the appropriate function
@@ -124,12 +132,20 @@ class VarSet
         // And evaluate the XML categories via getValue(varTString) > cut
         double getValue(const std::string& name) 
         {
+	  // std::cout << "\n  * Getting value for variable with name " << name << std::endl;
           // Must call the function for this particular instance
-          if(varMap[name])
+          if (varMap[name])
             return (this->*varMap[name])();
-          else return -999;
+	  else if (varMapI[name]) {
+	    std::string iStr = &(name.substr(0, name.find("_")).back());
+	    int iObj = -99;
+	    std::stringstream convert(iStr);
+	    convert >> iObj;
+            return (this->*varMapI[name])(iObj);
+	  }
+	  else return -999;
         }
-
+	
         void setCalibrationType(TString ctype)
         {
           if(ctype == "PF") 
@@ -203,59 +219,111 @@ class VarSet
             }
         }
 
-        // muon variables
-        // indexed by 1,2 in analyzer instead of 0,1 so there is a mismatch in naming convention here
-        double dimu_pt()   {  return dimuCand->pt;                        };
-        double mu1_pt()    {  return muons->at(dimuCand->iMu1).pt;    };
-        double mu2_pt()    {  return muons->at(dimuCand->iMu2).pt;    };
-        double mu1_eta()   {  return muons->at(dimuCand->iMu1).eta;   };
-        double mu2_eta()   {  return muons->at(dimuCand->iMu2).eta;   };
-        double mu_res_eta(){  return (TMath::Abs(mu1_eta()) + TMath::Abs(mu2_eta()))/2;   };
+        // Object counting
+	double _nJets()       { return nJets;                  };
+	double _nJetsCent()   { return nJetsCent;              };
+	double _nJetsFwd()    { return nJetsFwd;               };
+	double _nBMed()       { return nBMed;                  };
+        double nValJets()     { return validJets.size();       };
+        // double nValJetsCent() { return nJetsCent;              };
+        // double nValJetsFwd()  { return nJetsFwd;               };
+        double nValBTags()    { return validBJets.size();      };
+        double nExtraLep()    { return validExtraMuons.size() + validElectrons.size(); };
+        double nExtraMu()     { return validExtraMuons.size(); };
+        double nEle()         { return validElectrons.size();  };
 
-        // measure of the muon phi separation in the parent's rest frame
-        double phi_star()
-        {
-            double phi_star = 0;
-            double mu_dPhi = TMath::Abs(muons->at(dimuCand->iMu1).phi - muons->at(dimuCand->iMu2).phi);
-            if(mu_dPhi > TMath::Pi()) mu_dPhi = 2*TMath::Pi() - mu_dPhi;
-            double phiACOP = TMath::Pi() - mu_dPhi;
-            double thetaStarEta = TMath::ACos(TMath::TanH((muons->at(dimuCand->iMu1).eta - muons->at(dimuCand->iMu2).eta)/2));
-            phi_star = TMath::Tan(phiACOP/2)*TMath::Sin(thetaStarEta);
-            return phi_star;
+	// Dimuon variables
+        double dimu_mass()        { return dimuCand->mass;             };
+        double dimu_mass_Roch()   { return dimuCand->mass_Roch;        };
+        double dimu_pt()          { return dimuCand->pt;               };
+        double dimu_eta()         { return dimuCand->eta;              };
+        double dimu_abs_eta()     { return TMath::Abs(dimuCand->eta);  };
+        double dimu_rapid()       { return dimuCand->rapid;            };
+        double dimu_dR()          { return dimuCand->dR;               };
+        double dimu_dEta()        { return dimuCand->dEta;             };
+        double dimu_abs_dEta()    { return TMath::Abs(dimuCand->dEta); };
+        double dimu_dPhi()        { return dimuCand->dPhi;             };
+        double dimu_dPhiStar() {  // Phi separation in the parent's rest frame
+	  double phi_star = 0;
+	  double mu_dPhi = TMath::Abs(muons->at(dimuCand->iMu1).phi - muons->at(dimuCand->iMu2).phi);
+	  if(mu_dPhi > TMath::Pi()) mu_dPhi = 2*TMath::Pi() - mu_dPhi;
+	  double phiACOP = TMath::Pi() - mu_dPhi;
+	  double thetaStarEta = TMath::ACos(TMath::TanH((muons->at(dimuCand->iMu1).eta - muons->at(dimuCand->iMu2).eta)/2));
+	  phi_star = TMath::Tan(phiACOP/2)*TMath::Sin(thetaStarEta);
+	  return phi_star;
+	}
+        double dimu_avg_abs_eta() { return ( TMath::Abs(muons->at(dimuCand->iMu1).eta) +
+					     TMath::Abs(muons->at(dimuCand->iMu2).eta) ) / 2.; };
+        double dimu_min_abs_eta() { return std::min( TMath::Abs(muons->at(dimuCand->iMu1).eta), 
+						     TMath::Abs(muons->at(dimuCand->iMu2).eta) );   };
+        double dimu_max_abs_eta() { return std::max( TMath::Abs(muons->at(dimuCand->iMu1).eta), 
+						     TMath::Abs(muons->at(dimuCand->iMu2).eta) );   };
+	
+        // Muon variables from dimuon pair
+        double mu1_pt()      { return muons->at(dimuCand->iMu1).pt;              };
+        double mu2_pt()      { return muons->at(dimuCand->iMu2).pt;              };
+        double mu1_eta()     { return muons->at(dimuCand->iMu1).eta;             };
+	double mu2_eta()     { return muons->at(dimuCand->iMu2).eta;             };
+	double mu1_abs_eta() { return TMath::Abs(muons->at(dimuCand->iMu1).eta); };
+	double mu2_abs_eta() { return TMath::Abs(muons->at(dimuCand->iMu2).eta); };
+
+	// Dijet variables
+        double dijet_mass(int i)        { return (i < jetPairs->size()) ? jetPairs->at(i).mass : 0; };
+        double dijet_pt(int i)          { return (i < jetPairs->size()) ? jetPairs->at(i).pt   : 0; };
+        double dijet_dEta(int i)        { return (i < jetPairs->size()) ? jetPairs->at(i).dEta : -10; };
+        double dijet_abs_dEta(int i)    { return (i < jetPairs->size()) ? TMath::Abs(jetPairs->at(i).dEta) : -1; };
+        double dijet_min_abs_eta(int i) { 
+	  if (i < jetPairs->size())
+	    return std::min( TMath::Abs(jets->at(jetPairs->at(i).iJet1).eta), TMath::Abs(jets->at(jetPairs->at(i).iJet2).eta) );
+	  else return 0;
+	}
+        double dijet_max_abs_eta(int i) { 
+	  if (i < jetPairs->size())
+	    return std::max( TMath::Abs(jets->at(jetPairs->at(i).iJet1).eta), TMath::Abs(jets->at(jetPairs->at(i).iJet2).eta) );
+	  else return 0;
+	}
+
+        // Jet variables
+	double jet_pt(int i)      { return (validJets.size() > i) ? validJets[i].Pt() : 0; };
+	double jet_eta(int i)     { return (validJets.size() > i) ? validJets[i].Eta() : -5; };
+	double jet_abs_eta(int i) { return (validJets.size() > i) ? TMath::Abs(validJets[i].Eta()) : -1; };
+
+        // Global event variables
+        double MET()      { return met->pt;       };
+        double MHT()      { return mht->pt;       };
+        double MT_had()   { return mht->MT_had;   };
+        double mass_had() { return mht->mass_had; };
+
+
+	// AMC variables
+	double jj_jet0_pt()  { return (validJets.size()>=1)?validJets[j0].Pt():-999;  };
+        double jj_jet1_pt()  { return (validJets.size()>=2)?validJets[j1].Pt():-999;  };
+	double jj_jet0_eta() { return (validJets.size()>=1)?validJets[j0].Eta():-999; };
+        double jj_jet1_eta() { return (validJets.size()>=2)?validJets[j1].Eta():-999; };
+
+	double m_jj()         { return (validJets.size()>=2)?(validJets[j0]+validJets[j1]).M():-999; };
+        double dEta_jj()      { return (validJets.size()>=2)?TMath::Abs(validJets[j0].Eta()-validJets[j1].Eta()):-999; };
+        double dEta_jj_mumu() { return (validJets.size()>=2)?TMath::Abs((validJets[j0]+validJets[j1]).Eta()-dimuCand->eta):-999; };
+        double dPhi_jj_mumu() { 
+	  if (validJets.size() < 2) return -999;
+	  double dphi = TMath::Abs((validJets[j0] + validJets[j1]).Phi() - dimuCand->phi);
+	  if (dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
         };
-
-        // jet variables
-        double jet0_pt() { return (validJets.size()>=1)?validJets[j0].Pt():-999;  };
-        double jet1_pt() { return (validJets.size()>=2)?validJets[j1].Pt():-999;  };
-        double jet0_eta(){ return (validJets.size()>=1)?validJets[j0].Eta():-999; };
-        double jet1_eta(){ return (validJets.size()>=2)?validJets[j1].Eta():-999; };
-
-        double m_jj()        { return (validJets.size()>=2)?(validJets[j0]+validJets[j1]).M():-999; };
-        double dEta_jj()     { return (validJets.size()>=2)?TMath::Abs(validJets[j0].Eta()-validJets[j1].Eta()):-999; };
-        double dEta_jj_mumu(){ return (validJets.size()>=2)?TMath::Abs((validJets[j0]+validJets[j1]).Eta()-dimuCand->eta):-999; };
-
-        double dPhi_jj_mumu()    
-        { 
-            if(validJets.size() < 2) return -999;
-            double dphi = TMath::Abs((validJets[j0] + validJets[j1]).Phi() - dimuCand->phi);
-            if(dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
-        };
-        double zep()
-        { 
-            if(validJets.size() < 2) return -999; 
-            double meanEta = (validJets[j0].Eta() +validJets[j1].Eta())/2;
-            return validJets[j0].Eta() - meanEta;
+        double zep() { 
+	  if (validJets.size() < 2) return -999; 
+	  double meanEta = (validJets[j0].Eta() +validJets[j1].Eta())/2;
+	  return validJets[j0].Eta() - meanEta;
         };
 
         // vbf jet variables
-        double vbf_jet0_pt() { return (validJets.size()>=1)?validJets[vbf_j0].Pt():-999;  };
-        double vbf_jet1_pt() { return (validJets.size()>=2)?validJets[vbf_j1].Pt():-999;  };
-        double vbf_jet0_eta(){ return (validJets.size()>=1)?validJets[vbf_j0].Eta():-999; };
-        double vbf_jet1_eta(){ return (validJets.size()>=2)?validJets[vbf_j1].Eta():-999; };
+        double vbf_jet0_pt()  { return (validJets.size()>=1)?validJets[vbf_j0].Pt():-999;  };
+        double vbf_jet1_pt()  { return (validJets.size()>=2)?validJets[vbf_j1].Pt():-999;  };
+        double vbf_jet0_eta() { return (validJets.size()>=1)?validJets[vbf_j0].Eta():-999; };
+        double vbf_jet1_eta() { return (validJets.size()>=2)?validJets[vbf_j1].Eta():-999; };
 
-        double vbf_m_jj()        { return (validJets.size()>=2)?(validJets[vbf_j0]+validJets[vbf_j1]).M():-999; };
-        double vbf_dEta_jj()     { return (validJets.size()>=2)?TMath::Abs(validJets[vbf_j0].Eta()-validJets[vbf_j1].Eta()):-999; };
-        double vbf_dEta_jj_mumu(){ return (validJets.size()>=2)?TMath::Abs((validJets[vbf_j0]+validJets[vbf_j1]).Eta()-dimuCand->eta):-999; };
+        double vbf_m_jj()         { return (validJets.size()>=2)?(validJets[vbf_j0]+validJets[vbf_j1]).M():-999; };
+        double vbf_dEta_jj()      { return (validJets.size()>=2)?TMath::Abs(validJets[vbf_j0].Eta()-validJets[vbf_j1].Eta()):-999; };
+        double vbf_dEta_jj_mumu() { return (validJets.size()>=2)?TMath::Abs((validJets[vbf_j0]+validJets[vbf_j1]).Eta()-dimuCand->eta):-999; };
 
         // bjet variables
         double bjet0_pt() { return (validBJets.size()>=1)?validBJets[0].Pt():-999;  };
@@ -273,23 +341,11 @@ class VarSet
             if(dphi > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
         };
 
-        double vbf_zep()
-        { 
-            if(validJets.size() < 2) return -999; 
-            double meanEta = (validJets[vbf_j0].Eta() +validJets[vbf_j1].Eta())/2;
-            return validJets[vbf_j0].Eta() - meanEta;
+        double vbf_zep() { 
+	  if (validJets.size() < 2) return -999; 
+	  double meanEta = (validJets[vbf_j0].Eta() +validJets[vbf_j1].Eta())/2;
+	  return validJets[vbf_j0].Eta() - meanEta;
         };
-
-        // # variables
-        double N_valid_jets()         { return validJets.size();          };
-        double N_valid_bjets()        { return validBJets.size();         };
-        double N_valid_extra_muons()  { return validExtraMuons.size();    };
-        double N_valid_electrons()    { return validElectrons.size();     };
-        double N_valid_extra_leptons(){ return validExtraMuons.size() + validElectrons.size(); };
-
-        // MET
-        double MET(){ return met->pt; };
-        double MHT(){ return mht->pt; };
 
         double extra_muon0_pt() { return (validExtraMuons.size()>=1)?validExtraMuons[0].Pt():-999; };
         double extra_muon1_pt() { return (validExtraMuons.size()>=2)?validExtraMuons[1].Pt():-999; };

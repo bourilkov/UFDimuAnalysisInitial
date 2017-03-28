@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
         varname = "jet_eta";
     }   
 
-    // N_valid_jets
+    // nValJets
     if(input == 7)
     {   
         nbins = 11;
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
         wmin = nmin;
         wmax = nmax;
 
-        varname = "N_valid_jets";
+        varname = "nValJets";
     }   
 
     // m_jj
@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
         // can get the gen info since we have a MC sample
         if(!s->sampleType.Contains("data"))
         {
-            jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+            jetSelectionTools.getValidGenValJets(s->vars, s->vars.validGenJets);
             // get first postFSR DY gen muon
             gen_mu0 = ParticleTools::getGenMuDY(0, 1, s->vars);
             // get second postFSR DY gen muon
@@ -532,8 +532,8 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // N_valid_jets
-            if(varname.EqualTo("N_valid_jets"))
+            // nValJets
+            if(varname.EqualTo("nValJets"))
             {
                  if(c.second.inCategory && useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
                  if(c.second.inCategory && !useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validGenJets.size(), s->getWeight());

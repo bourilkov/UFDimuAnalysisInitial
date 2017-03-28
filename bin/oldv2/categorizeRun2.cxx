@@ -278,13 +278,13 @@ int main(int argc, char* argv[])
         varname = "jet_eta";
     }   
 
-    // N_valid_jets
+    // nValJets
     if(input == 7)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_jets";
+        varname = "nValJets";
     }   
 
     // m_jj
@@ -314,13 +314,13 @@ int main(int argc, char* argv[])
         varname = "N_valid_muons";
     }   
 
-    // N_valid_extra_muons
+    // nExtraMu
     if(input == 11)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_extra_muons";
+        varname = "nExtraMu";
     }   
 
     // extra_muon_pt
@@ -341,13 +341,13 @@ int main(int argc, char* argv[])
         varname = "extra_muon_eta";
     }
 
-    // N_valid_electrons
+    // nEle
     if(input == 14)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_electrons";
+        varname = "nEle";
     }   
 
     // electron_pt
@@ -368,22 +368,22 @@ int main(int argc, char* argv[])
         varname = "electron_eta";
     }
 
-    // N_valid_extra_leptons
+    // nExtraLep
     if(input == 17)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_extra_leptons";
+        varname = "nExtraLep";
     }   
 
-    // N_valid_bjets
+    // nValBTags
     if(input == 18)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_bjets";
+        varname = "nValBTags";
     }   
 
     // bjet_pt
@@ -471,7 +471,7 @@ int main(int argc, char* argv[])
       int lowstatsbins = bins;
       if(!rebin)  lowstatsbins = bins/5;
 
-      // If we are dealing with NPV or N_valid_jets then don't change the binning
+      // If we are dealing with NPV or nValJets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
 
       // Keep track of which histogram (sample and variable) to fill in the category
@@ -684,8 +684,8 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // N_valid_jets
-            if(varname.EqualTo("N_valid_jets"))
+            // nValJets
+            if(varname.EqualTo("nValJets"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
             }
@@ -715,8 +715,8 @@ int main(int argc, char* argv[])
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validMuons.size(), s->getWeight());
             }
 
-            // N_valid_extra_muons
-            if(varname.EqualTo("N_valid_extra_muons"))
+            // nExtraMu
+            if(varname.EqualTo("nExtraMu"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
             }
@@ -741,8 +741,8 @@ int main(int argc, char* argv[])
                 }
             }
  
-            // N_valid_electrons
-            if(varname.EqualTo("N_valid_electrons"))
+            // nEle
+            if(varname.EqualTo("nEle"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
             }
@@ -767,14 +767,14 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // N_valid_extra_leptons
-            if(varname.EqualTo("N_valid_extra_leptons"))
+            // nExtraLep
+            if(varname.EqualTo("nExtraLep"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
             }
 
-            // N_valid_bjets
-            if(varname.EqualTo("N_valid_bjets"))
+            // nValBTags
+            if(varname.EqualTo("nValBTags"))
             {
                  if(c.second.inCategory) c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
             }

@@ -188,26 +188,26 @@ int main(int argc, char* argv[])
     vars["mu1_pt"] = -999;
     vars["mu0_eta"] = -999;
     vars["mu1_eta"] = -999;
-    vars["jet0_pt"] = -999;
-    vars["jet1_pt"] = -999;
-    vars["jet0_eta"] = -999;
-    vars["jet1_eta"] = -999;
-    vars["N_valid_jets"] = -999;
+    vars["jj_jet0_pt"] = -999;
+    vars["jj_jet1_pt"] = -999;
+    vars["jj_jet0_eta"] = -999;
+    vars["jj_jet1_eta"] = -999;
+    vars["nValJets"] = -999;
     vars["m_jj"] = -999;
     vars["dEta_jj"] = -999;
     vars["dEta_jj_mumu"] = -999;
-    vars["N_valid_extra_muons"] = -999;
+    vars["nExtraMu"] = -999;
     vars["extra_muon0_pt"] = -999;
     vars["extra_muon1_pt"] = -999;
     vars["extra_muon0_eta"] = -999;
     vars["extra_muon1_eta"] = -999;
-    vars["N_valid_electrons"] = -999;
+    vars["nEle"] = -999;
     vars["electron0_pt"] = -999;
     vars["electron1_pt"] = -999;
     vars["electron0_eta"] = -999;
     vars["electron1_eta"] = -999;
-    vars["N_valid_extra_leptons"] = -999;
-    vars["N_valid_bjets"] = -999;
+    vars["nExtraLep"] = -999;
+    vars["nValBTags"] = -999;
     vars["bjet0_pt"] = -999;
     vars["bjet1_pt"] = -999;
     vars["bjet0_eta"] = -999;
@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
     vars["mT_b_MET"] = -999;
     vars["MET"] = -999;
     vars["zep"] = -999;
-    vars["phi_star"] = -999;
+    vars["dimu_dPhiStar"] = -999;
     vars["dPhi"] = -999;
 
     // !!!! output first line of csv to file
@@ -362,12 +362,12 @@ int main(int argc, char* argv[])
         vars["mu0_eta"] = s->vars.muons.eta[0];
         vars["mu1_eta"] = s->vars.muons.eta[1];
 
-        vars["N_valid_jets"] = s->vars.validJets.size();
-        if(s->vars.validJets.size() >= 1) vars["jet0_pt"] = s->vars.validJets[0].Pt();
-        if(s->vars.validJets.size() >= 2) vars["jet1_pt"] = s->vars.validJets[1].Pt();
+        vars["nValJets"] = s->vars.validJets.size();
+        if(s->vars.validJets.size() >= 1) vars["jj_jet0_pt"] = s->vars.validJets[0].Pt();
+        if(s->vars.validJets.size() >= 2) vars["jj_jet1_pt"] = s->vars.validJets[1].Pt();
 
-        if(s->vars.validJets.size() >= 1) vars["jet0_eta"] = s->vars.validJets[0].Eta();
-        if(s->vars.validJets.size() >= 2) vars["jet1_eta"] = s->vars.validJets[1].Eta();
+        if(s->vars.validJets.size() >= 1) vars["jj_jet0_eta"] = s->vars.validJets[0].Eta();
+        if(s->vars.validJets.size() >= 2) vars["jj_jet1_eta"] = s->vars.validJets[1].Eta();
         if(s->vars.validJets.size() >= 2)
         {
             TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
@@ -378,21 +378,21 @@ int main(int argc, char* argv[])
             vars["dEta_jj_mumu"] = TMath::Abs(dEtajjmumu);
         }
 
-        vars["N_valid_extra_muons"] = s->vars.validExtraMuons.size();
+        vars["nExtraMu"] = s->vars.validExtraMuons.size();
         if(s->vars.validExtraMuons.size() >= 1) vars["extra_muon0_pt"] = s->vars.validExtraMuons[0].Pt();
         if(s->vars.validExtraMuons.size() >= 2) vars["extra_muon1_pt"] = s->vars.validExtraMuons[1].Pt();
         if(s->vars.validExtraMuons.size() >= 1) vars["extra_muon0_eta"] = s->vars.validExtraMuons[0].Eta();
         if(s->vars.validExtraMuons.size() >= 2) vars["extra_muon1_eta"] = s->vars.validExtraMuons[1].Eta();
         
-        vars["N_valid_electrons"] = s->vars.validExtraMuons.size();
+        vars["nEle"] = s->vars.validExtraMuons.size();
         if(s->vars.validElectrons.size() >= 1) vars["extra_electron0_pt"] = s->vars.validElectrons[0].Pt();
         if(s->vars.validElectrons.size() >= 2) vars["extra_electron1_pt"] = s->vars.validElectrons[1].Pt();
         if(s->vars.validElectrons.size() >= 1) vars["extra_electron0_eta"] = s->vars.validElectrons[0].Eta();
         if(s->vars.validElectrons.size() >= 2) vars["extra_electron1_eta"] = s->vars.validElectrons[1].Eta();
 
-        vars["N_valid_extra_leptons"] = s->vars.validElectrons.size() + s->vars.validExtraMuons.size();
+        vars["nExtraLep"] = s->vars.validElectrons.size() + s->vars.validExtraMuons.size();
 
-        vars["N_valid_bjets"] = s->vars.validBJets.size();
+        vars["nValBTags"] = s->vars.validBJets.size();
         if(s->vars.validBJets.size() >= 1) vars["bjet0_pt"] = s->vars.validBJets[0].Pt();
         if(s->vars.validBJets.size() >= 2) vars["bjet1_pt"] = s->vars.validBJets[1].Pt();
 
