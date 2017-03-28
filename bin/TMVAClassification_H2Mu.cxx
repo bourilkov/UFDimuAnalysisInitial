@@ -463,7 +463,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        if ( this_evt == prev_evt ) {
 	 std::cout << "\niEvt " << iEvt << " / " << samp->N << " (Run " << samp->vars.eventInfo->run << ", event " << this_evt 
 		   << ") is identical to the previous event (" << prev_evt << ")" << std::endl;
-	 std::cout << 100.0*iEvt/samp->N << " percent of sample lost" << std::endl;
+	 std::cout << 100. - 100.0*iEvt/samp->N << " percent of sample " << samp->name << " lost" << std::endl;
 	 // continue;
 	 break;
 	 // return;

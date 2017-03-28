@@ -263,10 +263,10 @@ int main(int argc, char* argv[])
           vars["dEta_jj"]      = s->vars.getValue("dEta_jj");
           vars["dEta_jj_mumu"] = s->vars.getValue("dEta_jj_mumu");
 
-          vars["bjj_jet0_pt"]  = s->vars.getValue("bjj_jet0_pt");  
-          vars["bjj_jet1_pt"]  = s->vars.getValue("bjj_jet1_pt"); 
-          vars["bjj_jet0_eta"] = s->vars.getValue("bjj_jet0_eta"); 
-          vars["bjj_jet1_eta"] = s->vars.getValue("bjj_jet1_eta"); 
+          vars["bjet0_pt"]  = s->vars.getValue("bjet0_pt");  
+          vars["bjet1_pt"]  = s->vars.getValue("bjet1_pt"); 
+          vars["bjet0_eta"] = s->vars.getValue("bjet0_eta"); 
+          vars["bjet1_eta"] = s->vars.getValue("bjet1_eta"); 
 
           vars["m_bb"]    = s->vars.getValue("m_bb"); 
           vars["dEta_bb"] = s->vars.getValue("dEta_bb"); 

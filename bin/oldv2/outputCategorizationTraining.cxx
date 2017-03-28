@@ -208,10 +208,10 @@ int main(int argc, char* argv[])
     vars["electron1_eta"] = -999;
     vars["nExtraLep"] = -999;
     vars["nValBTags"] = -999;
-    vars["bjj_jet0_pt"] = -999;
-    vars["bjj_jet1_pt"] = -999;
-    vars["bjj_jet0_eta"] = -999;
-    vars["bjj_jet1_eta"] = -999;
+    vars["bjet0_pt"] = -999;
+    vars["bjet1_pt"] = -999;
+    vars["bjet0_eta"] = -999;
+    vars["bjet1_eta"] = -999;
     vars["dEta_bb"] = -999;
     vars["m_bb"] = -999;
     vars["mT_b_MET"] = -999;
@@ -393,11 +393,11 @@ int main(int argc, char* argv[])
         vars["nExtraLep"] = s->vars.validElectrons.size() + s->vars.validExtraMuons.size();
 
         vars["nValBTags"] = s->vars.validBJets.size();
-        if(s->vars.validBJets.size() >= 1) vars["bjj_jet0_pt"] = s->vars.validBJets[0].Pt();
-        if(s->vars.validBJets.size() >= 2) vars["bjj_jet1_pt"] = s->vars.validBJets[1].Pt();
+        if(s->vars.validBJets.size() >= 1) vars["bjet0_pt"] = s->vars.validBJets[0].Pt();
+        if(s->vars.validBJets.size() >= 2) vars["bjet1_pt"] = s->vars.validBJets[1].Pt();
 
-        if(s->vars.validBJets.size() >= 1) vars["bjj_jet0_eta"] = s->vars.validBJets[0].Eta();
-        if(s->vars.validBJets.size() >= 2) vars["bjj_jet1_eta"] = s->vars.validBJets[1].Eta();
+        if(s->vars.validBJets.size() >= 1) vars["bjet0_eta"] = s->vars.validBJets[0].Eta();
+        if(s->vars.validBJets.size() >= 2) vars["bjet1_eta"] = s->vars.validBJets[1].Eta();
         if(s->vars.validBJets.size() >= 2)
         {
             TLorentzVector dibjet = s->vars.validBJets[0] + s->vars.validBJets[1];
