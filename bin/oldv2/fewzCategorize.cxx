@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
         varname = "jet_eta";
     }   
 
-    // N_valid_jets
+    // nValJets
     if(input == 7)
     {   
         nbins = 11;
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
         wmin = nmin;
         wmax = nmax;
 
-        varname = "N_valid_jets";
+        varname = "nValJets";
     }   
 
     // m_jj
@@ -393,7 +393,7 @@ int main(int argc, char* argv[])
         s->getEntry(i); 
 
         s->vars.validJets = std::vector<TLorentzVector>();
-        s->vars.validGenJets = std::vector<TLorentzVector>();
+        s->vars.validGenValJets = std::vector<TLorentzVector>();
 
         jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
 
@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
         // can get the gen info since we have a MC sample
         if(!s->sampleType.Contains("data"))
         {
-            jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+            jetSelectionTools.getValidGenValJets(s->vars, s->vars.validGenValJets);
             // get first postFSR DY gen muon
             gen_mu0 = ParticleTools::getGenMuDY(0, 1, s->vars);
             // get second postFSR DY gen muon
@@ -512,8 +512,8 @@ int main(int argc, char* argv[])
                 }
                 if(c.second.inCategory && !useRecoToPlotJets) 
                 {
-                    for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
-                        c.second.histoMap[hkey]->Fill(s->vars.validGenJets[j].Pt(), s->getWeight());
+                    for(unsigned int j=0; j<s->vars.validGenValJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validGenValJets[j].Pt(), s->getWeight());
                 }
             }
 
@@ -527,16 +527,16 @@ int main(int argc, char* argv[])
                 }
                 if(c.second.inCategory && !useRecoToPlotJets) 
                 {
-                    for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
-                        c.second.histoMap[hkey]->Fill(s->vars.validGenJets[j].Eta(), s->getWeight());
+                    for(unsigned int j=0; j<s->vars.validGenValJets.size(); j++)
+                        c.second.histoMap[hkey]->Fill(s->vars.validGenValJets[j].Eta(), s->getWeight());
                 }
             }
 
-            // N_valid_jets
-            if(varname.EqualTo("N_valid_jets"))
+            // nValJets
+            if(varname.EqualTo("nValJets"))
             {
                  if(c.second.inCategory && useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
-                 if(c.second.inCategory && !useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validGenJets.size(), s->getWeight());
+                 if(c.second.inCategory && !useRecoToPlotJets) c.second.histoMap[hkey]->Fill(s->vars.validGenValJets.size(), s->getWeight());
             }
 
             // m_jj leading two
@@ -547,9 +547,9 @@ int main(int argc, char* argv[])
                      TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
                  }
-                 if(s->vars.validGenJets.size() >= 2 && !useRecoToPlotJets)
+                 if(s->vars.validGenValJets.size() >= 2 && !useRecoToPlotJets)
                  {
-                     TLorentzVector dijet = s->vars.validGenJets[0] + s->vars.validGenJets[1];
+                     TLorentzVector dijet = s->vars.validGenValJets[0] + s->vars.validGenValJets[1];
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
                  }
             }
@@ -562,9 +562,9 @@ int main(int argc, char* argv[])
                      float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
                  }
-                 if(s->vars.validGenJets.size() >= 2 && !useRecoToPlotJets)
+                 if(s->vars.validGenValJets.size() >= 2 && !useRecoToPlotJets)
                  {
-                     float dEta = s->vars.validGenJets[0].Eta() - s->vars.validGenJets[1].Eta();
+                     float dEta = s->vars.validGenValJets[0].Eta() - s->vars.validGenValJets[1].Eta();
                      if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
                  }
             }
@@ -584,14 +584,14 @@ int main(int argc, char* argv[])
                        }
                      }
                  }
-                 if(s->vars.validGenJets.size() >= 2 && !useRecoToPlotJets)
+                 if(s->vars.validGenValJets.size() >= 2 && !useRecoToPlotJets)
                  {
-                     for(unsigned int j=0; j<s->vars.validGenJets.size(); j++)
+                     for(unsigned int j=0; j<s->vars.validGenValJets.size(); j++)
                      {                
-                       for(unsigned int k=j+1; k<s->vars.validGenJets.size(); k++)
+                       for(unsigned int k=j+1; k<s->vars.validGenValJets.size(); k++)
                        {                
-                           float dR = JetSelectionTools::dR(s->vars.validGenJets[j].Eta(), s->vars.validGenJets[j].Phi(), 
-                                                            s->vars.validGenJets[k].Eta(),  s->vars.validGenJets[k].Phi());
+                           float dR = JetSelectionTools::dR(s->vars.validGenValJets[j].Eta(), s->vars.validGenValJets[j].Phi(), 
+                                                            s->vars.validGenValJets[k].Eta(),  s->vars.validGenValJets[k].Phi());
                            if(c.second.inCategory) c.second.histoMap[hkey]->Fill(dR, s->getWeight());
                        }
                      }

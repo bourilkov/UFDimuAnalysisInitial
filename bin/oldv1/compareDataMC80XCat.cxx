@@ -230,13 +230,13 @@ int main(int argc, char* argv[])
         varname = "jet_Eta";
     }   
 
-    // N_valid_jets
+    // nValJets
     if(input == 7)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_jets";
+        varname = "nValJets";
     }   
 
     // Dijet_mass
@@ -525,8 +525,8 @@ int main(int argc, char* argv[])
             }
         }
 
-        // N_valid_jets
-        if(varname.Contains("N_valid_jets"))
+        // nValJets
+        if(varname.Contains("nValJets"))
         {
              varhistoall->Fill(s->vars.validJets.size(), s->getWeight());
 

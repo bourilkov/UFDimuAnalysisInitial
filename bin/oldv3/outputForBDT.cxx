@@ -254,28 +254,28 @@ int main(int argc, char* argv[])
           vars["mu1_eta"] = s->vars.getValue("mu1_eta");
 
           // jet variables
-          vars["jet0_pt"]      = s->vars.getValue("jet0_pt");
-          vars["jet1_pt"]      = s->vars.getValue("jet1_pt");
-          vars["jet0_eta"]     = s->vars.getValue("jet0_eta");
-          vars["jet1_eta"]     = s->vars.getValue("jet1_eta"); 
+          vars["jj_jet0_pt"]      = s->vars.getValue("jj_jet0_pt");
+          vars["jj_jet1_pt"]      = s->vars.getValue("jj_jet1_pt");
+          vars["jj_jet0_eta"]     = s->vars.getValue("jj_jet0_eta");
+          vars["jj_jet1_eta"]     = s->vars.getValue("jj_jet1_eta"); 
 
           vars["m_jj"]         = s->vars.getValue("m_jj");
           vars["dEta_jj"]      = s->vars.getValue("dEta_jj");
           vars["dEta_jj_mumu"] = s->vars.getValue("dEta_jj_mumu");
 
-          vars["bjet0_pt"]  = s->vars.getValue("bjet0_pt");  
-          vars["bjet1_pt"]  = s->vars.getValue("bjet1_pt"); 
-          vars["bjet0_eta"] = s->vars.getValue("bjet0_eta"); 
-          vars["bjet1_eta"] = s->vars.getValue("bjet1_eta"); 
+          vars["bjj_jet0_pt"]  = s->vars.getValue("bjj_jet0_pt");  
+          vars["bjj_jet1_pt"]  = s->vars.getValue("bjj_jet1_pt"); 
+          vars["bjj_jet0_eta"] = s->vars.getValue("bjj_jet0_eta"); 
+          vars["bjj_jet1_eta"] = s->vars.getValue("bjj_jet1_eta"); 
 
           vars["m_bb"]    = s->vars.getValue("m_bb"); 
           vars["dEta_bb"] = s->vars.getValue("dEta_bb"); 
 
-          vars["N_valid_jets"]          = s->vars.getValue("N_valid_jets"); 
-          vars["N_valid_bjets"]         = s->vars.getValue("N_valid_bjets"); 
-          vars["N_valid_extra_muons"]   = s->vars.getValue("N_valid_extra_muons"); 
-          vars["N_valid_electrons"]     = s->vars.getValue("N_valid_electrons"); 
-          vars["N_valid_extra_leptons"] = s->vars.getValue("N_valid_extra_leptons"); 
+          vars["nValJets"]          = s->vars.getValue("nValJets"); 
+          vars["nValBTags"]         = s->vars.getValue("nValBTags"); 
+          vars["nExtraMu"]   = s->vars.getValue("nExtraMu"); 
+          vars["nEle"]     = s->vars.getValue("nEle"); 
+          vars["nExtraLep"] = s->vars.getValue("nExtraLep"); 
 
           vars["MET"] = s->vars.getValue("MET"); 
 
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
           vars["mT_b_MET"] = s->vars.getValue("mT_b_MET");
 
           vars["zep"]      = s->vars.getValue("zep");
-          vars["phi_star"] = s->vars.getValue("phi_star");
+          vars["dimu_dPhiStar"] = s->vars.getValue("dimu_dPhiStar");
           vars["dPhi"]     = s->vars.getValue("dPhi");
 */
           if(false)

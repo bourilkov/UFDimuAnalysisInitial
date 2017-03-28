@@ -178,13 +178,13 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         varname = "jet_eta";
     }   
 
-    // N_valid_jets
+    // nValJets
     if(varNumber == 7)
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "N_valid_jets";
+        varname = "nValJets";
     }   
 
     // m_jj
@@ -213,13 +213,13 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         varname = "N_valid_muons";
     }   
 
-    // N_valid_extra_muons
+    // nExtraMu
     if(varNumber == 11) 
     {   
         bins = 11; 
         min = 0;  
         max = 11; 
-        varname = "N_valid_extra_muons";
+        varname = "nExtraMu";
     }   
 
     // extra_muon_pt
@@ -240,13 +240,13 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         varname = "extra_muon_eta";
     }
 
-    // N_valid_electrons
+    // nEle
     if(varNumber == 14)
     {
         bins = 11;
         min = 0;
         max = 11;
-        varname = "N_valid_electrons";
+        varname = "nEle";
     }
     // electron_pt
     if(varNumber == 15)
@@ -266,22 +266,22 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
         varname = "electron_eta";
     }
 
-    // N_valid_extra_leptons
+    // nExtraLep
     if(varNumber == 17)
     {
         bins = 11;
         min = 0;
         max = 11;
-        varname = "N_valid_extra_leptons";
+        varname = "nExtraLep";
     }
 
-    // N_valid_bjets
+    // nValBTags
     if(varNumber == 18)
     {
         bins = 11;
         min = 0;
         max = 11;
-        varname = "N_valid_bjets";
+        varname = "nValBTags";
     }
 
     // bjet_pt
@@ -501,7 +501,7 @@ int main(int argc, char* argv[])
       // Fewer bins for lowstats categories if necessary
       int lowstatsbins = bins/5;
 
-      // If we are dealing with NPV or N_valid_jets then don't change the binning
+      // If we are dealing with NPV or nValJets then don't change the binning
       if(varname.Contains("N")) lowstatsbins = bins;
 
       // Keep track of which histogram to fill in the category
@@ -729,8 +729,8 @@ int main(int argc, char* argv[])
                  continue;
             }
 
-            // N_valid_jets
-            if(varname.EqualTo("N_valid_jets"))
+            // nValJets
+            if(varname.EqualTo("nValJets"))
             {
                  c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
                  continue;
@@ -765,8 +765,8 @@ int main(int argc, char* argv[])
                  continue;
             }
 
-            // N_valid_extra_muons
-            if(varname.EqualTo("N_valid_extra_muons"))
+            // nExtraMu
+            if(varname.EqualTo("nExtraMu"))
             {
                  c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
                  continue;
@@ -788,8 +788,8 @@ int main(int argc, char* argv[])
                 continue;
             }
 
-            // N_valid_electrons
-            if(varname.EqualTo("N_valid_electrons"))
+            // nEle
+            if(varname.EqualTo("nEle"))
             {
                  c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
                  continue;
@@ -810,15 +810,15 @@ int main(int argc, char* argv[])
                 continue;
             }
 
-            // N_valid_extra_leptons
-            if(varname.EqualTo("N_valid_extra_leptons"))
+            // nExtraLep
+            if(varname.EqualTo("nExtraLep"))
             {
                  c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
                  continue;
             }
 
-            // N_valid_bjets
-            if(varname.EqualTo("N_valid_bjets"))
+            // nValBTags
+            if(varname.EqualTo("nValBTags"))
             {
                  c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
                  continue;

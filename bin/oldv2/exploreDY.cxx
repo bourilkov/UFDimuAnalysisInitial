@@ -329,10 +329,10 @@ int main(int argc, char* argv[])
         s->getEntry(i); 
 
         s->vars.validJets = std::vector<TLorentzVector>();
-        s->vars.validGenJets = std::vector<TLorentzVector>();
+        s->vars.validGenValJets = std::vector<TLorentzVector>();
 
         jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
-        jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+        jetSelectionTools.getValidGenValJets(s->vars, s->vars.validGenValJets);
 
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
@@ -424,14 +424,14 @@ int main(int argc, char* argv[])
             if(useReco) 
             {
                 if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
-                for(unsigned int j=0; j<s->vars.jets.nJets && j<N_JET_INFO; j++)
+                for(unsigned int j=0; j<s->vars.jets.nValJets && j<N_JET_INFO; j++)
                     hist->Fill(s->vars.jets.pt[j], s->getWeight());
             }
             if(!useReco) 
             {
                 if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
-                for(unsigned int j=0; j<s->vars.genJets.nJets && j<N_JET_INFO; j++)
-                    hist->Fill(s->vars.genJets.pt[j], s->getWeight());
+                for(unsigned int j=0; j<s->vars.genValJets.nValJets && j<N_JET_INFO; j++)
+                    hist->Fill(s->vars.genValJets.pt[j], s->getWeight());
             }
         }
 
@@ -441,22 +441,22 @@ int main(int argc, char* argv[])
             if(useReco) 
             {
                 if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
-                for(unsigned int j=0; j<s->vars.jets.nJets && j<N_JET_INFO; j++)
+                for(unsigned int j=0; j<s->vars.jets.nValJets && j<N_JET_INFO; j++)
                     hist->Fill(s->vars.jets.eta[j], s->getWeight());
             }
             if(!useReco) 
             {
                 if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
-                for(unsigned int j=0; j<s->vars.genJets.nJets && j<N_JET_INFO; j++)
-                    hist->Fill(s->vars.genJets.eta[j], s->getWeight());
+                for(unsigned int j=0; j<s->vars.genValJets.nValJets && j<N_JET_INFO; j++)
+                    hist->Fill(s->vars.genValJets.eta[j], s->getWeight());
             }
         }
 
         // N_jets
         if(varname.EqualTo("N_jets"))
         {
-             if(useReco)  hist->Fill(s->vars.jets.nJets, s->getWeight());
-             if(!useReco) hist->Fill(s->vars.genJets.nJets, s->getWeight());
+             if(useReco)  hist->Fill(s->vars.jets.nValJets, s->getWeight());
+             if(!useReco) hist->Fill(s->vars.genValJets.nValJets, s->getWeight());
         }
 
         // m_jj
@@ -467,9 +467,9 @@ int main(int argc, char* argv[])
                  TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
                  hist->Fill(dijet.M(), s->getWeight());
              }
-             if(s->vars.validGenJets.size() >= 2 && !useReco)
+             if(s->vars.validGenValJets.size() >= 2 && !useReco)
              {
-                 TLorentzVector dijet = s->vars.validGenJets[0] + s->vars.validGenJets[1];
+                 TLorentzVector dijet = s->vars.validGenValJets[0] + s->vars.validGenValJets[1];
                  hist->Fill(dijet.M(), s->getWeight());
              }
         }
@@ -482,9 +482,9 @@ int main(int argc, char* argv[])
                  float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
                  hist->Fill(dEta, s->getWeight());
              }
-             if(s->vars.validGenJets.size() >= 2 && !useReco)
+             if(s->vars.validGenValJets.size() >= 2 && !useReco)
              {
-                 float dEta = s->vars.validGenJets[0].Eta() - s->vars.validGenJets[1].Eta();
+                 float dEta = s->vars.validGenValJets[0].Eta() - s->vars.validGenValJets[1].Eta();
                  hist->Fill(dEta, s->getWeight());
              }
         }
