@@ -51,6 +51,7 @@ VarSet::VarSet()
   varMap["dimu_dEta"]        = &VarSet::dimu_dEta;
   varMap["dimu_abs_dEta"]    = &VarSet::dimu_abs_dEta;
   varMap["dimu_dPhi"]        = &VarSet::dimu_dPhi;
+  varMap["dimu_abs_dPhi"]    = &VarSet::dimu_abs_dPhi;
   varMap["dimu_dPhiStar"]    = &VarSet::dimu_dPhiStar;
   varMap["dimu_avg_abs_eta"] = &VarSet::dimu_avg_abs_eta;
   varMap["dimu_min_abs_eta"] = &VarSet::dimu_min_abs_eta;
