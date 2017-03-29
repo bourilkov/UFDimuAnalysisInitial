@@ -45,14 +45,16 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   std::vector< std::tuple< TString, float, int > > eras;
   // Era tuple has name, luminosity, and number of files
   // Very rough lumi splitting between eras; needs to be updated - AWB 01.02.17
-  eras.push_back( std::make_tuple("B", 5800, 1) );
-  eras.push_back( std::make_tuple("C", 2600, 1) );
-  eras.push_back( std::make_tuple("D", 4300, 1) );
-  eras.push_back( std::make_tuple("E", 4100, 1) );
-  eras.push_back( std::make_tuple("F", 3200, 2) );
-  eras.push_back( std::make_tuple("G", 7800, 1) );
-  eras.push_back( std::make_tuple("H", 9014, 2) );
+  eras.push_back( std::make_tuple("B",   5800, 1) );
+  eras.push_back( std::make_tuple("C",   2600, 1) );
+  eras.push_back( std::make_tuple("D",   4300, 1) );
+  eras.push_back( std::make_tuple("E",   4100, 1) );
+  eras.push_back( std::make_tuple("F_1", 1600, 1) );
+  eras.push_back( std::make_tuple("F_2", 1600, 1) );
+  eras.push_back( std::make_tuple("G",   7800, 1) );
+  eras.push_back( std::make_tuple("H",   9014, 2) );
   
+  std::vector<TString> in_files_all_data;
   for (auto era: eras) {
     if (select != "DATA" && !select.Contains("ALL") && select != "Run"+std::get<0>(era))
       continue;
@@ -69,9 +71,23 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 	  if (i == 0) jDat = "_1";
 	  if (i == 1) jDat = "_2";
 	}
+
+	// if (std::get<0>(era) != "F_1" || location != "CERN_hiM") {
 	in_file.Form( "%s/SingleMuon/SingleMu_2016%s%s/NTuple_0.root", in_dir.Data(), std::get<0>(era).Data(), jDat.Data() );
 	in_files.push_back(in_file);
-      }
+	// } else {  // Load input files for F_1 manually because of buggy event in CERN_hiM sample - AWB 28.03.17
+	// for (int j = 1; j <= 37; j++) { 
+	//   if (j ==  9) continue;  // Leave out tuple_9.root  with buggy event 1026584286 - AWB 28.03.17
+	//   if (j == 34) continue;  // Leave out tuple_34.root with buggy event 1160552942 - AWB 28.03.17
+	//   if (j == 35) continue;  // Leave out tuple_35.root with buggy event 1310428464 - AWB 28.03.17
+	//   if (j == 36) continue;  // Leave out tuple_36.root with buggy event   90777759 - AWB 28.03.17
+	//   if (j == 37) continue;  // Leave out tuple_37.root with buggy event 2179193035 - AWB 28.03.17
+	//   in_file.Form( "%s/SingleMuon/SingleMu_2016F_1/170315_104802/0000/tuple_%d.root", in_dir.Data(), j );
+	//   in_files.push_back(in_file);
+	// }
+	// }
+	  
+      } // End loop: for (int i = 0; i < std::get<2>(era); i++)
     } 
     
     Sample* data_sample = new Sample(in_files, "Run"+std::get<0>(era), "data");
@@ -79,7 +95,19 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     data_sample->xsec = 9999;
     samples["Run"+std::get<0>(era)] = data_sample;
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
+    in_files_all_data.insert( in_files_all_data.end(), in_files.begin(), in_files.end() );
   }
+
+  // if (select == "DATA" || select.Contains("ALL") || select == "RunAll") {
+  //   std::cout << "\nAdding files for RunAll ...." << std::endl;
+  //   Sample* data_sample_all = new Sample(in_files_all_data, "RunAll", "data");
+  //   data_sample_all->lumi = 36814;
+  //   data_sample_all->xsec = 9999;
+  //   samples["RunAll"] = data_sample_all;
+  //   std::cout << ".... " << in_files_all_data.size() << " files added." << std::endl;
+  // }
+  
+
   
   // ================================================================
   // H2Mu_gg ---------------------------------------------------------
@@ -172,6 +200,25 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
 
+  // ================================================================
+  // H2Mu_ttH ---------------------------------------------------------
+  // ================================================================
+  
+  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_ttH") {
+    std::cout << "\nAdding files for H2Mu_ttH ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"signal/ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8_ttH.root") );
+    } else {
+      in_file.Form( "%s/ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/ttH/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
+    }
+    samples["H2Mu_ttH"] = new Sample(in_files, "H2Mu_ttH", "signal");
+    samples["H2Mu_ttH"]->xsec = 0.2151;     // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  } 
+ 
  
   // ================================================================
   // DYJetsToLL -----------------------------------------------------
@@ -240,8 +287,20 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     } else {
       in_file.Form( "%s/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/ZJets_MG_HT_100_200_A/NTuple_0.root", in_dir.Data() );
       in_files.push_back(in_file);
+
+      // if (location != "CERN_hiM") {
       in_file.Form( "%s/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/ZJets_MG_HT_100_200_B/NTuple_0.root", in_dir.Data() );
       in_files.push_back(in_file);
+      // } else {  // Load input files for HT_100_200_B manually because of buggy event in CERN_hiM sample - AWB 28.03.17
+      // 	for (int i = 1; i <= 27; i++) { 
+      // 	  if (i ==  9) continue;  // Leave out tuple_9.root  with buggy event 81999086 - AWB 28.03.17
+      // 	  if (i == 27) continue;  // Leave out tuple_27.root with buggy event 22590445 - AWB 28.03.17
+      // 	  if (i == 1 || i == 4 || i == 11 || i == 14) continue;  // Failed jobs, no root files
+      // 	  in_file.Form( "%s/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/ZJets_MG_HT_100_200_B/170315_223309/0000/tuple_%d.root", in_dir.Data(), i );
+      // 	  std::cout << "  * Adding file " << in_file << std::endl;
+      // 	  in_files.push_back(in_file);
+      // 	}
+      // }
     }
     samples["ZJets_MG_HT_100_200"] = new Sample(in_files, "ZJets_MG_HT_100_200", "background");
     samples["ZJets_MG_HT_100_200"]->xsec = 0.96*181.302;
@@ -458,10 +517,22 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     if (location == "UF") {
       in_files.push_back( TString(in_dir+"singletop/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_tW_neg.root") );
     } else {
+
       in_file.Form( "%s/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_neg_1/NTuple_0.root", in_dir.Data() );
       in_files.push_back(in_file);
+
+      // if (location != "CERN_hiM") {
       in_file.Form( "%s/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_neg_2/NTuple_0.root", in_dir.Data() );
       in_files.push_back(in_file);
+      // } else { // Load input files manually because of buggy event in CERN_hiM sample - AWB 28.03.17
+      // 	for (int i = 1; i <= 2; i++) { 
+      // 	  if (i == 1) continue;  // Leave out tuple_1.root with buggy event 4906108 - AWB 28.03.17
+      // 	  if (i == 2) continue;  // Leave out tuple_2.root with buggy event 3586447 - AWB 28.03.17
+      // 	  in_file.Form( "%s/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1/tW_neg_2/170315_105904/0000/tuple_%d.root", in_dir.Data(), i);
+      // 	  in_files.push_back(in_file);
+      // 	}
+      // }
+
     }
     samples["tW_neg"] = new Sample(in_files, "tW_neg", "background");
     samples["tW_neg"]->xsec = 35.85; // pb
@@ -503,7 +574,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   //}
 
     // ================================================================
-    // TTV ---------------------------------------------------------
+    // TTX ---------------------------------------------------------
     // ================================================================
     
   if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttV" || select == "ttW") {
@@ -540,6 +611,23 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "ttX" || select == "ttH" ) {
+    std::cout << "\nAdding files for H2Mu_ttH ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"signal/ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8_ttH.root") );
+    } else {
+      in_file.Form( "%s/ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/ttH/NTuple_0.root", in_dir.Data() );
+      in_files.push_back(in_file);
+    }
+    samples["ttH"] = new Sample(in_files, "ttH", "background");
+    samples["ttH"]->xsec = 0.2151;     // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+ 
   // ================================================================
   // Diboson ------------------------------------------------------
   // ================================================================
@@ -561,20 +649,20 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   //if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_2l") {
-   //  std::cout << "\nAdding files for WZ_2l ..." << std::endl;
-   //  std::vector<TString> in_files;
-   //  TString in_file;
-   //  if (location == "UF") {
-   //    in_files.push_back( TString(in_dir+"diboson/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_WZ_2l.root") );
-   //  } else {
-   //   in_file.Form( "%s/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/WZ_2l/NTuple_0.root", in_dir.Data() );
-   //   in_files.push_back(in_file);
-   //  }
-   //  samples["WZ_2l"] = new Sample(in_files, "WZ_2l", "background");
-   //  samples["WZ_2l"]->xsec = ; // pb
-   //  std::cout << ".... " << in_files.size() << " files added." << std::endl;
-   //}
+   if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_2l") {
+    std::cout << "\nAdding files for WZ_2l ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir+"diboson/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_WZ_2l.root") );
+    } else {
+     in_file.Form( "%s/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/WZ_2l/NTuple_0.root", in_dir.Data() );
+     in_files.push_back(in_file);
+    }
+    samples["WZ_2l"] = new Sample(in_files, "WZ_2l", "background");
+    samples["WZ_2l"]->xsec = 4.409; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+   }
 
   if (select.Contains("ALL") || select == "MC" || select == "BACKGROUND" || select == "VV" || select == "WZ" || select == "WZ_3l") {
     std::cout << "\nAdding files for WZ_3l ..." << std::endl;
@@ -637,8 +725,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
      in_file.Form( "%s/ZZTo4L_13TeV-amcatnloFXFX-pythia8/ZZ_4l_AMC/NTuple_0.root", in_dir.Data() );
      in_files.push_back(in_file);
     }
-    samples["ZZTo4L"] = new Sample(in_files, "ZZTo4L", "background");
-    samples["ZZTo4L"]->xsec = 1.212; // pb
+    samples["ZZ_4l"] = new Sample(in_files, "ZZ_4l", "background");
+    samples["ZZ_4l"]->xsec = 1.212; // pb
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 

@@ -332,7 +332,7 @@ int main(int argc, char* argv[])
         s->vars.validGenJets = std::vector<TLorentzVector>();
 
         jetSelectionTools.getValidJetsdR(s->vars, s->vars.validJets);
-        jetSelectionTools.getValidGenJets(s->vars, s->vars.validGenJets);
+        jetSelectionTools.getValidGenValJets(s->vars, s->vars.validGenJets);
 
         std::pair<int,int> e(s->vars.eventInfo.run, s->vars.eventInfo.event); // create a pair that identifies the event uniquely
 
@@ -430,8 +430,8 @@ int main(int argc, char* argv[])
             if(!useReco) 
             {
                 if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
-                for(unsigned int j=0; j<s->vars.genJets.nJets && j<N_JET_INFO; j++)
-                    hist->Fill(s->vars.genJets.pt[j], s->getWeight());
+                for(unsigned int j=0; j<s->vars.genValJets.nJets && j<N_JET_INFO; j++)
+                    hist->Fill(s->vars.genValJets.pt[j], s->getWeight());
             }
         }
 
@@ -447,8 +447,8 @@ int main(int argc, char* argv[])
             if(!useReco) 
             {
                 if(i<2000) EventTools::outputEvent(s->vars, categorySelection);
-                for(unsigned int j=0; j<s->vars.genJets.nJets && j<N_JET_INFO; j++)
-                    hist->Fill(s->vars.genJets.eta[j], s->getWeight());
+                for(unsigned int j=0; j<s->vars.genValJets.nJets && j<N_JET_INFO; j++)
+                    hist->Fill(s->vars.genValJets.eta[j], s->getWeight());
             }
         }
 
@@ -456,7 +456,7 @@ int main(int argc, char* argv[])
         if(varname.EqualTo("N_jets"))
         {
              if(useReco)  hist->Fill(s->vars.jets.nJets, s->getWeight());
-             if(!useReco) hist->Fill(s->vars.genJets.nJets, s->getWeight());
+             if(!useReco) hist->Fill(s->vars.genValJets.nJets, s->getWeight());
         }
 
         // m_jj
