@@ -44,10 +44,10 @@
 #include "TMVA_helper.h"
 
 // Prescales for data and MC: select 1/Xth of the events in each sample
-const int SIG_PRESC  = 1;
-const int BKG_PRESC  = 1;
-const int DAT_PRESC  = 1;
-const int REPORT_EVT = 10000;
+const UInt_t SIG_PRESC  = 100;
+const UInt_t BKG_PRESC  = 100;
+const UInt_t DAT_PRESC  = 100;
+const UInt_t REPORT_EVT = 10000;
 
 const double PI = 3.14159265359;
 const double BIT = 0.000001; // Tiny value or offset
@@ -135,9 +135,9 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
    // Create a new root output file
    TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/TMVA";
-   // out_dir = ".";
+   out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_28.root", out_dir.Data() );
+   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_29_test.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
@@ -269,10 +269,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // factories.push_back( std::make_tuple( nullF, nullL, "f_evtVars", var_names, var_vals, 
    // 					 0x0000, 0x0000, 0xfffe) );
 
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_BASE", var_names, var_vals, 
-   // 					 0x001c, 0x0ff0, 0x0011) );
+   factories.push_back( std::make_tuple( nullF, nullL, "f_BASE", var_names, var_vals, 
+   					 0x001c, 0x0ff0, 0x0011) );
    factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-					 0x0c5c, 0x0fff, 0x001e) );
+					 0x0e5c, 0x0fff, 0x001e) );
 
 
    // Initialize factories and dataloaders
@@ -309,7 +309,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
    mu_vars.push_back( TMVA_var( "dimu_dR",       "dR(#mu#mu)",           "", 'F', -88 ) ); // 0x0100
    mu_vars.push_back( TMVA_var( "dimu_abs_dEta", "|d#eta(#mu#mu)|",      "", 'F', -88 ) ); // 0x0200
-   mu_vars.push_back( TMVA_var( "dimu_dPhi",     "d#phi(#mu#mu)",        "", 'F', -88 ) ); // 0x0400  
+   mu_vars.push_back( TMVA_var( "dimu_abs_dPhi", "|d#phi(#mu#mu)|",      "", 'F', -88 ) ); // 0x0400  
    mu_vars.push_back( TMVA_var( "dimu_dPhiStar", "d#phi*(#mu#mu)",       "", 'F', -88 ) ); // 0x0800 
 
    // Jet variables
@@ -432,18 +432,14 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
      Int_t prev_evt = -99;
      Int_t this_evt = -88;
+
+     UInt_t presc = 1;
+     if (samp_ID  < 0) presc = SIG_PRESC;
+     if (samp_ID  > 0) presc = BKG_PRESC;
+     if (samp_ID == 0) presc = DAT_PRESC;
+     
      std::cout << "Looping over the " << samp->N << " events in sample " << samp->name << std::endl;
-     for (UInt_t iEvt = 0; iEvt < samp->N; iEvt++) {
-
-       // // Proper implementation, but slow
-       // if (samp_ID  < 0 && iEvt % SIG_PRESC != 0) continue;
-       // if (samp_ID  > 0 && iEvt % BKG_PRESC != 0) continue;
-       // if (samp_ID == 0 && iEvt % DAT_PRESC != 0) continue;
-
-       // Quick implementation, OK for MC, probably not for data
-       if (samp_ID  < 0 && iEvt > (samp->N / SIG_PRESC)) break;
-       if (samp_ID  > 0 && iEvt > (samp->N / BKG_PRESC)) break;
-       if (samp_ID == 0 && iEvt > (samp->N / DAT_PRESC)) break;
+     for (UInt_t iEvt = 0; iEvt < samp->N; iEvt += presc) {
 
        if (iEvt % REPORT_EVT == 0) 
 	 std::cout << "Looking at event " << nEvt << std::endl;
@@ -508,6 +504,11 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        // Throw away events that fail MC specific cuts
        if ( samp->name == "ZJets_MG" && samp->vars.lhe_ht > 70 )
 	 continue;
+       if ( (samp->name == "ttH" || samp->name == "H2Mu_ttH") && samp->vars.genParents->size() == 0 ) {
+	 // std::cout << "\niEvt " << iEvt << " / " << samp->N << " (Run " << samp->vars.eventInfo->run << ", event " << this_evt 
+	 // 	   << ") has no genParents" << std::endl;
+	 continue;
+       }
        if ( samp->name == "ttH" && samp->vars.genParents->at(0).daughter_1_ID == 13 )
 	 continue;
        if ( samp->name == "H2Mu_ttH" && samp->vars.genParents->at(0).daughter_1_ID != 13 )
@@ -579,11 +580,20 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        Double_t samp_wgt = 1.0;
        if (samp_ID != 0) // Half of signal / background MC events go into training, half into testing
 	 samp_wgt = 2.0 * samp->getWeight() * samp->getLumiScaleFactor(LUMI);
-       if (samp_ID  < 0) // Reweight for prescale
-	 samp_wgt *= (1.0 * SIG_PRESC / DAT_PRESC);
-       if (samp_ID  > 0)
-	 samp_wgt *= (1.0 * BKG_PRESC / DAT_PRESC);
+       if (samp_ID != 0) // Reweight for prescale
+	 samp_wgt *= (1.0 * presc / DAT_PRESC);
+
        Double_t LHE_HT = samp->vars.lhe_ht;
+
+       // // Scale for missing events in MC and data
+       // if (samp->name == "ZJets_MG_HT_100_200") samp_wgt *= (1.0 / (1.0 - 0.1217));
+       // if (samp->name == "ZJets_MG_HT_200_400") samp_wgt *= (1.0 / (1.0 - 0.1008));
+       // if (samp->name == "ZJets_MG_HT_400_600") samp_wgt *= (1.0 / (1.0 - 0.1651));
+       // if (samp->name == "tt_ll_MG") samp_wgt *= (1.0 / (1.0 - 0.2164));
+       // if (samp->name == "tW_pos")   samp_wgt *= (1.0 / (1.0 - 0.6218));
+       // if (samp->name == "tW_neg")   samp_wgt *= (1.0 / (1.0 - 0.6254));
+       // if (samp->name == "ttW")      samp_wgt *= (1.0 / (1.0 - 0.4098));
+       // if (samp_ID == 0) samp_wgt *= (36814. / (36814. - 0.9751*9014.)); // 97.5% of RunH lost
 
        Double_t res_wgt = tripGaus->Eval(dimu.mass_Roch) / tripGausNorm;
 
@@ -644,11 +654,11 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	 // Double_t bkg_evt_weight = 1.0;
 
 	 // Weight by expected sample normalization
-	 Double_t sig_evt_weight = samp_wgt;
+	 Double_t sig_evt_weight = samp_wgt * 1000.;
 	 Double_t bkg_evt_weight = samp_wgt;
 	 
 	 // // Weight by expected sample normalization x signal resolution
-	 // Double_t sig_evt_weight = samp_wgt * res_wgt;
+	 // Double_t sig_evt_weight = samp_wgt * res_wgt * 1000.;
 	 // Double_t bkg_evt_weight = samp_wgt;
 	     
 	 // Load values into event
