@@ -243,6 +243,7 @@ class VarSet
         double dimu_dEta()        { return dimuCand->dEta;             };
         double dimu_abs_dEta()    { return TMath::Abs(dimuCand->dEta); };
         double dimu_dPhi()        { return dimuCand->dPhi;             };
+        double dimu_abs_dPhi()    { return TMath::Abs(dimuCand->dPhi); };
         double dimu_dPhiStar() {  // Phi separation in the parent's rest frame
 	  double phi_star = 0;
 	  double mu_dPhi = TMath::Abs(muons->at(dimuCand->iMu1).phi - muons->at(dimuCand->iMu2).phi);
