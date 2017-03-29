@@ -43,78 +43,8 @@
 
 // Extra tools - AWB 13.03.17
 #include "EventTools.h"
+#include "TMVATools.h"
 #include "TMVA_helper.h"
-
-//////////////////////////////////////////////////////////////////////
-// ------------------------------------------------------------------
-//////////////////////////////////////////////////////////////////////
-
-void loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t node, std::vector<TString>& tvars, std::vector<TString>& svars)
-{
-    TString node_name = xml->GetNodeName(node);
-    //std::cout << "node: " << node_name << std::endl;
-   
-    // display attributes
-    XMLAttrPointer_t attr = xml->GetFirstAttr(node);
-    while (attr!=0) 
-    {
-        TString att_string = xml->GetAttrName(attr);
-        TString val_string = xml->GetAttrValue(attr);
-        if(node_name == "Variable" && att_string == "Label")
-        {
-            tvars.push_back(val_string);
-            //printf("attr: \"%s\" value: \"%s\"\n", att_string.Data(), val_string.Data());
-        }
-        if(node_name == "Spectator" && att_string == "Label")
-        {
-            svars.push_back(val_string);
-            //printf("attr: \"%s\" value: \"%s\"\n", att_string.Data(), val_string.Data());
-        }
-        attr = xml->GetNextAttr(attr);
-    }
-
-   // display content (if exists)
-   //const char* content = xml->GetNodeContent(node);
-   //if (content!=0)
-   //    printf("cont: %s\n", content);
-   
-   // display all child nodes
-   XMLNodePointer_t child = xml->GetChild(node);
-   while (child!=0) 
-   {
-       loadFromXMLRecursive(xml, child, tvars, svars);
-       child = xml->GetNext(child);
-   }
-}
-
-//////////////////////////////////////////////////////////////////////
-// ------------------------------------------------------------------
-//////////////////////////////////////////////////////////////////////
-
-void getVarNames(TString filename, std::vector<TString>& tvars, std::vector<TString>& svars)
-{
-    std::cout << Form("/// Reading xmlfile from %s... \n\n", filename.Data());
-    // First create the engine.
-    TXMLEngine* xml = new TXMLEngine;
-
-    // Now try to parse xml file.
-    XMLDocPointer_t xmldoc = xml->ParseFile(filename);
-    if (xmldoc==0)
-    {    
-        delete xml; 
-        return;  
-    }    
-
-    // Get access to main node of the xml file.
-    XMLNodePointer_t mainnode = xml->DocGetRootElement(xmldoc);
-   
-    // Recursively connect nodes together.
-    loadFromXMLRecursive(xml, mainnode, tvars, svars);
-   
-    // Release memory before exit
-    xml->FreeDoc(xmldoc);
-    delete xml; 
-}
 
 //////////////////////////////////////////////////////////////////////
 // ------------------------------------------------------------------
@@ -128,10 +58,12 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
 
    std::map<TString, Sample*> sampleMap;
    GetSamples(sampleMap, "UF", "ZJets_MG_incl");
+   GetSamples(sampleMap, "UF", "H2Mu_gg");
    for(auto& i: sampleMap)
        printf("/// %s in Sample Map\n", i.second->name.Data());
 
-   Sample* s = sampleMap["ZJets_MG"];
+   //Sample* s = sampleMap["ZJets_MG"];
+   Sample* s = sampleMap["H2Mu_gg"];
    printf("/// Using %s for training\n", s->name.Data());
 
    TMVA::Tools::Instance();
@@ -141,52 +73,14 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
 
    TString dir    = "classification/";
    TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
+   TString methodName = "BDTG_default";
 
    /////////////////////////////////////////////////////
    // Book training and spectator vars into reader
 
-   std::vector<TString> tvars;
    std::map<TString, Float_t> tmap;
-
-   std::vector<TString> svars;
    std::map<TString, Float_t> smap;
-   getVarNames(weightfile, tvars, svars);
-
-   // --- Create the Reader object
-   // Vars need to have the same names as in the xml
-   // and they need to be booked in the same order
-
-   TMVA::Reader *reader = new TMVA::Reader( "!Color:!Silent" );    
-   Float_t x = -999;
-
-   std::cout << "/// Booking feature variables ... " << std::endl << std::endl; 
-   for(auto& var: tvars)
-   {
-       std::cout << var << ", ";
-       tmap[var] = -999;
-       reader->AddVariable(var, &tmap[var]);
-   }
-   std::cout << std::endl << std::endl;
-
-   std::cout << "/// Listing feature variable map ... " << std::endl << std::endl; 
-   for(auto& item: tmap)
-   {
-       printf("%s: %f\n", item.first.Data(), item.second);
-   }
-
-   // dumb... Spectator variables declared in the training have to be added to the reader, too
-   std::cout << "/// Booking spectator variables ... " << std::endl << std::endl; 
-   for(auto& var: svars)
-   {
-       std::cout << var << ", ";
-       smap[var] = -999;
-       reader->AddSpectator(var, &smap[var]);
-   }
-   std::cout << std::endl << std::endl;
-
-   // Book BDT method into reader, now that the vars are set up
-   TString methodName = "BDTG_default";
-   reader->BookMVA( methodName, weightfile ); 
+   TMVA::Reader* reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
    
    /////////////////////////////////////////////////////
    // Loop over the events in the sample
@@ -207,9 +101,10 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
 
    std::cout << Form("/// Processing %s \n", s->name.Data());
    s->setBranchAddresses(2);
+   int ngood = 0;
    for(unsigned int i=0; i<s->N; i++)
    {
-      std::cout << Form("  /// GetEntry muon info %s \n", s->name.Data());
+      //std::cout << Form("  /// GetEntry muon info %s \n", s->name.Data());
       // only load essential information for the first set of cuts 
       s->branches.muPairs->GetEntry(i);
       s->branches.muons->GetEntry(i);
@@ -218,7 +113,7 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       if(s->vars.muPairs->size() != 1) continue;
      
       // the dimuon candidate and the muons that make up the pair
-      std::cout << Form("  /// Set dimuon info %s \n", s->name.Data());
+      //std::cout << Form("  /// Set dimuon info %s \n", s->name.Data());
       MuPairInfo& dimu = s->vars.muPairs->at(0); 
       s->vars.dimuCand = &dimu;
       MuonInfo& mu1 = s->vars.muons->at(s->vars.dimuCand->iMu1);
@@ -228,8 +123,8 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       // CUTS  ----------------------------------------------------------
       ///////////////////////////////////////////////////////////////////
       
-      std::cout << Form("  /// Cuts %s \n", s->name.Data());
-      if(dimu.mass < 110 || dimu.mass > 160)
+      //std::cout << Form("  /// Cuts %s \n", s->name.Data());
+      if(dimu.mass < 120 || dimu.mass > 130)
       {
           continue;
       }
@@ -246,8 +141,9 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
           continue;
       }
 
-      std::cout << Form("  /// Get remaining branches %s \n", s->name.Data());
+      //std::cout << Form("  /// Get remaining branches %s \n", s->name.Data());
       s->branches.getEntry(i);
+      ngood++;
 
       // clear vectors for the valid collections
       s->vars.validMuons.clear();
@@ -256,7 +152,7 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       s->vars.validJets.clear();
       s->vars.validBJets.clear();
 
-      std::cout << Form("  /// Load valid collections %s \n", s->name.Data());
+      //std::cout << Form("  /// Load valid collections %s \n", s->name.Data());
       // load valid collections from s->vars raw collections
       jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
       muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
@@ -265,19 +161,11 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
       CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
       CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
-      CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
+      //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
-      std::cout << Form("  /// Set map values %s \n", s->name.Data());
-      for(auto& v: tmap)
-      {
-          tmap[v.first] = s->vars.getValue(v.first.Data());
-          printf("  %s: %f\n", v.first.Data(), v.second);
-      }
-
-      std::cout << Form("  /// Get BDT Output %s \n", s->name.Data());
-      Float_t val = (reader->EvaluateRegression(methodName))[0];
-      printf("  !!! %d) BDT_Prediction: %f\n", i, val);
-      break;
+      Float_t val = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
+      printf("\n  !!! %d) BDT_Prediction: %f\n\n", i, val);
+      if(ngood > 10) break;
    }
    sw.Stop();
    std::cout << "--- End of event loop: "; sw.Print();
