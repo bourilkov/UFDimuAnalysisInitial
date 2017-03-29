@@ -27,6 +27,8 @@ VarSet::VarSet()
 
   TString str;
 
+  varMap["bdt_score"]    = &VarSet::bdt_score;
+
   // Object counting
   varMap["nJets"]        = &VarSet::_nJets;
   varMap["nJetsCent"]    = &VarSet::_nJetsCent;

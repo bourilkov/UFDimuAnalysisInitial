@@ -17,8 +17,8 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = TMVAClassification_H2Mu
-MAIN = TMVAClassificationApplication_H2Mu
-#MAIN = categorize
+#MAIN = TMVAClassificationApplication_H2Mu
+MAIN = categorize
 #MAIN = dyAndDataForFEWZ
 #MAIN = outputCounts
 #MAIN = synchronize
@@ -26,7 +26,7 @@ MAIN = TMVAClassificationApplication_H2Mu
 #MAIN = dycompare
 #MAIN = zcalibration
 #MAIN = fakes
-#MAIN = outputForBDT
+#MAIN = outputForCategorizer
 
 MAINRULES1 = ${LIBDIR}Sample.o ${LIBDIR}VarSet.o ${LIBDIR}ZCalibration.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
 MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o ${TDIR}TMVATools.o

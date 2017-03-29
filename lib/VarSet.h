@@ -42,6 +42,8 @@ class VarSet
         VarSet();
         ~VarSet(){};
 
+        double bdt_out = -999;
+
         // reco weights for mc
         float eff_wgt;            // use this if you don't match MC to trigger
                                   // scales mc to trigger passed data based on pt,eta
@@ -218,6 +220,9 @@ class VarSet
                 }
             }
         }
+
+        // load the bdt score manually beforehand
+        double bdt_score()    { return bdt_out;                };
 
         // Object counting
 	double _nJets()       { return nJets;                  };

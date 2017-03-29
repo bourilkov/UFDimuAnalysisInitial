@@ -107,12 +107,8 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.nJetsFwd->SetAddress(&vars.nJetsFwd);
       branches.nBMed->SetAddress(&vars.nBMed);
 
-      // extra branches needed for run 2 categories
-      if(whichCategories == 2)
-      {    
-          branches.electrons = chain->GetBranch("eles");
-          branches.electrons->SetAddress(&vars.electrons);
-      }
+      branches.electrons = chain->GetBranch("eles");
+      branches.electrons->SetAddress(&vars.electrons);
 
       // extra branches needed for MC samples
       if(!sampleType.EqualTo("data"))

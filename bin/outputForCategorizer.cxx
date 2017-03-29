@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-//                           outputForBDT.cxx                              //
+//                           outputForCategorizer.cxx                      //
 //=========================================================================//
 //                                                                         //
 // output the events in a small window around the higgs mass = 125 GeV     //
-// and their variables so that we can train a bdt to make our              //
+// and their variables so that we can train a categorizer to make our      //
 // categories for us.                                                      //
 //                                                                         //
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,7 @@
 #include "SampleDatabase.cxx"
 
 #include "EventTools.h"
+#include "TMVATools.h"
 #include "PUTools.h"
 #include "ThreadPool.hxx"
 
@@ -123,6 +124,17 @@ int main(int argc, char* argv[])
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
+      TString dir    = "classification/";
+      TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
+      TString methodName = "BDTG_default";
+
+      /////////////////////////////////////////////////////
+      // Book training and spectator vars into reader
+
+      std::map<TString, Float_t> tmap;
+      std::map<TString, Float_t> smap;
+      TMVA::Reader* reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+
       bool isData = s->sampleType == "data";
       TRandom3 r;
 
@@ -146,12 +158,17 @@ int main(int argc, char* argv[])
       for(auto& item: s->vars.varMap)
           vars[item.first.c_str()] = -999;
 
+      for(auto& item: s->vars.varMapI)
+          vars[item.first.c_str()] = -999;
+
       // !!!! output first line of csv to file
       std::ofstream file(Form("csv/bdtcsv/%s_bdt_training_%s.csv", s->name.Data(), whichDY.Data()), std::ofstream::out);
       file << EventTools::outputMapKeysCSV(vars).Data() << std::endl;
 
       // ntuple requires list of variables to be separated by ":" rather than ","
       TString ntuplevars = EventTools::outputMapKeysCSV(vars).ReplaceAll(",", ":");
+      //std::cout << Form("\n   /// Vars to be saved in ntuple \n\n");
+      //std::cout << Form("%s\n", ntuplevars.Data());
       TNtuple* ntuple = new TNtuple(s->name.Data(), s->name.Data(), ntuplevars.Data());
 
       // Objects to help with the cuts and selections
@@ -229,11 +246,7 @@ int main(int argc, char* argv[])
           }
 
           // Load the rest of the information needed
-          s->branches.jets->GetEntry(i);
-          s->branches.mht->GetEntry(i);
-          s->branches.met->GetEntry(i);
-          s->branches.nVertices->GetEntry(i);
-          s->branches.electrons->GetEntry(i);
+          s->branches.getEntry(i);
 
           if(!isData)
           {
@@ -278,6 +291,9 @@ int main(int argc, char* argv[])
           if(isData) vars["weight"] = 1;
           else vars["weight"] = s->getLumiScaleFactor(luminosity)*s->getWeight();
 
+          // set tmva's bdt_score
+          s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
+
           //std::cout << i << " !!! SETTING JETS " << std::endl;
           //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
           s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
@@ -285,6 +301,12 @@ int main(int argc, char* argv[])
           // put the actual value for each feature into our map
           // then output the map to CSV later
           for(auto& item: s->vars.varMap)
+          {
+              // item.first is the name of the feature
+              //std::cout << item.first.c_str() << std::endl;
+              vars[item.first.c_str()] = s->vars.getValue(item.first);
+          }
+          for(auto& item: s->vars.varMapI)
           {
               // item.first is the name of the feature
               //std::cout << item.first.c_str() << std::endl;
@@ -298,8 +320,12 @@ int main(int argc, char* argv[])
           file << EventTools::outputMapValuesCSV(vars).Data() << std::endl;
 
           std::vector<Float_t> varvalues;
+          //std::cout << Form("\n   /// Vars to be saved \n\n");
           for(auto& item: vars)
+          {
+              //std::cout << Form("%s: %f\n", item.first.Data(), item.second);
               varvalues.push_back((Float_t)item.second);
+          }
 
           // fill the ntuple
           ntuple->Fill(&varvalues[0]);
@@ -308,7 +334,7 @@ int main(int argc, char* argv[])
 
         } // end dimucand loop
       } // end event loop
-
+      delete reader;
       file.close();
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());

@@ -23,6 +23,7 @@
 #include "EleCollectionCleaner.h"
 
 #include "EventTools.h"
+#include "TMVATools.h"
 #include "PUTools.h"
 
 #include "SignificanceMetrics.hxx"
@@ -630,6 +631,20 @@ int main(int argc, char* argv[])
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
+      TString dir    = "classification/";
+      TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
+      TString methodName = "BDTG_default";
+
+      /////////////////////////////////////////////////////
+      // Book training and spectator vars into reader
+
+      TMVA::Reader* reader = 0;
+      std::map<TString, Float_t> tmap;
+      std::map<TString, Float_t> smap;
+
+      if(whichCategories == 3)
+          reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+
       ///////////////////////////////////////////////////////////////////
       // INIT Cuts and Categories ---------------------------------------
       ///////////////////////////////////////////////////////////////////
@@ -775,19 +790,7 @@ int main(int argc, char* argv[])
           found_good_dimuon = true; 
 
           // Load the rest of the information needed for run2 categories
-          s->branches.jets->GetEntry(i);
-          s->branches.mht->GetEntry(i);
-          s->branches.met->GetEntry(i);
-          s->branches.nVertices->GetEntry(i);
-          s->branches.electrons->GetEntry(i);
-          //eventInfoBranch->GetEntry(i);
-
-          // Load MC branches if MC
-          if(!isData)
-          {
-              s->branches.nPU->GetEntry(i);
-              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
-          }
+          s->branches.getEntry(i);
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -816,6 +819,7 @@ int main(int argc, char* argv[])
           {
               //std::cout << i << " !!! SETTING JETS " << std::endl;
               //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
+              s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
               s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
           }
 
@@ -1059,6 +1063,8 @@ int main(int argc, char* argv[])
 
         } // end dimu cand loop //
       } // end event loop //
+
+      if(whichCategories == 3) delete reader;
 
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
