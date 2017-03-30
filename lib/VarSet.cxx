@@ -32,7 +32,7 @@ VarSet::VarSet()
   varMap["nJetsCent"]    = &VarSet::_nJetsCent;
   varMap["nJetsFwd"]     = &VarSet::_nJetsFwd;
   varMap["nBMed"]        = &VarSet::_nBMed;
-  // varMap["nValJets"]     = &VarSet::nValJets;
+  varMap["nValJets"]     = &VarSet::nValJets;
   // varMap["nValJetsCent"] = &VarSet::nValJetsCent;
   // varMap["nValJetsFwd"]  = &VarSet::nValJetsFwd;
   varMap["nValBTags"]    = &VarSet::nValBTags;
