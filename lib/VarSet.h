@@ -143,7 +143,7 @@ class VarSet
 	    int iObj = -99;
 	    std::stringstream convert(iStr);
 	    convert >> iObj;
-            return (this->*varMapI[name])(iObj);
+            return (this->*varMapI[name])(iObj - 1); // Vector indices are 1 lower
 	  }
 	  else return -999;
         }
@@ -274,17 +274,17 @@ class VarSet
 	double mu2_abs_eta() { return TMath::Abs(muons->at(dimuCand->iMu2).eta); };
 
 	// Dijet variables
-        double dijet_mass(int i)        { return (i < jetPairs->size()) ? jetPairs->at(i).mass : 0; };
-        double dijet_pt(int i)          { return (i < jetPairs->size()) ? jetPairs->at(i).pt   : 0; };
-        double dijet_dEta(int i)        { return (i < jetPairs->size()) ? jetPairs->at(i).dEta : -10; };
-        double dijet_abs_dEta(int i)    { return (i < jetPairs->size()) ? TMath::Abs(jetPairs->at(i).dEta) : -1; };
+        double dijet_mass(int i)        { return (jetPairs->size() > i) ? jetPairs->at(i).mass : 0; };
+        double dijet_pt(int i)          { return (jetPairs->size() > i) ? jetPairs->at(i).pt   : 0; };
+        double dijet_dEta(int i)        { return (jetPairs->size() > i) ? jetPairs->at(i).dEta : -10; };
+        double dijet_abs_dEta(int i)    { return (jetPairs->size() > i) ? TMath::Abs(jetPairs->at(i).dEta) : -1; };
         double dijet_min_abs_eta(int i) { 
-	  if (i < jetPairs->size())
+	  if (jetPairs->size() > i)
 	    return std::min( TMath::Abs(jets->at(jetPairs->at(i).iJet1).eta), TMath::Abs(jets->at(jetPairs->at(i).iJet2).eta) );
 	  else return 0;
 	}
         double dijet_max_abs_eta(int i) { 
-	  if (i < jetPairs->size())
+	  if (jetPairs->size() > i)
 	    return std::max( TMath::Abs(jets->at(jetPairs->at(i).iJet1).eta), TMath::Abs(jets->at(jetPairs->at(i).iJet2).eta) );
 	  else return 0;
 	}
