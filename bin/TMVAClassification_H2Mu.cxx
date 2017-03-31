@@ -28,6 +28,7 @@
 #include "TMVA/Factory.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/TMVAGui.h"
+#include "TMVA/TMVAMultiClassGui.h"
 
 // Specific includes for UFDimuAnalysis
 #include "Sample.h"
@@ -48,6 +49,7 @@ const UInt_t SIG_PRESC  = 1;
 const UInt_t BKG_PRESC  = 1;
 const UInt_t DAT_PRESC  = 1;
 const UInt_t REPORT_EVT = 10000;
+const UInt_t MAX_EVT    = 1000; // Maximum number of events per sample
 
 const double PI = 3.14159265359;
 const double BIT = 0.000001; // Tiny value or offset
@@ -135,9 +137,9 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 
    // Create a new root output file
    TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/TMVA";
-   // out_dir = ".";
+   out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_30_multiFact.root", out_dir.Data() );
+   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_03_31_multiClass_test.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
@@ -156,9 +158,9 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    GetSamples(samples, "CERN_hiM", "ZJets_MG");
    GetSamples(samples, "CERN_hiM", "tt_ll_MG");
    GetSamples(samples, "CERN_hiM", "singleTop");
-   GetSamples(samples, "CERN_hiM", "VV");
-   GetSamples(samples, "CERN_hiM", "ttX");
-   GetSamples(samples, "CERN_hiM", "DATA");
+   // GetSamples(samples, "CERN_hiM", "VV");
+   // GetSamples(samples, "CERN_hiM", "ttX");
+   // GetSamples(samples, "CERN_hiM", "DATA");
    
    std::cout << std::endl << "\nGot the samples" << std::endl;
 
@@ -188,27 +190,27 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    bkg_samps.push_back( std::make_tuple(samples["tt_ll_MG"], +10) );
    bkg_samps.push_back( std::make_tuple(samples["tW_pos"],   +11) );
    bkg_samps.push_back( std::make_tuple(samples["tW_neg"],   +12) );
-   bkg_samps.push_back( std::make_tuple(samples["tZq"],      +13) );
+   // bkg_samps.push_back( std::make_tuple(samples["tZq"],      +13) );
 
-   bkg_samps.push_back( std::make_tuple(samples["WW"],       +14) );
-   bkg_samps.push_back( std::make_tuple(samples["WZ_2l"],    +15) );
-   bkg_samps.push_back( std::make_tuple(samples["WZ_3l"],    +16) );
-   bkg_samps.push_back( std::make_tuple(samples["ZZ_2l_2q"], +17) );
-   bkg_samps.push_back( std::make_tuple(samples["ZZ_4l"],    +18) );
+   // bkg_samps.push_back( std::make_tuple(samples["WW"],       +14) );
+   // bkg_samps.push_back( std::make_tuple(samples["WZ_2l"],    +15) );
+   // bkg_samps.push_back( std::make_tuple(samples["WZ_3l"],    +16) );
+   // bkg_samps.push_back( std::make_tuple(samples["ZZ_2l_2q"], +17) );
+   // bkg_samps.push_back( std::make_tuple(samples["ZZ_4l"],    +18) );
 
-   bkg_samps.push_back( std::make_tuple(samples["ttW"], +19) );
-   bkg_samps.push_back( std::make_tuple(samples["ttZ"], +20) );
-   // bkg_samps.push_back( std::make_tuple(samples["ttH"], +21) );
+   // bkg_samps.push_back( std::make_tuple(samples["ttW"], +19) );
+   // bkg_samps.push_back( std::make_tuple(samples["ttZ"], +20) );
+   // // bkg_samps.push_back( std::make_tuple(samples["ttH"], +21) );
 
-   dat_samps.push_back( std::make_tuple(samples["RunB"],   0) );
-   dat_samps.push_back( std::make_tuple(samples["RunC"],   0) );
-   dat_samps.push_back( std::make_tuple(samples["RunD"],   0) );
-   dat_samps.push_back( std::make_tuple(samples["RunE"],   0) );
-   dat_samps.push_back( std::make_tuple(samples["RunF_1"], 0) );
-   dat_samps.push_back( std::make_tuple(samples["RunF_2"], 0) );
-   dat_samps.push_back( std::make_tuple(samples["RunG"],   0) );
-   dat_samps.push_back( std::make_tuple(samples["RunH"],   0) );
-   // dat_samps.push_back( std::make_tuple(samples["RunAll"], 0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunB"],   0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunC"],   0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunD"],   0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunE"],   0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunF_1"], 0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunF_2"], 0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunG"],   0) );
+   // dat_samps.push_back( std::make_tuple(samples["RunH"],   0) );
+   // // dat_samps.push_back( std::make_tuple(samples["RunAll"], 0) );
 
    all_samps.insert( all_samps.end(), sig_samps.begin(), sig_samps.end() );
    all_samps.insert( all_samps.end(), bkg_samps.begin(), bkg_samps.end() );
@@ -250,7 +252,8 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    ///  Factories: Use different sets of variables, weights, etc. ///
    //////////////////////////////////////////////////////////////////
    
-   TString fact_set = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
+   // TString fact_set = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
+   TString fact_set = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=multiclass";
    std::vector<TString> var_names; // Holds names of variables for a given factory and permutation
    std::vector<Double_t> var_vals; // Holds values of variables for a given factory and permutation
    TMVA::Factory* nullF = new TMVA::Factory("NULL", out_file, fact_set); // Placeholder factory
@@ -276,32 +279,32 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
    					 0x0e5c, 0x0fff, 0x001e, "all", "all", "ge0j") );
 
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0000, 0x0010, "ggH", "all", "eq0j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0005, 0x001e, "ggH", "all", "eq1j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "ggH", "all", "ge2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0000, 0x0010, "ggH", "all", "eq0j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0005, 0x001e, "ggH", "all", "eq1j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "ggH", "all", "ge2j") );
 
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x011f, 0x001a, "VBF", "all", "eq2j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "VBF", "all", "ge3j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x011f, 0x001a, "VBF", "all", "eq2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "VBF", "all", "ge3j") );
 
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x011f, 0x001a, "VH", "all", "eq2j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "VH", "all", "ge3j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x011f, 0x001a, "VH", "all", "eq2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "VH", "all", "ge3j") );
 
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "ggH", "ZJets", "ge0j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "ggH", "ttbar", "ge0j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "ggH", "ZJets", "ge0j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "ggH", "ttbar", "ge0j") );
 
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "VBF", "ZJets", "ge2j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   					 0x0e5c, 0x0fff, 0x001e, "VBF", "ttbar", "ge2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "VBF", "ZJets", "ge2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
+   // 					 0x0e5c, 0x0fff, 0x001e, "VBF", "ttbar", "ge2j") );
 
 
 
@@ -460,11 +463,36 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    std::vector<UInt_t> nTrain_bkg;
    std::vector<UInt_t> nTest_sig;
    std::vector<UInt_t> nTest_bkg;
+
+   std::vector<UInt_t> nTrain_ggH;
+   std::vector<UInt_t> nTrain_VBF;
+   std::vector<UInt_t> nTrain_VH;
+   std::vector<UInt_t> nTrain_EWK;
+   std::vector<UInt_t> nTrain_TOP;
+
+   std::vector<UInt_t> nTest_ggH;
+   std::vector<UInt_t> nTest_VBF;
+   std::vector<UInt_t> nTest_VH;
+   std::vector<UInt_t> nTest_EWK;
+   std::vector<UInt_t> nTest_TOP;
+
    for (UInt_t iFact = 0; iFact < factories.size(); iFact++) {
      nTrain_sig.push_back(0);
      nTrain_bkg.push_back(0);
      nTest_sig.push_back(0);
      nTest_bkg.push_back(0);
+
+     nTrain_ggH.push_back(0);
+     nTrain_VBF.push_back(0);
+     nTrain_VH.push_back(0);
+     nTrain_EWK.push_back(0);
+     nTrain_TOP.push_back(0);
+
+     nTest_ggH.push_back(0);
+     nTest_VBF.push_back(0);
+     nTest_VH.push_back(0);
+     nTest_EWK.push_back(0);
+     nTest_TOP.push_back(0);
    }
 
    for (int iSamp = 0; iSamp < all_samps.size(); iSamp++) {
@@ -481,6 +509,8 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
      
      std::cout << "Looping over the " << samp->N << " events in sample " << samp->name << std::endl;
      for (UInt_t iEvt = 0; iEvt < samp->N; iEvt += presc) {
+
+       if (iEvt > MAX_EVT) break;
 
        if (iEvt % REPORT_EVT == 0) 
 	 std::cout << "Looking at event " << nEvt << std::endl;
@@ -721,13 +751,30 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	   }
 	   
 	 } // End loop: for (UInt_t iVar = 0; iVar < var_names.size(); iVar++)
-	     
+
+	 TString multi_str;
+	 if      (samp_ID == -1)
+	   multi_str = "ggH";
+	 else if (samp_ID == -2)
+	   multi_str = "VBF";
+	 else if (samp_ID < -2 && samp_ID > -6)
+	   multi_str = "VH";
+	 else if ( (samp_ID > 0 && samp_ID < 10) || (samp_ID > 13 && samp_ID < 19) )
+	   multi_str = "EWK";
+	 else if ( (samp_ID > 9 && samp_ID < 14) || (samp_ID > 18) )
+	   multi_str = "TOP";
+	 else if (samp_ID == 0)
+	   multi_str = "DATA";
+	 else
+	   multi_str = "OTHER";
+
 	 // // Unweighted signal and background
 	 // Double_t sig_evt_weight = 1.0;
 	 // Double_t bkg_evt_weight = 1.0;
 
 	 // Weight by expected sample normalization
-	 Double_t sig_evt_weight = samp_wgt * 1000.;
+	 // Double_t sig_evt_weight = samp_wgt * 1000.;
+	 Double_t sig_evt_weight = samp_wgt;  // Don't weight signal for MultiClass
 	 Double_t bkg_evt_weight = samp_wgt;
 	 
 	 // // Weight by expected sample normalization x signal resolution
@@ -737,25 +784,46 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	 // Load values into event
 	 if (samp_ID < 0) { // Signal MC
 	   if ( (iEvt % (2*presc)) == 0 ) {
-	     std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, sig_evt_weight );
-	     nTrain_sig.at(iFact) += 1;
+	     // std::get<1>(factories.at(iFact))->AddSignalTrainingEvent( var_vals, sig_evt_weight );
+	     // nTrain_sig.at(iFact) += 1;
+
+	     std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, sig_evt_weight );
+	     if (multi_str == "ggH") nTrain_ggH.at(iFact) += 1;
+	     if (multi_str == "VBF") nTrain_VBF.at(iFact) += 1;
+	     if (multi_str == "VH")  nTrain_VH.at(iFact)  += 1;
 	   } else {
-	     std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, sig_evt_weight );
-	     nTest_sig.at(iFact) += 1;
+	     // std::get<1>(factories.at(iFact))->AddSignalTestEvent( var_vals, sig_evt_weight );
+	     // nTest_sig.at(iFact) += 1;
+
+	     std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, sig_evt_weight );
+	     if (multi_str == "ggH") nTest_ggH.at(iFact) += 1;
+	     if (multi_str == "VBF") nTest_VBF.at(iFact) += 1;
+	     if (multi_str == "VH")  nTest_VH.at(iFact)  += 1;
 	   }
 	 }
 	 if (samp_ID > 0) { // Background MC
 	   if ( (iEvt % (2*presc)) == 0 ) {
-	     std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, bkg_evt_weight );
+	     // std::get<1>(factories.at(iFact))->AddBackgroundTrainingEvent( var_vals, bkg_evt_weight );
+	     // nTrain_bkg.at(iFact) += 1;
+
+	     std::get<1>(factories.at(iFact))->AddTrainingEvent( multi_str, var_vals, bkg_evt_weight );
+	     if (multi_str == "EWK") nTrain_EWK.at(iFact) += 1;
+	     if (multi_str == "TOP") nTrain_TOP.at(iFact) += 1;
 	     nTrain_bkg.at(iFact) += 1;
 	   } else {
-	     std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, bkg_evt_weight );
-	     nTest_bkg.at(iFact) += 1;
+	     // std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, bkg_evt_weight );
+	     // nTest_bkg.at(iFact) += 1;
+
+	     std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, bkg_evt_weight );
+	     if (multi_str == "EWK") nTest_EWK.at(iFact) += 1;
+	     if (multi_str == "TOP") nTest_TOP.at(iFact) += 1;
 	   }
 	 }
 	 if (samp_ID == 0) { // Data
-	   std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, bkg_evt_weight );
-	   nTest_bkg.at(iFact) += 1;
+	   // std::get<1>(factories.at(iFact))->AddBackgroundTestEvent( var_vals, bkg_evt_weight );
+	   // nTest_bkg.at(iFact) += 1;
+
+	   std::get<1>(factories.at(iFact))->AddTestEvent( multi_str, var_vals, bkg_evt_weight );
 	 }
 
        } // End loop: for (UInt_t iFact = 0; iFact < factories.size(); iFact++) 
@@ -776,18 +844,50 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
      // std::cout << "Factory " << iFact << " has " << nTrain_sig.at(iFact) << "sig / " << nTrain_bkg.at(iFact) 
      // 	       << " bkg training events, " << nTest_sig.at(iFact) << " sig / " << nTest_bkg.at(iFact) << " bkg testing" << std::endl;
 
-     std::string NTrS;
-     std::string NTrB;
+     // std::string NTrS;
+     // std::string NTrB;
      
-     std::ostringstream convertTrS;
-     convertTrS << nTrain_sig.at(iFact);
-     NTrS = convertTrS.str();
-     std::ostringstream convertTrB;
-     convertTrB << nTrain_bkg.at(iFact);
-     NTrB = convertTrB.str();
+     // std::ostringstream convertTrS;
+     // convertTrS << nTrain_sig.at(iFact);
+     // NTrS = convertTrS.str();
+     // std::ostringstream convertTrB;
+     // convertTrB << nTrain_bkg.at(iFact);
+     // NTrB = convertTrB.str();
      
-     std::string numTrainStr = "nTrain_Signal="+NTrS+":nTrain_Background="+NTrB+":";
-     std::cout << "For factory " << iFact << ", NTrS: " << NTrS << ", NTrB: " << NTrB << std::endl;
+     // std::string numTrainStr = "nTrain_Signal="+NTrS+":nTrain_Background="+NTrB+":";
+     // std::cout << "For factory " << iFact << ", NTrS: " << NTrS << ", NTrB: " << NTrB << std::endl;
+     
+
+     // Settings for MultiClass
+     std::string NTr_ggH;
+     std::string NTr_VBF;
+     std::string NTr_VH;
+     std::string NTr_EWK;
+     std::string NTr_TOP;
+     
+     std::ostringstream convertTr_ggH;
+     convertTr_ggH << nTrain_ggH.at(iFact);
+     NTr_ggH = convertTr_ggH.str();
+
+     std::ostringstream convertTr_VBF;
+     convertTr_VBF << nTrain_VBF.at(iFact);
+     NTr_VBF = convertTr_VBF.str();
+
+     std::ostringstream convertTr_VH;
+     convertTr_VH << nTrain_VH.at(iFact);
+     NTr_VH = convertTr_VH.str();
+
+     std::ostringstream convertTr_EWK;
+     convertTr_EWK << nTrain_EWK.at(iFact);
+     NTr_EWK = convertTr_EWK.str();
+
+     std::ostringstream convertTr_TOP;
+     convertTr_TOP << nTrain_TOP.at(iFact);
+     NTr_TOP = convertTr_TOP.str();
+
+     std::string numTrainStr = "nTrain_ggH="+NTr_ggH+":nTrain_VBF="+NTr_VBF+":nTrain_VH="+NTr_VH+":nTrain_EWK="+NTr_EWK+":nTrain_TOP="+NTr_TOP+":";
+     std::cout << "For factory " << iFact << ", loading " << numTrainStr << std::endl;
+
      
      // // global event weights per tree (see below for setting event-wise weights)
      // Double_t regWeight  = 1.0;
