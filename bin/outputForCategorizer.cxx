@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       TString dir    = "classification/";
-      TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
+      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
       TString methodName = "BDTG_default";
 
       /////////////////////////////////////////////////////
