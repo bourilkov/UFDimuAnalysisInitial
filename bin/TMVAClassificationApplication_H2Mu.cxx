@@ -72,7 +72,8 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
    std::cout << "==> Start TMVAClassificationApplication_H2Mu" << std::endl << std::endl;
 
    TString dir    = "classification/";
-   TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
+   //TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
+   TString weightfile = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
    TString methodName = "BDTG_default";
 
    /////////////////////////////////////////////////////
@@ -81,6 +82,9 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
    std::map<TString, Float_t> tmap;
    std::map<TString, Float_t> smap;
    TMVA::Reader* reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+   
+   std::vector<TString> classes; 
+   TMVATools::getClassNames(weightfile, classes);
    
    /////////////////////////////////////////////////////
    // Loop over the events in the sample
@@ -163,8 +167,16 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
       //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
-      Float_t val = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
-      printf("\n  !!! %d) BDT_Prediction: %f\n\n", i, val);
+      std::cout << std::endl;
+      //Float_t val = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
+      //printf("\n  !!! %d) BDT_Prediction: %f\n\n", i, val);
+      std::vector<float> vals = TMVATools::getMulticlassScores(reader, methodName, tmap, s->vars);
+      for(unsigned int j=0; j<vals.size(); j++)
+      {
+          printf("!!! %d) %s: %f\n", i, classes[j].Data(), vals[j]);
+      }
+      std::cout << std::endl;
+    
       if(ngood > 10) break;
    }
    sw.Stop();

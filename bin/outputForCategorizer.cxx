@@ -195,6 +195,7 @@ int main(int argc, char* argv[])
         // only load essential information for the first set of cuts 
         s->branches.muPairs->GetEntry(i);
         s->branches.muons->GetEntry(i);
+        s->branches.eventInfo->GetEntry(i);
     
         // loop and find a good dimuon candidate
         if(s->vars.muPairs->size() < 1) continue;
@@ -225,12 +226,7 @@ int main(int argc, char* argv[])
           {
               continue;
           }
-          // randomly throw away half the data to avoid over training
-          // weight each data event 2x later to make up for this
-          //if(isData && r.Rndm() > 0.5)
-          //{
-          //    continue;
-          //}
+
           // usual cuts
           if(!mu1.isMediumID || !mu2.isMediumID)
           { 
@@ -243,6 +239,16 @@ int main(int argc, char* argv[])
           if(!run2MuonSelection.evaluate(s->vars)) 
           {
               continue; 
+          }
+
+          // avoid double counting in RunF
+          if(s->name == "RunF_1" && s->vars.eventInfo->run > 278801)
+          {
+              continue;
+          }
+          if(s->name == "RunF_2" && s->vars.eventInfo->run < 278802)
+          {
+              continue;
           }
 
           // Load the rest of the information needed

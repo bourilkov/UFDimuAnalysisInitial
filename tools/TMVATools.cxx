@@ -12,43 +12,33 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void TMVATools::getVarNamesRecursive(TXMLEngine* xml, XMLNodePointer_t node, std::vector<TString>& tvars, std::vector<TString>& svars)
+void TMVATools::getNamesRecursive(TXMLEngine* xml, XMLNodePointer_t node, TString node_name, TString node_att, std::vector<TString>& names)
 {
 // Get the variable names that were used in the training for this classification model
 // tvars are the variables used in the training, svars are the spectator variables
 
-    TString node_name = xml->GetNodeName(node);
-    //std::cout << "node: " << node_name << std::endl;
+   TString nname = xml->GetNodeName(node);
+   //std::cout << "node: " << node_name << std::endl;
    
-    // display attributes
-    XMLAttrPointer_t attr = xml->GetFirstAttr(node);
-    while (attr!=0) 
-    {
-        TString att_string = xml->GetAttrName(attr);
-        TString val_string = xml->GetAttrValue(attr);
-        if(node_name == "Variable" && att_string == "Label")
-        {
-            tvars.push_back(val_string);
-            //printf("attr: \"%s\" value: \"%s\"\n", att_string.Data(), val_string.Data());
-        }
-        if(node_name == "Spectator" && att_string == "Label")
-        {
-            svars.push_back(val_string);
-            //printf("attr: \"%s\" value: \"%s\"\n", att_string.Data(), val_string.Data());
-        }
-        attr = xml->GetNextAttr(attr);
-    }
-
-   // display content (if exists)
-   //const char* content = xml->GetNodeContent(node);
-   //if (content!=0)
-   //    printf("cont: %s\n", content);
+   // display attributes
+   XMLAttrPointer_t attr = xml->GetFirstAttr(node);
+   while (attr!=0) 
+   {
+       TString att_string = xml->GetAttrName(attr);
+       TString val_string = xml->GetAttrValue(attr);
+       if(nname == node_name && att_string == node_att)
+       {
+           names.push_back(val_string);
+           //printf("attr: \"%s\" value: \"%s\"\n", att_string.Data(), val_string.Data());
+       }
+       attr = xml->GetNextAttr(attr);
+   }
    
    // display all child nodes
    XMLNodePointer_t child = xml->GetChild(node);
    while (child!=0) 
    {
-       getVarNamesRecursive(xml, child, tvars, svars);
+       getNamesRecursive(xml, child, node_name, node_att, names);
        child = xml->GetNext(child);
    }   
 }
@@ -57,7 +47,7 @@ void TMVATools::getVarNamesRecursive(TXMLEngine* xml, XMLNodePointer_t node, std
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-void TMVATools::getVarNames(TString filename, std::vector<TString>& tvars, std::vector<TString>& svars)
+void TMVATools::getNames(TString filename, TString node_name, TString node_att, std::vector<TString>& names)
 {
 // Get the variable names that were used in the training for this classification model
 // tvars are the variables used in the training, svars are the spectator variables
@@ -77,12 +67,40 @@ void TMVATools::getVarNames(TString filename, std::vector<TString>& tvars, std::
     XMLNodePointer_t mainnode = xml->DocGetRootElement(xmldoc);
 
     // Recursively connect nodes together.
-    getVarNamesRecursive(xml, mainnode, tvars, svars);
+    getNamesRecursive(xml, mainnode, node_name, node_att, names);
 
     // Release memory before exit
     xml->FreeDoc(xmldoc);
     delete xml;
 }
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+void TMVATools::getVarNames(TString filename, std::vector<TString>& tvars, std::vector<TString>& svars)
+{
+// Get the variable names that were used in the training for this classification model
+// tvars are the variables used in the training, svars are the spectator variables
+
+    // Recursively connect nodes together.
+    getNames(filename, "Variable", "Label", tvars);
+    getNames(filename, "Spectator", "Label", svars);
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+void TMVATools::getClassNames(TString filename, std::vector<TString>& classes)
+{
+// Get the variable names that were used in the training for this classification model
+// tvars are the variables used in the training, svars are the spectator variables
+
+    // Recursively connect nodes together.
+    getNames(filename, "Class", "Name", classes);
+}
+
 
 //////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------
@@ -145,3 +163,24 @@ float TMVATools::getClassifierScore(TMVA::Reader* reader, TString methodName, st
       //std::cout << std::endl << Form("  /// Get BDT Output %s \n", s->name.Data());
       return reader->EvaluateMVA(methodName);
 }
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+std::vector<float> TMVATools::getMulticlassScores(TMVA::Reader* reader, TString methodName, std::map<TString, Float_t>& tmap, VarSet& varset)
+{
+// assuming that the reader has been initialized with the tmva weight file
+// and the appropriate vars, get the classifier score
+
+      //std::cout << Form("\n  /// Set map values %s \n\n", s->name.Data());
+      for(auto& v: tmap)
+      {   
+          tmap[v.first] = varset.getValue(v.first.Data());
+          //printf("  %s: %f\n", v.first.Data(), v.second);
+      }   
+
+      //std::cout << std::endl << Form("  /// Get BDT Output %s \n", s->name.Data());
+      return reader->EvaluateMulticlass(methodName);
+}
+
