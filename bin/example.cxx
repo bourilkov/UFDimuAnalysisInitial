@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     Run2EventSelectionCuts run2EventSelectionMC;
 
    //TString xmlfile = "/home/puno/h2mumu/bdt/studies/h2mumu/trees/MAYHEM/tree_nodes16_minbkg25_unctype0_nparams999p0000_scale1_PoissonSignificance.xml";
-   TString xmlfile = "/home/puno/h2mumu/bdt/studies/h2mumu/trees/scale_for_fluctuations/tree_nodes16_minbkg25_unctype0_nparams1p0000_scale1_PoissonSignificance.xml";
+   TString xmlfile = "/home/puno/h2mumu/bdt/studies/h2mumu/trees/tree_bdtmultires_nodes16_minbkg200_unctype0_nparams1p0000_scale0_PoissonSignificance.xml";
    XMLCategorizer xmlc(xmlfile);
    xmlc.outputResults();
 

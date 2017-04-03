@@ -125,8 +125,11 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       TString dir    = "classification/";
-      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
       TString methodName = "BDTG_default";
+
+      // classification and multiclassification
+      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
+      TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
 
       /////////////////////////////////////////////////////
       // Book training and spectator vars into reader
@@ -134,6 +137,10 @@ int main(int argc, char* argv[])
       std::map<TString, Float_t> tmap;
       std::map<TString, Float_t> smap;
       TMVA::Reader* reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+
+      std::map<TString, Float_t> tmap_multi;
+      std::map<TString, Float_t> smap_multi;
+      TMVA::Reader* reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
 
       bool isData = s->sampleType == "data";
       TRandom3 r;
@@ -300,6 +307,15 @@ int main(int argc, char* argv[])
           // set tmva's bdt_score
           s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
 
+          // load multi results into varset
+          std::vector<float> bdt_multi_scores = TMVATools::getMulticlassScores(reader_multi, methodName, tmap_multi, s->vars);
+          s->vars.bdt_ggh_out = bdt_multi_scores[0];
+          s->vars.bdt_vbf_out = bdt_multi_scores[1];
+          s->vars.bdt_vh_out  = bdt_multi_scores[2];
+          s->vars.bdt_ewk_out = bdt_multi_scores[3];
+          s->vars.bdt_top_out = bdt_multi_scores[4];
+
+
           //std::cout << i << " !!! SETTING JETS " << std::endl;
           //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
           s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
@@ -341,6 +357,7 @@ int main(int argc, char* argv[])
         } // end dimucand loop
       } // end event loop
       delete reader;
+      delete reader_multi;
       file.close();
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());

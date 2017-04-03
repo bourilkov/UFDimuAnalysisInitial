@@ -632,8 +632,12 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       TString dir    = "classification/";
-      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
       TString methodName = "BDTG_default";
+
+
+      // sig vs bkg and multiclass (ggf, vbf, ... drell yan, ttbar) weight files
+      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
+      TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
 
       /////////////////////////////////////////////////////
       // Book training and spectator vars into reader
@@ -642,8 +646,16 @@ int main(int argc, char* argv[])
       std::map<TString, Float_t> tmap;
       std::map<TString, Float_t> smap;
 
+      TMVA::Reader* reader_multi = 0;
+      std::map<TString, Float_t> tmap_multi;
+      std::map<TString, Float_t> smap_multi;
+
+      // load tmva binary classification and multiclass classifiers
       if(whichCategories == 3)
-          reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+      {
+          reader       = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+          reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
+      }
 
       ///////////////////////////////////////////////////////////////////
       // INIT Cuts and Categories ---------------------------------------
@@ -839,6 +851,15 @@ int main(int argc, char* argv[])
               //std::cout << i << " !!! SETTING JETS " << std::endl;
               //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
               s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
+
+              // load multi results into varset
+              std::vector<float> bdt_multi_scores = TMVATools::getMulticlassScores(reader_multi, methodName, tmap_multi, s->vars);
+              s->vars.bdt_ggh_out = bdt_multi_scores[0];
+              s->vars.bdt_vbf_out = bdt_multi_scores[1];
+              s->vars.bdt_vh_out  = bdt_multi_scores[2];
+              s->vars.bdt_ewk_out = bdt_multi_scores[3];
+              s->vars.bdt_top_out = bdt_multi_scores[4];
+
               s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
           }
 

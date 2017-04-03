@@ -43,6 +43,11 @@ class VarSet
         ~VarSet(){};
 
         double bdt_out = -999;
+        double bdt_ggh_out = -999;
+        double bdt_vbf_out = -999;
+        double bdt_vh_out = -999;
+        double bdt_ewk_out = -999;
+        double bdt_top_out = -999;
 
         // reco weights for mc
         float eff_wgt;            // use this if you don't match MC to trigger
@@ -223,6 +228,11 @@ class VarSet
 
         // load the bdt score manually beforehand
         double bdt_score()    { return bdt_out;                };
+        double bdt_ggh_score(){ return bdt_ggh_out;            };
+        double bdt_vbf_score(){ return bdt_vbf_out;            };
+        double bdt_vh_score() { return bdt_vh_out;             };
+        double bdt_ewk_score(){ return bdt_ewk_out;            };
+        double bdt_top_score(){ return bdt_top_out;            };
 
         // Object counting
 	double _nJets()       { return nJets;                  };
