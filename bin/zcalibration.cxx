@@ -376,6 +376,7 @@ int main(int argc, char* argv[])
         // only load essential information for the first set of cuts 
         s->branches.muPairs->GetEntry(i);
         s->branches.muons->GetEntry(i);
+        s->branches.eventInfo->GetEntry(i);
 
         // need a dimuon candidate to fill the zmass
         if(s->vars.muPairs->size() < 1) continue;
@@ -406,6 +407,15 @@ int main(int argc, char* argv[])
               continue; 
           }
 
+          // avoid double counting for RunF
+          if(s->name == "RunF_1" && s->vars.eventInfo->run > 278801)
+          {
+              continue;
+          }
+          if(s->name == "RunF_2" && s->vars.eventInfo->run < 278802)
+          {
+              continue;
+          }
    
           // complicated muon ID selection
           bool isTight = false;

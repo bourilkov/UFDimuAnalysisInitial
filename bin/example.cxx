@@ -95,6 +95,14 @@ int main(int argc, char* argv[])
     Run2MuonSelectionCuts  run2MuonSelection;
     Run2EventSelectionCuts run2EventSelectionMC;
 
+   //TString xmlfile = "/home/puno/h2mumu/bdt/studies/h2mumu/trees/MAYHEM/tree_nodes16_minbkg25_unctype0_nparams999p0000_scale1_PoissonSignificance.xml";
+   TString xmlfile = "/home/puno/h2mumu/bdt/studies/h2mumu/trees/tree_bdtmultires_nodes16_minbkg200_unctype0_nparams1p0000_scale0_PoissonSignificance.xml";
+   XMLCategorizer xmlc(xmlfile);
+   xmlc.outputResults();
+
+/*
+
+
     // object to categorize the event appropriately. can make your own categorizer or use one of those in
     // ../selection/CategorySelection.h. use one defined there or make your own implementing the interface.
 
@@ -103,6 +111,8 @@ int main(int argc, char* argv[])
     // Then each category object can store histograms in category.histoMap<TString, TH1D*>
     // use categorySelection.evaluate(s->vars) to see which category the event falls into
     CategorySelectionRun1 categorySelection;
+
+
 
     // Set up the histograms for each cateory, so we can fill them later
     // c.first is the category name, c.second is the category object
@@ -227,4 +237,5 @@ int main(int argc, char* argv[])
     f->Write();
     f->Close();
     std::cout << "Done." << std::endl << std::endl;
+*/
 }

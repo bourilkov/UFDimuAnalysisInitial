@@ -52,9 +52,7 @@ int main(int argc, char* argv[])
   GetSamples(sampleMap, "UF", "ZJets_MG");
 
   // Get DY AMC sample so that we can compare that to MG as well
-  std::map<TString, Sample*> sampleMapAMC;
-  GetSamples(sampleMapAMC, "UF", "ZJets_AMC");
-  sampleMap["ZJets_AMC"] = sampleMapAMC["ZJets_AMC"];
+  GetSamples(sampleMap, "UF", "ZJets_AMC");
 
   int nthreads = 9;        // number of threads to use in parallelization
   float luminosity = 36814;

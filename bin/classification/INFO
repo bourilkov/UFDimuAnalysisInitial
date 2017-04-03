@@ -1,0 +1,3 @@
+f_Opt1_BDTG_default.weights.xml                             # original tmva classification training w/ m_jj bug
+f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml        # 2nd tmva classification training m_jj bug fixed
+f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml   # TMVA multiclass assuming 0bjets

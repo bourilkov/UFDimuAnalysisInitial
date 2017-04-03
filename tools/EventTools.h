@@ -19,7 +19,6 @@
 #include <fstream>
 
 #include "TString.h"
-#include "EventTools.h"
 #include "CategorySelection.h"
 #include "JetCollectionCleaner.h"
 

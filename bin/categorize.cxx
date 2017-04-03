@@ -23,6 +23,7 @@
 #include "EleCollectionCleaner.h"
 
 #include "EventTools.h"
+#include "TMVATools.h"
 #include "PUTools.h"
 
 #include "SignificanceMetrics.hxx"
@@ -630,6 +631,32 @@ int main(int argc, char* argv[])
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
+      TString dir    = "classification/";
+      TString methodName = "BDTG_default";
+
+
+      // sig vs bkg and multiclass (ggf, vbf, ... drell yan, ttbar) weight files
+      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
+      TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
+
+      /////////////////////////////////////////////////////
+      // Book training and spectator vars into reader
+
+      TMVA::Reader* reader = 0;
+      std::map<TString, Float_t> tmap;
+      std::map<TString, Float_t> smap;
+
+      TMVA::Reader* reader_multi = 0;
+      std::map<TString, Float_t> tmap_multi;
+      std::map<TString, Float_t> smap_multi;
+
+      // load tmva binary classification and multiclass classifiers
+      if(whichCategories == 3)
+      {
+          reader       = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+          reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
+      }
+
       ///////////////////////////////////////////////////////////////////
       // INIT Cuts and Categories ---------------------------------------
       ///////////////////////////////////////////////////////////////////
@@ -715,6 +742,7 @@ int main(int argc, char* argv[])
         // only load essential information for the first set of cuts 
         s->branches.muPairs->GetEntry(i);
         s->branches.muons->GetEntry(i);
+        s->branches.eventInfo->GetEntry(i);
 
         // loop and find a good dimuon candidate
         if(s->vars.muPairs->size() < 1) continue;
@@ -757,6 +785,14 @@ int main(int argc, char* argv[])
           // CUTS  ----------------------------------------------------------
           ///////////////////////////////////////////////////////////////////
 
+          // only consider events w/ dimu_mass in the histogram range,
+          // so the executable doesn't take forever, especially w/ tmva evaluation.
+          if(varNumber <= 0 && (dimu.mass < min || dimu.mass > max))
+          {
+              continue;
+          }
+
+          // normal selections
           if(!run2EventSelection.evaluate(s->vars))
           { 
               continue; 
@@ -770,24 +806,22 @@ int main(int argc, char* argv[])
               continue; 
           }
 
+          // avoid double counting in RunF
+          if(s->name == "RunF_1" && s->vars.eventInfo->run > 278801)
+          {
+              continue;
+          }
+          if(s->name == "RunF_2" && s->vars.eventInfo->run < 278802)
+          {
+              continue;
+          }
+
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
           found_good_dimuon = true; 
 
           // Load the rest of the information needed for run2 categories
-          s->branches.jets->GetEntry(i);
-          s->branches.mht->GetEntry(i);
-          s->branches.met->GetEntry(i);
-          s->branches.nVertices->GetEntry(i);
-          s->branches.electrons->GetEntry(i);
-          //eventInfoBranch->GetEntry(i);
-
-          // Load MC branches if MC
-          if(!isData)
-          {
-              s->branches.nPU->GetEntry(i);
-              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
-          }
+          s->branches.getEntry(i);
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
@@ -816,6 +850,16 @@ int main(int argc, char* argv[])
           {
               //std::cout << i << " !!! SETTING JETS " << std::endl;
               //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
+              s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
+
+              // load multi results into varset
+              std::vector<float> bdt_multi_scores = TMVATools::getMulticlassScores(reader_multi, methodName, tmap_multi, s->vars);
+              s->vars.bdt_ggh_out = bdt_multi_scores[0];
+              s->vars.bdt_vbf_out = bdt_multi_scores[1];
+              s->vars.bdt_vh_out  = bdt_multi_scores[2];
+              s->vars.bdt_ewk_out = bdt_multi_scores[3];
+              s->vars.bdt_top_out = bdt_multi_scores[4];
+
               s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
           }
 
@@ -1059,6 +1103,8 @@ int main(int argc, char* argv[])
 
         } // end dimu cand loop //
       } // end event loop //
+
+      if(whichCategories == 3) delete reader;
 
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)

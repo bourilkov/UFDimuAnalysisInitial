@@ -17,21 +17,22 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 
 # The name of the .cxx file you want to compile into an executable
 #MAIN = TMVAClassification_H2Mu
-#MAIN = categorize
+#MAIN = TMVAClassificationApplication_H2Mu
+MAIN = categorize
 #MAIN = dyAndDataForFEWZ
-MAIN = outputCounts
+#MAIN = outputCounts
 #MAIN = synchronize
 #MAIN = example
 #MAIN = dycompare
 #MAIN = zcalibration
 #MAIN = fakes
-#MAIN = outputForBDT
+#MAIN = outputForCategorizer
 
 MAINRULES1 = ${LIBDIR}Sample.o ${LIBDIR}VarSet.o ${LIBDIR}ZCalibration.o ${SDIR}EventSelection.o ${SDIR}MuonSelection.o ${SDIR}CategorySelection.o  
-MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o
+MAINRULES2 = ${CDIR}EleCollectionCleaner.o ${CDIR}JetCollectionCleaner.o ${CDIR}MuonCollectionCleaner.o ${TDIR}TMVATools.o
 MAINRULES3 = ${LIBDIR}DiMuPlottingSystem.o ${TDIR}EventTools.o ${TDIR}PUTools.o ${TDIR}ParticleTools.o libAnalysisObjects.so ${MAIN}.oo 
-MAINDEPS   = ${THREADDIR}ThreadPool.hxx ${LIBDIR}BranchSet.h SampleDatabase.cxx ${CDIR}CollectionCleaner.hxx
-DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx ${CDIR}CollectionCleaner.hxx
+MAINDEPS   = ${THREADDIR}ThreadPool.hxx ${LIBDIR}BranchSet.h SampleDatabase.cxx ${CDIR}CollectionCleaner.hxx ${LIBDIR}VarSet.h
+DEPS       = ${LIBDIR}Cut.h ${LIBDIR}CutSet.hxx SignificanceMetrics.hxx ${CDIR}CollectionCleaner.hxx ${LIBDIR}VarSet.h
 
 # ANALYZER objects that were stored into the ttree need to be linked to ROOT
 # by creating a dictionary

@@ -27,6 +27,13 @@ VarSet::VarSet()
 
   TString str;
 
+  varMap["bdt_score"]     = &VarSet::bdt_score;
+  varMap["bdt_vbf_score"] = &VarSet::bdt_vbf_score;
+  varMap["bdt_ggh_score"] = &VarSet::bdt_ggh_score;
+  varMap["bdt_vh_score"]  = &VarSet::bdt_vh_score;
+  varMap["bdt_ewk_score"] = &VarSet::bdt_ewk_score;
+  varMap["bdt_top_score"] = &VarSet::bdt_top_score;
+
   // Object counting
   varMap["nJets"]        = &VarSet::_nJets;
   varMap["nJetsCent"]    = &VarSet::_nJetsCent;

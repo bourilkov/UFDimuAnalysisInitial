@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
         // only load essential information for the first set of cuts 
         s->branches.muPairs->GetEntry(i);
         s->branches.muons->GetEntry(i);
+        s->branches.eventInfo->GetEntry(i);
 
         // loop and find a good dimuon candidate
         if(s->vars.muPairs->size() < 1) continue;
@@ -310,6 +311,17 @@ int main(int argc, char* argv[])
 
               continue;
           }
+
+          // avoid double counting in RunF
+          if(s->name == "RunF_1" && s->vars.eventInfo->run > 278801)
+          {
+              continue;
+          }
+          if(s->name == "RunF_2" && s->vars.eventInfo->run < 278802)
+          {
+              continue;
+          }
+
 
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
