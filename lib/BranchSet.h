@@ -21,7 +21,9 @@ class BranchSet
         TBranch* nJets     = 0;
         TBranch* nJetsCent = 0;
         TBranch* nJetsFwd  = 0;
+	TBranch* nBLoose   = 0;
 	TBranch* nBMed     = 0;
+	TBranch* nBTight   = 0;
         TBranch* eventInfo = 0;
         TBranch* mht = 0;
         TBranch* met = 0;
@@ -55,7 +57,9 @@ class BranchSet
             if(nJets     != 0) nJets->GetEntry(i);
             if(nJetsCent != 0) nJetsCent->GetEntry(i);
             if(nJetsFwd  != 0) nJetsFwd->GetEntry(i);
+            if(nBLoose   != 0) nBLoose->GetEntry(i);
             if(nBMed     != 0) nBMed->GetEntry(i);
+            if(nBTight   != 0) nBTight->GetEntry(i);
             if(eventInfo != 0) eventInfo->GetEntry(i);
             if(mht != 0) mht->GetEntry(i);
             if(met != 0) met->GetEntry(i);
@@ -90,7 +94,9 @@ class BranchSet
             if(nJets     != 0) nJets->GetEntry(i);
             if(nJetsCent != 0) nJetsCent->GetEntry(i);
             if(nJetsFwd  != 0) nJetsFwd->GetEntry(i);
+            if(nBLoose   != 0) nBLoose->GetEntry(i);
             if(nBMed     != 0) nBMed->GetEntry(i);
+            if(nBTight   != 0) nBTight->GetEntry(i);
             if(eventInfo != 0) eventInfo->GetEntry(i);
             if(mht != 0) mht->GetEntry(i);
             if(met != 0) met->GetEntry(i);

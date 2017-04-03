@@ -68,7 +68,9 @@ class VarSet
         Int_t nJets;
         Int_t nJetsCent;
         Int_t nJetsFwd;
+        Int_t nBLoose;
         Int_t nBMed;
+        Int_t nBTight;
         EventInfo* eventInfo = 0;
         MuPairInfo* dimuCand = 0; // this is a pointer to one of the dimu candidates in the vector
                                   // we don't want to copy the object for ~40 million events
@@ -223,7 +225,9 @@ class VarSet
 	double _nJets()       { return nJets;                  };
 	double _nJetsCent()   { return nJetsCent;              };
 	double _nJetsFwd()    { return nJetsFwd;               };
+	double _nBLoose()     { return nBLoose;                };
 	double _nBMed()       { return nBMed;                  };
+	double _nBTight()     { return nBTight;                };
         double nValJets()     { return validJets.size();       };
         // double nValJetsCent() { return nJetsCent;              };
         // double nValJetsFwd()  { return nJetsFwd;               };

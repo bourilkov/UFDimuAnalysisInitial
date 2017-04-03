@@ -91,7 +91,9 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.nJets      = chain->GetBranch("nJets");
       branches.nJetsCent  = chain->GetBranch("nJetsCent");
       branches.nJetsFwd   = chain->GetBranch("nJetsFwd");
+      branches.nBLoose    = chain->GetBranch("nBLoose");
       branches.nBMed      = chain->GetBranch("nBMed");
+      branches.nBTight    = chain->GetBranch("nBTight");
 
 
       branches.muons->SetAddress(&vars.muons);
@@ -105,7 +107,9 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.nJets->SetAddress(&vars.nJets);
       branches.nJetsCent->SetAddress(&vars.nJetsCent);
       branches.nJetsFwd->SetAddress(&vars.nJetsFwd);
+      branches.nBLoose->SetAddress(&vars.nBLoose);
       branches.nBMed->SetAddress(&vars.nBMed);
+      branches.nBTight->SetAddress(&vars.nBTight);
 
       // extra branches needed for run 2 categories
       if(whichCategories == 2)
