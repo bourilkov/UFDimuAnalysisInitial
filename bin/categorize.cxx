@@ -625,6 +625,12 @@ int main(int argc, char* argv[])
     auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, 
                                whichDY, xmlfile, luminosity, reductionFactor](Sample* s)
     {
+      long long int last_run = -999;
+      long long int last_event = -999;
+
+      long long int this_run = -999;
+      long long int this_event = -999;
+
       bool isblinded = true;              // negative binning: unblind data in 120-130 GeV 
       if(binning < 0) isblinded = false;
 
@@ -818,6 +824,15 @@ int main(int argc, char* argv[])
 
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
+          this_run = s->vars.eventInfo->run;
+          this_event = s->vars.eventInfo->event;
+
+          if(this_run == last_run && this_event == last_event)
+              std::cout << Form("  !!! last run & event ==  this run & event: %d, %d, %d, %d, %s \n", last_run, last_event, this_run, this_event, s->name.Data());
+
+          last_run = this_run;
+          last_event = this_event;
+
           found_good_dimuon = true; 
 
           // Load the rest of the information needed for run2 categories
