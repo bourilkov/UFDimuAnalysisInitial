@@ -1,3 +1,7 @@
-f_Opt1_BDTG_default.weights.xml                             # original tmva classification training w/ m_jj bug
-f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml        # 2nd tmva classification training m_jj bug fixed
-f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml   # TMVA multiclass assuming 0bjets
+f_Opt1_BDTG_default.weights.xml                                          # original tmva binary classification training w/ m_jj bug
+f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml                     # 2nd tmva binary classification training m_jj bug fixed
+f_Opt3_oneClass_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml # TMVA binary classification use == 2jets, 0b, met < 80
+
+f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml                # TMVA multiclass >= 0jets, 0b (use as if inclusive)
+f_Opt3_half_all_sig_all_bkg_ge0j_eq0b_met80_BDTG_default.weights.xml     # TMVA multiclass >= 0 jets, 0b, met < 80
+f_Opt3_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml          # TMVA multiclass == 2jets, 0b, met < 80

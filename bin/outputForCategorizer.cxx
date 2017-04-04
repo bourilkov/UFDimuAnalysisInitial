@@ -128,8 +128,12 @@ int main(int argc, char* argv[])
       TString methodName = "BDTG_default";
 
       // classification and multiclassification
-      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
-      TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
+      //TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";                       // >= 0j, use as inclusive
+      TString weightfile = dir+"f_Opt3_oneClass_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml";     // == 2j, 0b, met<80
+
+      //TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";              // assumes 0b jets, but use as inclusive
+      TString weightfile_multi = dir+"f_Opt3_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml";          // == 2j, 0b, met < 80
+      //TString weightfile_multi = dir+"f_Opt3_half_all_sig_all_bkg_ge0j_eq0b_met80_BDTG_default.weights.xml";   // >= 0 jets, 0b, met < 80
 
       /////////////////////////////////////////////////////
       // Book training and spectator vars into reader
@@ -261,12 +265,6 @@ int main(int argc, char* argv[])
           // Load the rest of the information needed
           s->branches.getEntry(i);
 
-          if(!isData)
-          {
-              s->branches.nPU->GetEntry(i);
-              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
-          }
-
           // clear vectors for the valid collections
           s->vars.validMuons.clear();
           s->vars.validExtraMuons.clear();
@@ -281,8 +279,16 @@ int main(int argc, char* argv[])
 
           // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validBJets, s->vars.validMuons, 0.4);
           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
-          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
+          //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
+
+          // some cuts for 2jet studies
+          if(s->vars.validJets.size() != 2)
+              continue;
+
+          if(!(s->vars.met->pt < 88 && s->vars.validBJets.size() == 0))
+              continue;
 
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
