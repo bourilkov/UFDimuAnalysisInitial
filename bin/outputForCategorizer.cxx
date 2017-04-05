@@ -296,13 +296,6 @@ int main(int argc, char* argv[])
           CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
           //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
-          // some cuts for 2jet studies
-          if(s->vars.validJets.size() != 2)
-              continue;
-
-          if(!(s->vars.met->pt < 88 && s->vars.validBJets.size() == 0))
-              continue;
-
           // dimuon event passes selections, set flag to true so that we only fill info for
           // the first good dimu candidate
           found_good_dimuon = true;
@@ -322,6 +315,10 @@ int main(int argc, char* argv[])
           else vars["is_signal"] = s->sampleType.Contains("signal")?1:0;
           if(isData) vars["weight"] = 1;
           else vars["weight"] = s->getLumiScaleFactor(luminosity)*s->getWeight();
+
+          // only using half of the signal events. need to boost the weight to get the correct estimate
+          // of the expected signal
+          if(isSignal) vars["weight"] = vars["weight"]*2;
 
           // set tmva's bdt_score
           s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);

@@ -1133,7 +1133,9 @@ int main(int argc, char* argv[])
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
       {
-          c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(luminosity));
+          // Only used half of the signal events in this case, need to boost the normalization by 2 to make up for that
+          if(whichCategories == 3 && isSignal && binning < 0) c.second.histoMap[hkey]->Scale(2*s->getLumiScaleFactor(luminosity));
+          else c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(luminosity));
       }
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
