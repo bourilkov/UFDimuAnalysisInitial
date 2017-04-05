@@ -638,12 +638,13 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       TString dir    = "classification/";
-      TString methodName = "BDTG_default";
+      //TString methodName = "BDTG_default";
+      TString methodName = "BDTG_UF_v1";
 
 
       // sig vs bkg and multiclass (ggf, vbf, ... drell yan, ttbar) weight files
-      TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";
-      TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
+      TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+      TString weightfile_multi = dir+"f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
 
       /////////////////////////////////////////////////////
       // Book training and spectator vars into reader
@@ -682,6 +683,7 @@ int main(int argc, char* argv[])
 
       // set some flags
       bool isData = s->sampleType.EqualTo("data");
+      bool isSignal = s->sampleType.EqualTo("signal");
 
       // use pf, roch, or kamu values for selections, categories, and fill?
       int pf_roch_or_kamu = 0;
@@ -790,6 +792,13 @@ int main(int argc, char* argv[])
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
           ///////////////////////////////////////////////////////////////////
+
+          // only use even signal events for limit setting 
+          // as to separate training and evaluation events
+          if(isSignal && whichCategories==3 && binning<0 && (s->vars.eventInfo->event % 2 == 1))
+          {
+              continue;
+          }
 
           // only consider events w/ dimu_mass in the histogram range,
           // so the executable doesn't take forever, especially w/ tmva evaluation.

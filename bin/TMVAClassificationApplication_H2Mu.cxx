@@ -72,9 +72,8 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
    std::cout << "==> Start TMVAClassificationApplication_H2Mu" << std::endl << std::endl;
 
    TString dir    = "classification/";
-   //TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
-   TString weightfile = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
-   TString methodName = "BDTG_default";
+   TString weightfile = dir+"f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+   TString methodName = "BDTG_UF_v1";
 
    /////////////////////////////////////////////////////
    // Book training and spectator vars into reader

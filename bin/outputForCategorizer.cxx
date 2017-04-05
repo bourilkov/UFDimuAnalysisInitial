@@ -125,15 +125,19 @@ int main(int argc, char* argv[])
       std::cout << Form("  /// Processing %s \n", s->name.Data());
 
       TString dir    = "classification/";
-      TString methodName = "BDTG_default";
+      //TString methodName = "BDTG_default";
+      TString methodName = "BDTG_UF_v1";
 
       // classification and multiclassification
       //TString weightfile = dir+"f_Opt1_all_sig_all_bkg_ge0j_BDTG_default.weights.xml";                       // >= 0j, use as inclusive
-      TString weightfile = dir+"f_Opt3_oneClass_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml";     // == 2j, 0b, met<80
+      //TString weightfile = dir+"f_Opt3_oneClass_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml";   // == 2j, 0b, met<80
+      TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";           // TMVA binary classification 1/2 sig for training
 
       //TString weightfile_multi = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";              // assumes 0b jets, but use as inclusive
-      TString weightfile_multi = dir+"f_Opt3_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml";          // == 2j, 0b, met < 80
+      //TString weightfile_multi = dir+"f_Opt3_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml";        // == 2j, 0b, met < 80
       //TString weightfile_multi = dir+"f_Opt3_half_all_sig_all_bkg_ge0j_eq0b_met80_BDTG_default.weights.xml";   // >= 0 jets, 0b, met < 80
+      TString weightfile_multi = dir+"f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";   // TMVA multiclass 1/2 sig for training
+
 
       /////////////////////////////////////////////////////
       // Book training and spectator vars into reader
@@ -147,6 +151,8 @@ int main(int argc, char* argv[])
       TMVA::Reader* reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
 
       bool isData = s->sampleType == "data";
+      bool isSignal = s->sampleType == "signal";
+
       TRandom3 r;
 
       int bin = -1;
@@ -226,6 +232,13 @@ int main(int argc, char* argv[])
 
           MuonInfo& mu1 = s->vars.muons->at(dimu.iMu1);
           MuonInfo& mu2 = s->vars.muons->at(dimu.iMu2);
+
+          // only use the odd signal events for training
+          // as to separate training and evaluation events
+          if(isSignal && (s->vars.eventInfo->event % 2 == 0))
+          {
+              continue;
+          }
 
           // only train on events that are in the mass window
           if(!(dimu.mass > 110 && dimu.mass < 160))
