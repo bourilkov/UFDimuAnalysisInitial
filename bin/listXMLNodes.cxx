@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
         if(i==1) xmlfile = TString(ss.str().c_str());
     }    
 
-   XMLCategorizer xmlc(xmlfile);
+   CategorySelectionBDT xmlc(xmlfile);
    xmlc.outputResults();
 
 }

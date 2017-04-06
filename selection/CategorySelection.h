@@ -173,6 +173,22 @@ class XMLCategorizer : public Categorizer
 };
 
 //////////////////////////////////////////////////////////////////////////
+//// ______________________BDTHybrid____________________________________//
+//////////////////////////////////////////////////////////////////////////
+
+class CategorySelectionBDT : public XMLCategorizer
+{
+// The run1 H->MuMu category selection
+    public:
+        CategorySelectionBDT(); 
+        CategorySelectionBDT(TString xmlfile); 
+
+        // Determine which category the event belongs to
+        void evaluate(VarSet& vars);
+        void initCategoryMap();
+};
+
+//////////////////////////////////////////////////////////////////////////
 //// ______________________Run1Categorizer______________________________//
 //////////////////////////////////////////////////////////////////////////
 

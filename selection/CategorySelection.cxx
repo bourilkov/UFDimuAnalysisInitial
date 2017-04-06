@@ -218,6 +218,98 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+// _______________________CategorySelectionBDT___________________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionBDT::initCategoryMap()
+{
+// Initialize the categories
+
+    // Category(name), Category(name, hide?), Category(name, hide?, isTerminal?)
+    // defaults are hide = false, isTerminal = false
+
+    categoryMap["c_ALL"] = Category("c_ALL", true, false);
+    categoryMap["c_1_xlepton"] = Category("c_1_xlepton");
+    categoryMap["c_2_xlepton"] = Category("c_2_xlepton", true, false);
+    categoryMap["c_2_xlepton_Z"] = Category("c_2_xlepton_Z");
+    categoryMap["c_2_xlepton_other"] = Category("c_2_xlepton_other");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionBDT::CategorySelectionBDT()
+{
+// initialize the default cut values in the constructor
+
+    initCategoryMap();
+}
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionBDT::CategorySelectionBDT(TString xmlfile)
+{
+// initialize the default cut values in the constructor
+
+    initCategoryMap();
+    loadFromXML(xmlfile);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionBDT::evaluate(VarSet& vars)
+{
+// Determine which category the event belongs to
+
+    // Inclusive category, all events that passed the selection cuts
+    categoryMap["c_ALL"].inCategory = true;
+    if(vars.validExtraMuons.size() + vars.validElectrons.size() == 0) evaluateRecursive(vars, rootNode);
+    else if(vars.validExtraMuons.size() + vars.validElectrons.size() == 1) categoryMap["c_1_xlepton"].inCategory = true;
+    else categoryMap["c_2_xlepton"].inCategory = true; 
+  
+    if(categoryMap["c_2_xlepton"].inCategory)
+    {
+        if(vars.validExtraMuons.size() >= 2)
+        {
+            for(unsigned int i=0; i<vars.validExtraMuons.size(); i++)
+            {
+                for(unsigned int j=i+1; j<vars.validExtraMuons.size(); j++)
+                {
+                    TLorentzVector dimu = vars.validExtraMuons[i] + vars.validExtraMuons[j];
+                    if(TMath::Abs(dimu.M() - 91) < 10) 
+                    {
+                        categoryMap["c_2_xlepton_Z"].inCategory = true;
+                        return;
+                    }
+                }
+            }
+        }
+        if(vars.validElectrons.size() >= 2)
+        {
+            for(unsigned int i=0; i<vars.validElectrons.size(); i++)
+            {
+                for(unsigned int j=i+1; j<vars.validElectrons.size(); j++)
+                {
+                    TLorentzVector diele = vars.validElectrons[i] + vars.validElectrons[j];
+                    if(TMath::Abs(diele.M() - 91) < 10) 
+                    {
+                        categoryMap["c_2_xlepton_Z"].inCategory = true;
+                        return;
+                    }
+                }
+            }
+        }
+        categoryMap["c_2_xlepton_other"].inCategory = true;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 // _______________________CategorySelectionRun1__________________________//
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
