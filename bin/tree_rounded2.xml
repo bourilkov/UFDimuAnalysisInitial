@@ -8,8 +8,8 @@
             </right>
         </left>
         <right splitVar="4" splitVarName="dimu_max_abs_eta" splitVal="0.90" significanceSquared="0.42736410914455303">
-            <left splitVar="1" splitVarName="bdt_score" splitVal="0.26" significanceSquared="0.1753282667700638">
-                <left splitVar="1" splitVarName="bdt_score" splitVal="0.26" significanceSquared="0.086893882585954429"/>
+            <left splitVar="1" splitVarName="bdt_score" splitVal="0.25" significanceSquared="0.1753282667700638">
+                <left splitVar="1" splitVarName="bdt_score" splitVal="0.25" significanceSquared="0.086893882585954429"/>
                 <right splitVar="1" splitVarName="bdt_score" splitVal="0.39" significanceSquared="0.097750518560599881"/>
             </left>
             <right splitVar="1" splitVarName="bdt_score" splitVal="0.25" significanceSquared="0.26909623258331145">
