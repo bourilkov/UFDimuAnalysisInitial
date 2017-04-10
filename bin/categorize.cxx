@@ -551,7 +551,7 @@ int main(int argc, char* argv[])
     // gather samples map from SamplesDatabase.cxx
     //TString whichDY = "dyAMC";
     TString whichDY = "dyMG";
-    GetSamples(samples, "UF", "ALL_"+whichDY);
+    GetSamples(samples, "UF", "ALL130_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -677,10 +677,10 @@ int main(int argc, char* argv[])
       Run2EventSelectionCuts run2EventSelection;
 
       Categorizer* categorySelection = 0;
-      if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
-      else if(whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();
-      else if(whichCategories == 3 && xmlfile.Contains("reduced")) categorySelection = new CategorySelectionBDT(xmlfile);
-      else if(whichCategories == 3) categorySelection = new XMLCategorizer(xmlfile);
+      if(whichCategories == 1) categorySelection = new CategorySelectionRun1();         // run1 categories
+      else if(whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();     // Adrian's proposed run2 categories
+      else if(whichCategories == 3 && xmlfile.Contains("hybrid")) categorySelection = new CategorySelectionBDT(xmlfile); // BDT based categories XML + object cuts
+      else if(whichCategories == 3) categorySelection = new XMLCategorizer(xmlfile);    // BDT based categories XML only
 
       // set some flags
       bool isData = s->sampleType.EqualTo("data");
@@ -1130,6 +1130,7 @@ int main(int argc, char* argv[])
       } // end event loop //
 
       if(whichCategories == 3) delete reader;
+      //if(whichCategories == 3) delete reader_multi;
 
       // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
@@ -1162,10 +1163,10 @@ int main(int argc, char* argv[])
    ///////////////////////////////////////////////////////////////////
 
     Categorizer* cAll = 0;
-    if(whichCategories == 1) cAll = new CategorySelectionRun1(); 
-    else if(whichCategories == 2) cAll = new LotsOfCategoriesRun2();
-    else if(whichCategories == 3 && xmlfile.Contains("reduced")) cAll = new CategorySelectionBDT(xmlfile);
-    else if(whichCategories == 3) cAll = new XMLCategorizer(xmlfile);
+    if(whichCategories == 1) cAll = new CategorySelectionRun1();      // run1 categories 
+    else if(whichCategories == 2) cAll = new LotsOfCategoriesRun2();  // Adrian's proposed run2 categories
+    else if(whichCategories == 3 && xmlfile.Contains("hybrid")) cAll = new CategorySelectionBDT(xmlfile); // BDT categories XML + Object cuts
+    else if(whichCategories == 3) cAll = new XMLCategorizer(xmlfile);                                     // BDT categories using XML only
 
     // get histos from all categorizers and put them into one categorizer
     for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
@@ -1260,7 +1261,7 @@ int main(int argc, char* argv[])
     }
 
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_%s_categories%d%s_%d_%s.root", varname.Data(), (int)min, 
+    TString savename = Form("rootfiles/validate_M130_%s_%d_%d_%s_categories%d%s_%d_%s.root", varname.Data(), (int)min, 
                             (int)max, islow.Data(), whichCategories, xcategoryString.Data(), (int)luminosity, whichDY.Data());
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;

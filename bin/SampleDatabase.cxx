@@ -37,6 +37,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   else
     std::cout << "\n\nInput location is " << location << ", not UF, CERN, or CERN_hiM.  NOT AN OPTION!!!\n\n" << std::endl;
   
+  TString in_dir_hiM = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/hiM_simplified/";
+
   // ================================================================
   // Data -----------------------------------------------------------
   // ================================================================
@@ -113,7 +115,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   // H2Mu_gg ---------------------------------------------------------
   // ================================================================
   
-  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_gg") {
+  if (select.Contains("SIGNALX") || (select.Contains("ALL") && !select.Contains("1")) || select == "MC" || select == "SIGNAL" || select == "H2Mu_gg") {
     std::cout << "\nAdding files for H2Mu_gg ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -128,11 +130,43 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
+  if (select.Contains("SIGNALX") || select.Contains("ALL120") || select == "MC120" || select == "SIGNAL120" || select == "H2Mu_gg_120") {
+    std::cout << "\nAdding files for H2Mu_gg_120 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/GluGlu_HToMuMu_M120_13TeV_powheg_pythia8_H2Mu_gg_120.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_gg_120"] = new Sample(in_files, "H2Mu_gg_120", "signal");
+    samples["H2Mu_gg_120"]->xsec = 0.009618; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL130") || select == "MC130" || select == "SIGNAL130" || select == "H2Mu_gg_130") {
+    std::cout << "\nAdding files for H2Mu_gg_130 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/GluGlu_HToMuMu_M130_13TeV_powheg_pythia8_H2Mu_gg_130.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_gg/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_gg_130"] = new Sample(in_files, "H2Mu_gg_130", "signal");
+    samples["H2Mu_gg_130"]->xsec = 0.009618; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
   // ================================================================
   // H2Mu_VBF ---------------------------------------------------------
   // ================================================================
   
-  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VBF") {
+  if (select.Contains("SIGNALX") || (select.Contains("ALL") && !select.Contains("1")) || select == "MC" || select == "SIGNAL" || select == "H2Mu_VBF") {
     std::cout << "\nAdding files for H2Mu_VBF ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -146,12 +180,47 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     samples["H2Mu_VBF"]->xsec = 0.0008208; // pb
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL120") || select == "MC120" || select == "SIGNAL120" || select == "H2Mu_VBF_120") {
+    std::cout << "\nAdding files for H2Mu_VBF_120 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/VBF_HToMuMu_M120_13TeV_powheg_pythia8_H2Mu_VBF_120.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/VBF_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_VBF/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_VBF_120"] = new Sample(in_files, "H2Mu_VBF_120", "signal");
+    samples["H2Mu_VBF_120"]->xsec = 0.0008208; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL130") || select == "MC130" || select == "SIGNAL130" || select == "H2Mu_VBF_130") {
+    std::cout << "\nAdding files for H2Mu_VBF_130 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/VBF_HToMuMu_M130_13TeV_powheg_pythia8_H2Mu_VBF_130.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/VBF_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_VBF/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_VBF_130"] = new Sample(in_files, "H2Mu_VBF_130", "signal");
+    samples["H2Mu_VBF_130"]->xsec = 0.0008208; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
  
   // ================================================================
   // H2Mu_VH ---------------------------------------------------------
   // ================================================================
   
-  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_ZH") {
+  if (select.Contains("SIGNALX") || (select.Contains("ALL") && !select.Contains("1")) || select == "MC" 
+      || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_ZH") {
+
     std::cout << "\nAdding files for H2Mu_ZH ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -165,10 +234,45 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     samples["H2Mu_ZH"]->xsec = 0.0002136;     // pb
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL120") || select == "MC120" || select == "SIGNAL120" || select == "H2Mu_ZH_120") {
+    std::cout << "\nAdding files for H2Mu_ZH_120 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/ZH_HToMuMu_M120_13TeV_powheg_pythia8_H2Mu_ZH_120.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/ZH_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_ZH/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_ZH_120"] = new Sample(in_files, "H2Mu_ZH_120", "signal");
+    samples["H2Mu_ZH_120"]->xsec = 0.0002136; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL130") || select == "MC130" || select == "SIGNAL130" || select == "H2Mu_ZH_130") {
+    std::cout << "\nAdding files for H2Mu_ZH_130 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/ZH_HToMuMu_M130_13TeV_powheg_pythia8_H2Mu_ZH_130.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/ZH_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_ZH/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_ZH_130"] = new Sample(in_files, "H2Mu_ZH_130", "signal");
+    samples["H2Mu_ZH_130"]->xsec = 0.0002136; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
  
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH"  || select == "H2Mu_WH_pos") {
+  if (select.Contains("SIGNALX") || (select.Contains("ALL") && !select.Contains("1"))  || select == "MC" || 
+      select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH"  || select == "H2Mu_WH_pos") {
+
     std::cout << "\nAdding files for H2Mu_WH_pos ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -183,9 +287,43 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
  
+  if (select.Contains("SIGNALX") || select.Contains("ALL120") || select == "MC120" || select == "SIGNAL120" || select == "H2Mu_WH_pos_120") {
+    std::cout << "\nAdding files for H2Mu_WH_pos_120 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/WPlusH_HToMuMu_M120_13TeV_powheg_pythia8_H2Mu_WH_pos_120.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/WH_pos_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_pos/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_WH_pos_120"] = new Sample(in_files, "H2Mu_WH_pos_120", "signal");
+    samples["H2Mu_WH_pos_120"]->xsec = 0.0001858; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL130") || select == "MC130" || select == "SIGNAL130" || select == "H2Mu_WH_pos_130") {
+    std::cout << "\nAdding files for H2Mu_WH_pos_130 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/WPlusH_HToMuMu_M130_13TeV_powheg_pythia8_H2Mu_WH_pos_130.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/WH_pos_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_pos/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_WH_pos_130"] = new Sample(in_files, "H2Mu_WH_pos_130", "signal");
+    samples["H2Mu_WH_pos_130"]->xsec = 0.0001858; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  if (select.Contains("ALL") || select == "MC" || select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH" || select == "H2Mu_WH_neg") {
+  if (select.Contains("SIGNALX") || (select.Contains("ALL") && !select.Contains("1")) || select == "MC" || 
+      select == "SIGNAL" || select == "H2Mu_VH" || select == "H2Mu_WH" || select == "H2Mu_WH_neg") {
+
     std::cout << "\nAdding files for H2Mu_WH_neg ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -199,6 +337,38 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     samples["H2Mu_WH_neg"]->xsec = 0.0001164; //0.5331*0.0002176;     // pb
     std::cout << ".... " << in_files.size() << " files added." << std::endl;
   } 
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL120") || select == "MC120" || select == "SIGNAL120" || select == "H2Mu_WH_neg_120") {
+    std::cout << "\nAdding files for H2Mu_WH_neg_120 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/WMinusH_HToMuMu_M120_13TeV_powheg_pythia8_H2Mu_WH_neg_120.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/WH_neg_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_neg/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_WH_neg_120"] = new Sample(in_files, "H2Mu_WH_neg_120", "signal");
+    samples["H2Mu_WH_neg_120"]->xsec = 0.0001164; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  if (select.Contains("SIGNALX") || select.Contains("ALL130") || select == "MC130" || select == "SIGNAL130" || select == "H2Mu_WH_neg_130") {
+    std::cout << "\nAdding files for H2Mu_WH_neg_130 ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location == "UF") {
+      in_files.push_back( TString(in_dir_hiM+"signal/WMinusH_HToMuMu_M130_13TeV_powheg_pythia8_H2Mu_WH_neg_130.root") );
+    } 
+    //else {
+    //  in_file.Form( "%s/WH_neg_HToMuMu_M125_13TeV_powheg_pythia8/H2Mu_WH_neg/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    //}
+    samples["H2Mu_WH_neg_130"] = new Sample(in_files, "H2Mu_WH_neg_130", "signal");
+    samples["H2Mu_WH_neg_130"]->xsec = 0.0001164; // pb
+    std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
 
   // ================================================================
   // H2Mu_ttH ---------------------------------------------------------
