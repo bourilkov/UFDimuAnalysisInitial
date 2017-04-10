@@ -230,10 +230,10 @@ void CategorySelectionBDT::initCategoryMap()
     // defaults are hide = false, isTerminal = false
 
     categoryMap["c_ALL"] = Category("c_ALL", true, false);
-    categoryMap["c_1_xlepton"] = Category("c_1_xlepton");
+    categoryMap["c_1_xlepton"] = Category("c_1_xlepton", false, true);
     categoryMap["c_2_xlepton"] = Category("c_2_xlepton", true, false);
-    categoryMap["c_2_xlepton_Z"] = Category("c_2_xlepton_Z");
-    categoryMap["c_2_xlepton_other"] = Category("c_2_xlepton_other");
+    categoryMap["c_2_xlepton_Z"] = Category("c_2_xlepton_Z", false, true);
+    categoryMap["c_2_xlepton_other"] = Category("c_2_xlepton_other", false, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

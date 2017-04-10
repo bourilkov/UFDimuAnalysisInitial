@@ -578,7 +578,7 @@ int main(int argc, char* argv[])
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
 
-        i.second->setBranchAddresses(2); // tell the ttree to load the variable values into sample->vars
+        i.second->setBranchAddresses();  // tell the ttree to load the variable values into sample->vars
         samplevec.push_back(i.second);   // add the sample to the vector of samples which we will run over
     }
 
@@ -653,15 +653,15 @@ int main(int argc, char* argv[])
       std::map<TString, Float_t> tmap;
       std::map<TString, Float_t> smap;
 
-      TMVA::Reader* reader_multi = 0;
-      std::map<TString, Float_t> tmap_multi;
-      std::map<TString, Float_t> smap_multi;
+      //TMVA::Reader* reader_multi = 0;
+      //std::map<TString, Float_t> tmap_multi;
+      //std::map<TString, Float_t> smap_multi;
 
       // load tmva binary classification and multiclass classifiers
       if(whichCategories == 3)
       {
           reader       = TMVATools::bookVars(methodName, weightfile, tmap, smap);
-          reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
+          //reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -678,8 +678,9 @@ int main(int argc, char* argv[])
 
       Categorizer* categorySelection = 0;
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();
-      else if(whichCategories ==2) categorySelection = new LotsOfCategoriesRun2();
-      else if(whichCategories ==3) categorySelection = new XMLCategorizer(xmlfile);
+      else if(whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();
+      else if(whichCategories == 3 && xmlfile.Contains("reduced")) categorySelection = new CategorySelectionBDT(xmlfile);
+      else if(whichCategories == 3) categorySelection = new XMLCategorizer(xmlfile);
 
       // set some flags
       bool isData = s->sampleType.EqualTo("data");
@@ -877,12 +878,12 @@ int main(int argc, char* argv[])
               s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
 
               // load multi results into varset
-              std::vector<float> bdt_multi_scores = TMVATools::getMulticlassScores(reader_multi, methodName, tmap_multi, s->vars);
-              s->vars.bdt_ggh_out = bdt_multi_scores[0];
-              s->vars.bdt_vbf_out = bdt_multi_scores[1];
-              s->vars.bdt_vh_out  = bdt_multi_scores[2];
-              s->vars.bdt_ewk_out = bdt_multi_scores[3];
-              s->vars.bdt_top_out = bdt_multi_scores[4];
+              //std::vector<float> bdt_multi_scores = TMVATools::getMulticlassScores(reader_multi, methodName, tmap_multi, s->vars);
+              //s->vars.bdt_ggh_out = bdt_multi_scores[0];
+              //s->vars.bdt_vbf_out = bdt_multi_scores[1];
+              //s->vars.bdt_vh_out  = bdt_multi_scores[2];
+              //s->vars.bdt_ewk_out = bdt_multi_scores[3];
+              //s->vars.bdt_top_out = bdt_multi_scores[4];
 
               s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
           }
@@ -1163,6 +1164,7 @@ int main(int argc, char* argv[])
     Categorizer* cAll = 0;
     if(whichCategories == 1) cAll = new CategorySelectionRun1(); 
     else if(whichCategories == 2) cAll = new LotsOfCategoriesRun2();
+    else if(whichCategories == 3 && xmlfile.Contains("reduced")) cAll = new CategorySelectionBDT(xmlfile);
     else if(whichCategories == 3) cAll = new XMLCategorizer(xmlfile);
 
     // get histos from all categorizers and put them into one categorizer
