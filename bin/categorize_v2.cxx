@@ -170,10 +170,14 @@ UInt_t getNumCPUs()
 //////////////////////////////////////////////////////////////////
 
 // set bins, min, max, and the var to plot based upon varNumber and binning
-void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& max, TString& varname)
+void initPlotSettings(TString varname, int binning, int& bins, float& min, float& max)
 {
+    bins = 100;
+    min = -10;
+    max = 10;
+
     // dimu_mass
-    if(varNumber <= 0)
+    if(varname.Contains("dimu_mass"))
     {
         if(binning == 0)       // blind data in 120-130 GeV, plot in 50-200 GeV to include z-peak
         {                      // 1 GeV bins, used mostly for validation plots
@@ -211,286 +215,115 @@ void initPlotSettings(int varNumber, int binning, int& bins, float& min, float& 
             min = 50;
             max = 200;
         }
-
-        if(varNumber == 0)  varname = "dimu_mass_PF";
-        if(varNumber == -1) varname = "dimu_mass_Roch";
-        if(varNumber == -2) varname = "dimu_mass_KaMu";
-    }
-
-    // dimu_pt 
-    if(varNumber == 1)
-    {
-        bins = 200;
-        min = 0;
-        max = 100;
-        varname = "dimu_pt";
-    }
-
-    // dimu_pt_PF 
-    if(varNumber == 100)
-    {
-        bins = 200;
-        min = 0;
-        max = 100;
-        varname = "dimu_pt";
-    }
-
-    // dimu_pt_Roch 
-    if(varNumber == 101)
-    {
-        bins = 200;
-        min = 0;
-        max = 100;
-        varname = "dimu_Roch";
-    }
-
-    // dimu_pt_KaMu 
-    if(varNumber == 102)
-    {
-        bins = 200;
-        min = 0;
-        max = 100;
-        varname = "dimu_KaMu";
     }
 
     // mu_pt
-    if(varNumber == 2)
+    if(varname.Contains("mu") && varname.Contains("pt"))
     {
-        bins = 200;
+        bins = 100;
         min = 0;
-        max = 150;
-        varname = "mu_pt";
-    }
-
-    // mu_pt_PF
-    if(varNumber == 200)
-    {
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "mu_pt_PF";
-    }
-
-    // mu_pt_Roch
-    if(varNumber == 201)
-    {
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "mu_pt_Roch";
-    }
- 
-    // mu_pt_KaMu
-    if(varNumber == 202)
-    {
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "mu_pt_KaMu";
+        max = 200;
+        if(varname.Contains("dimu")) max = 300;
     }
  
     // mu_eta
-    if(varNumber == 3)
+    if(varname.Contains("mu") && varname.Contains("eta") && !varname.Contains("dEta"))
     {
-        bins = 100;
+        bins = 50;
         min = -2.5;
         max = 2.5;
-        varname = "mu_eta";
     }
 
     // NPV
-    if(varNumber == 4)
+    if(varname == "NPV")
     {
         bins = 50;
         min = 0;
         max = 50;
-        varname = "NPV";
     }
 
     // jet_pt
-    if(varNumber == 5)
+    if(varname.Contains("jet") && varname.Contains("pt"))
     {   
-        bins = 200;
+        bins = 100;
         min = 0;
         max = 200;
-        varname = "jet_pt";
     }   
 
     // jet_eta 
-    if(varNumber == 6)
+    if(varname.Contains("jet") && varname.Contains("eta"))
     {   
-        bins = 100;
+        bins = 50;
         min = -5; 
         max = 5;
-        varname = "jet_eta";
     }   
 
-    // nValJets
-    if(varNumber == 7)
+    // # of jets, ele, mu, etc
+    if(varname.Contains("nJets") || varname.Contains("nVal") || varname.Contains("nExtra") || varname.Contains("nB") || varname.Contains("nEle"))
     {   
         bins = 11;
         min = 0; 
         max = 11;
-        varname = "nValJets";
     }   
 
     // m_jj
-    if(varNumber == 8)
+    if(varname.Contains("m_jj") || varname.Contains("m_bb") || (varname.Contains("dijet") && varname.Contains("mass")))
     {   
-        bins = 200;
+        bins = 100;
         min = 0; 
         max = 2000;
-        varname = "m_jj";
     }   
 
-    // dEta_jj
-    if(varNumber == 9)
+    // dEta
+    if(varname.Contains("dEta"))
     {   
-        bins = 100;
+        bins = 50;
         min = -10; 
         max = 10;
-        varname = "dEta_jj";
-    }   
-    // N_valid_muons
-    if(varNumber == 10) 
-    {   
-        bins = 11; 
-        min = 0;  
-        max = 11; 
-        varname = "N_valid_muons";
     }   
 
-    // nExtraMu
-    if(varNumber == 11) 
+    // dPhi
+    if(varname.Contains("dPhi"))
     {   
-        bins = 11; 
-        min = 0;  
-        max = 11; 
-        varname = "nExtraMu";
+        bins = 50;
+        min = -3.2; 
+        max = 3.2;
+
+        if(varname.Contains("Star"))
+        {
+            min = 0;
+            max = 10;
+        }
     }   
 
-    // extra_muon_pt
-    if(varNumber == 12) 
-    {   
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "extra_muon_pt";
-    }   
- 
-    // extra_muon_eta
-    if(varNumber == 13)
+    // mT_b_MET/MT_had/mas_had
+    if(varname.Contains("mT") || varname.Contains("MT") || varname.Contains("mass_had"))
     {
         bins = 100;
-        min = -3;
-        max = 3;
-        varname = "extra_muon_eta";
-    }
-
-    // nEle
-    if(varNumber == 14)
-    {
-        bins = 11;
-        min = 0;
-        max = 11;
-        varname = "nEle";
-    }
-    // electron_pt
-    if(varNumber == 15)
-    {
-        bins = 200;
-        min = 0;
-        max = 150;
-        varname = "electron_pt";
-    }
-
-    // electron_eta
-    if(varNumber == 16)
-    {
-        bins = 100;
-        min = -3;
-        max = 3;
-        varname = "electron_eta";
-    }
-
-    // nExtraLep
-    if(varNumber == 17)
-    {
-        bins = 11;
-        min = 0;
-        max = 11;
-        varname = "nExtraLep";
-    }
-
-    // nValBTags
-    if(varNumber == 18)
-    {
-        bins = 11;
-        min = 0;
-        max = 11;
-        varname = "nValBTags";
-    }
-
-    // bjet_pt
-    if(varNumber == 19)
-    {
-        bins = 200;
-        min = 0;
-        max = 200;
-        varname = "bjet_pt";
-    }
-    // bjet_eta 
-    if(varNumber == 20)
-    {
-        bins = 100;
-        min = -5;
-        max = 5;
-        varname = "bjet_eta";
-    }
-
-    // m_bb
-    if(varNumber == 21)
-    {
-        bins = 200;
         min = 0;
         max = 2000;
-        varname = "m_bb";
     }
 
-    // mT_b_MET
-    if(varNumber == 22)
+    // MET
+    if(varname == "MHT" || varname == "MET")
     {
-        bins = 200;
-        min = 0;
-        max = 2000;
-        varname = "mT_b_MET";
-    }
-
-    // MHT
-    if(varNumber == 23)
-    {
-        bins = 200;
+        bins = 75;
         min = 0;
         max = 150;
-        varname = "MHT";
-    }
-
-    // dEta_jj_mumu
-    if(varNumber == 24)
-    {
-        bins = 100;
-        min = -10;
-        max = 10;
-        varname = "dEta_jj_mumu";
     }
 
     // bdt_score
-    if(varNumber == 25)
+    if(varname == "bdt_score")
     {
         bins = 50;
         min = -1;
         max = 1;
-        varname = "bdt_score";
+    }
+
+    if(varname.Contains("abs"))
+    {
+        bins = bins/2;
+        min = 0;
     }
 }
 
@@ -506,13 +339,12 @@ int main(int argc, char* argv[])
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
 
-    int whichCategories = 1;  // run2categories = 1, run2categories = 2, "categories.xml" = 3 -> xmlcategories
-    int varNumber = 0;        // the variable to plot, 0 is dimu_mass for instance
-    int binning = 0;          // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
-                                 //  negative numbers unblind the data for limit setting
-                                 //  see initPlotSettings above for more information
+    int whichCategories = 1;         // run2categories = 1, run2categories = 2, "categories.xml" = 3 -> xmlcategories
+    TString varname = "dimu_mass";   // the variable to plot, 0 is dimu_mass for instance
+    int binning = 0;                 // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
+                                     //  negative numbers unblind the data for limit setting
+                                     //  see initPlotSettings above for more information
 
-    bool reduceBins = 0;      // reduce the number of bins in the lowstats categories
     bool rebin = true;        // rebin the ratio plots so that each point has small errors
     int nthreads = 10;        // number of threads to use in parallelization
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
@@ -534,12 +366,11 @@ int main(int argc, char* argv[])
             else
                 ss >> whichCategories;
         }
-        if(i==2) ss >> varNumber;
+        if(i==2) varname = TString(ss.str().c_str());
         if(i==3) ss >> binning;
-        if(i==4) ss >> reduceBins;
-        if(i==5) ss >> rebin;
-        if(i==6) ss >> nthreads;
-        if(i==7) ss >> fitratio;
+        if(i==4) ss >> rebin;
+        if(i==5) ss >> nthreads;
+        if(i==6) ss >> fitratio;
     }   
     // Use this as the main database and choose from it to make the vector
     std::map<TString, Sample*> samples;
@@ -551,7 +382,7 @@ int main(int argc, char* argv[])
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
 
     float luminosity = 36814;       // pb-1
-    float reductionFactor = 1;      // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 20;     // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
@@ -599,13 +430,12 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
 
     // histo settings
-    TString varname;
     int bins;
     float min;
     float max;
 
     // set nbins, min, max, and var to plot based upon input from the terminal: varNumber and binning
-    initPlotSettings(varNumber, binning, bins, min, max, varname);
+    initPlotSettings(varname, binning, bins, min, max);
 
     std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
     std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
@@ -623,7 +453,6 @@ int main(int argc, char* argv[])
     std::cout << "max         : " << max << std::endl;
     std::cout << "bins        : " << bins << std::endl;
     std::cout << "binning     : " << binning << std::endl;
-    std::cout << "lowstats    : " << reduceBins << std::endl;
     std::cout << "rebin       : " << rebin << std::endl;
     std::cout << std::endl;
 
@@ -631,9 +460,11 @@ int main(int argc, char* argv[])
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varNumber, varname, binning, bins, min, max, rebin, reduceBins, whichCategories, 
+    auto makeHistoForSample = [varname, binning, bins, min, max, rebin, whichCategories, 
                                whichDY, xmlfile, luminosity, reductionFactor](Sample* s)
     {
+
+      // info to check that this event is different than the last event
       long long int last_run = -999;
       long long int last_event = -999;
 
@@ -645,7 +476,15 @@ int main(int argc, char* argv[])
 
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
+      if(!s->vars.checkForVar(varname.Data()))
+      {
+          std::cout << Form("  !!! %s is not a valid variable %s \n", varname.Data(), s->name.Data());
+      }
 
+
+      /////////////////////////////////////////////////////
+      // Load TMVA classifiers
+     
       TString dir    = "classification/";
       //TString methodName = "BDTG_default";
       TString methodName = "BDTG_UF_v1";
@@ -686,6 +525,7 @@ int main(int argc, char* argv[])
       Run2EventSelectionCuts run2EventSelection;
 
       Categorizer* categorySelection = 0;
+
       if(whichCategories == 1) categorySelection = new CategorySelectionRun1();         // run1 categories
       else if(whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();     // Adrian's proposed run2 categories
       else if(whichCategories == 3 && xmlfile.Contains("hybrid")) categorySelection = new CategorySelectionBDT(xmlfile); // BDT based categories XML + object cuts
@@ -694,23 +534,17 @@ int main(int argc, char* argv[])
       // set some flags
       bool isData = s->sampleType.EqualTo("data");
       bool isSignal = s->sampleType.EqualTo("signal");
+      bool isMass = varname.Contains("dimu_mass");
 
       // use pf, roch, or kamu values for selections, categories, and fill?
-      int pf_roch_or_kamu = 0;
-      if(varname.Contains("PF")) pf_roch_or_kamu = 0;
-      else if(varname.Contains("Roch")) pf_roch_or_kamu = 1;
-      else if(varname.Contains("KaMu")) pf_roch_or_kamu = 2;
+      TString pf_roch_or_kamu = "PF";
+      if(varname.Contains("PF")) pf_roch_or_kamu = "PF";
+      else if(varname.Contains("Roch")) pf_roch_or_kamu = "Roch";
+      else if(varname.Contains("KaMu")) pf_roch_or_kamu = "KaMu";
 
       ///////////////////////////////////////////////////////////////////
       // INIT HISTOGRAMS TO FILL ----------------------------------------
       ///////////////////////////////////////////////////////////////////
-
-      // Fewer bins for lowstats categories if requested
-      int lowstatsbins = bins;
-      if(reduceBins) lowstatsbins = lowstatsbins/5;
-
-      // If we are dealing with NPV or N_valid_X (integers) then don't change the binning
-      if(varname.Contains("N")) lowstatsbins = bins;
 
       // Keep track of which histogram to fill in the category
       TString hkey = s->name;
@@ -720,15 +554,10 @@ int main(int argc, char* argv[])
       for(auto &c : categorySelection->categoryMap)
       {
           //number of bins for the histogram
-          int hbins;
+          int hbins = bins;
 
           // c.second is the category object, c.first is the category name
           TString hname = c.first+"_"+s->name;
-
-          // The VBF categories have low stats so we use fewer bins
-          // Same goes for 01jet categories with dijet variables
-          if(c.first.Contains("VBF") || c.first.Contains("GGF") || (c.first.Contains("01_Jet") && varname.Contains("jj"))) hbins = lowstatsbins; 
-          else hbins = bins;
 
           // Set up the histogram for the category and variable to plot
           // Each category has a map and some lists to keep track of different histograms
@@ -780,24 +609,7 @@ int main(int argc, char* argv[])
           // Selection cuts and categories use standard values e.g. mu.pt
           // to use PF, Roch, or KaMu for cuts and categories set these values 
           // to PF, Roch, or KaMu 
-          if(pf_roch_or_kamu == 0) 
-          {
-              dimu.mass = dimu.mass_PF;
-              mu1.pt = mu1.pt_PF;
-              mu2.pt = mu2.pt_PF;
-          }
-          else if(pf_roch_or_kamu == 1) 
-          {
-              dimu.mass = dimu.mass_Roch;
-              mu1.pt = mu1.pt_Roch;
-              mu2.pt = mu2.pt_Roch;
-          }
-          else if(pf_roch_or_kamu == 2) 
-          {
-              dimu.mass = dimu.mass_KaMu;
-              mu1.pt = mu1.pt_KaMu;
-              mu2.pt = mu2.pt_KaMu;
-          }
+          s->vars.setCalibrationType(pf_roch_or_kamu);
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
@@ -812,7 +624,7 @@ int main(int argc, char* argv[])
 
           // only consider events w/ dimu_mass in the histogram range,
           // so the executable doesn't take forever, especially w/ tmva evaluation.
-          if(varNumber <= 0 && (dimu.mass < min || dimu.mass > max))
+          if(isMass && (dimu.mass < min || dimu.mass > max))
           {
               continue;
           }
@@ -841,18 +653,25 @@ int main(int argc, char* argv[])
               continue;
           }
 
-          // dimuon event passes selections, set flag to true so that we only fill info for
-          // the first good dimu candidate
+          // Check that this event is different than the last event --------
           this_run = s->vars.eventInfo->run;
           this_event = s->vars.eventInfo->event;
+
 
           if(this_run == last_run && this_event == last_event)
               std::cout << Form("  !!! last run & event ==  this run & event: %d, %d, %d, %d, %s \n", last_run, last_event, this_run, this_event, s->name.Data());
 
           last_run = this_run;
           last_event = this_event;
+          // ----------------------------------------------------------------
 
+          // dimuon event passes selections, set flag to true so that we only fill info for
+          // the first good dimu candidate
           found_good_dimuon = true; 
+
+          ///////////////////////////////////////////////////////////////////
+          // LOAD ALL BRANCHES, CLEAN COLLECTIONS ---------------------------
+          ///////////////////////////////////////////////////////////////////
 
           // Load the rest of the information needed for run2 categories
           s->branches.getEntry(i);
@@ -880,6 +699,7 @@ int main(int argc, char* argv[])
           // CATEGORIZE -----------------------------------------------------
           ///////////////////////////////////////////////////////////////////
 
+          // XML categories require the classifier score from TMVA
           if(whichCategories == 3)
           {
               //std::cout << i << " !!! SETTING JETS " << std::endl;
@@ -914,219 +734,19 @@ int main(int argc, char* argv[])
               // now that we have a lot of these in the VarSet map we should just fill the s->vars.getValue("varName")
               // would save a lot of explicit code here ...
 
-              if(varname.Contains("dimu_mass")) 
+              if(varname.Contains("dimu_mass") || varname == "bdt_score") 
               {
-                  float varvalue = dimu.mass;
-                  if(isData && varvalue > 120 && varvalue < 130 && isblinded) continue; // blind signal region
+                  if(isData && dimu.mass > 120 && dimu.mass < 130 && isblinded) continue; // blind signal region
 
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
-                  c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
+                  c.second.histoMap[hkey]->Fill(s->vars.getValue(varname.Data()), s->getWeight());
                   //std::cout << "    " << c.first << ": " << varvalue;
                   continue;
               }
-
-              if(varname.Contains("dimu_pt"))
+              else
               {
-                  // if the event is in the current category then fill the category's histogram for the given sample and variable
-                  c.second.histoMap[hkey]->Fill(dimu.pt, s->getWeight());
-                  continue;
+                  c.second.histoMap[hkey]->Fill(s->vars.getValue(varname.Data()), s->getWeight());
               }
-              // mu_pt is a substring of dimu_pt so we need the else if
-              else if(varname.Contains("mu_pt"))
-              {
-                  c.second.histoMap[hkey]->Fill(mu1.pt, s->getWeight());
-                  c.second.histoMap[hkey]->Fill(mu2.pt, s->getWeight());
-                  continue;
-              }
-
-              // recoMu_Eta
-              if(varname.EqualTo("mu_eta"))
-              {
-                  c.second.histoMap[hkey]->Fill(mu1.eta, s->getWeight());
-                  c.second.histoMap[hkey]->Fill(mu2.eta, s->getWeight());
-                  continue;
-              }
-
-              // NPV
-              if(varname.EqualTo("NPV"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.nVertices, s->getWeight());
-                   continue;
-              }
-
-              // jet_pt
-              if(varname.EqualTo("jet_pt"))
-              {
-                   for(auto& jet: s->vars.validJets)
-                       c.second.histoMap[hkey]->Fill(jet.Pt(), s->getWeight());
-                   continue;
-              }
-
-              // jet_eta
-              if(varname.EqualTo("jet_eta"))
-              {
-                   for(auto& jet: s->vars.validJets)
-                       c.second.histoMap[hkey]->Fill(jet.Eta(), s->getWeight());
-                   continue;
-              }
-
-              // nValJets
-              if(varname.EqualTo("nValJets"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.validJets.size(), s->getWeight());
-                   continue;
-              }
-
-              // m_jj
-              if(varname.EqualTo("m_jj"))
-              {
-                   if(s->vars.validJets.size() >= 2)
-                   {
-                       TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
-                       c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
-                   }
-                   continue;
-              }
-
-              // dEta_jj
-              if(varname.EqualTo("dEta_jj"))
-              {
-                   if(s->vars.validJets.size() >= 2)
-                   {
-                       float dEta = s->vars.validJets[0].Eta() - s->vars.validJets[1].Eta();
-                       c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
-                   }
-                   continue;
-              }
-
-              // N_valid_muons
-              if(varname.EqualTo("N_valid_muons"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.validMuons.size(), s->getWeight());
-                   continue;
-              }
-
-              // nExtraMu
-              if(varname.EqualTo("nExtraMu"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.validExtraMuons.size(), s->getWeight());
-                   continue;
-              }
-
-              // extra_muon_pt
-              if(varname.EqualTo("extra_muon_pt"))
-              {
-                  for(auto& mu: s->vars.validExtraMuons)
-                      c.second.histoMap[hkey]->Fill(mu.Pt(), s->getWeight());
-                  continue;
-              }
-
-              // extra_muon_eta
-              if(varname.EqualTo("extra_muon_eta"))
-              {
-                  for(auto& mu: s->vars.validExtraMuons)
-                      c.second.histoMap[hkey]->Fill(mu.Eta(), s->getWeight());
-                  continue;
-              }
-
-              // nEle
-              if(varname.EqualTo("nEle"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size(), s->getWeight());
-                   continue;
-              }
-
-              // electron_pt
-              if(varname.EqualTo("electron_pt"))
-              {
-                  for(auto& e: s->vars.validElectrons)
-                      c.second.histoMap[hkey]->Fill(e.Pt(), s->getWeight());
-                  continue;
-              }
-              // electron_eta
-              if(varname.EqualTo("electron_eta"))
-              {
-                  for(auto& e: s->vars.validElectrons)
-                      c.second.histoMap[hkey]->Fill(e.Eta(), s->getWeight());
-                  continue;
-              }
-
-              // nExtraLep
-              if(varname.EqualTo("nExtraLep"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.validElectrons.size() + s->vars.validExtraMuons.size(), s->getWeight());
-                   continue;
-              }
-
-              // nValBTags
-              if(varname.EqualTo("nValBTags"))
-              {
-                   c.second.histoMap[hkey]->Fill(s->vars.validBJets.size(), s->getWeight());
-                   continue;
-              }
-
-              // bjet_pt
-              if(varname.EqualTo("bjet_pt"))
-              {
-                  for(auto& bjet: s->vars.validBJets)
-                      c.second.histoMap[hkey]->Fill(bjet.Pt(), s->getWeight());
-                  continue;
-              }
-
-              // bjet_eta 
-              if(varname.EqualTo("bjet_eta"))
-              {
-                  for(auto& bjet: s->vars.validBJets)
-                      c.second.histoMap[hkey]->Fill(bjet.Eta(), s->getWeight());
-                  continue;
-              }
-              // m_bb
-              if(varname.EqualTo("m_bb"))
-              {
-                   if(s->vars.validBJets.size() >= 2)
-                   {
-                       TLorentzVector dijet = s->vars.validBJets[0] + s->vars.validBJets[1];
-                       c.second.histoMap[hkey]->Fill(dijet.M(), s->getWeight());
-                   }
-                   continue;
-              }
-
-              // mT_b_MET
-              if(varname.EqualTo("mT_b_MET"))
-             {
-                  double varvalue = -999;
-                  varvalue = s->vars.getValue("mT_b_MET");
-                  if(varvalue > 0)
-                  {
-                      c.second.histoMap[hkey]->Fill(varvalue, s->getWeight());
-                  }
-                  continue;
-             }
-
-              // MHT
-              if(varname.EqualTo("MHT"))
-              {
-                  c.second.histoMap[hkey]->Fill(s->vars.mht->pt, s->getWeight());
-              }
-
-              // dEta_jj_mumu
-              if(varname.EqualTo("dEta_jj_mumu"))
-              {
-                   if(s->vars.validJets.size() >= 2)
-                   {
-                       TLorentzVector dijet = s->vars.validJets[0] + s->vars.validJets[1];
-                       float dEta = dijet.Eta() - s->vars.dimuCand->eta;
-                       c.second.histoMap[hkey]->Fill(dEta, s->getWeight());
-                   }
-                   continue;
-              }
-
-              // bdt_score
-              if(varname.EqualTo("bdt_score"))
-              {
-                  c.second.histoMap[hkey]->Fill(s->vars.bdt_out, s->getWeight());
-              }
-
 
           } // end category loop
 
@@ -1264,8 +884,6 @@ int main(int argc, char* argv[])
     bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded
     TString blinded = "blinded";
     if(!isblinded) blinded = "UNBLINDED";
-    TString islow = "nolow";     // reduceBins = true -> reduce the number of bins for low stats categories
-    if(reduceBins) islow = "low";
 
     TString xcategoryString = "";
     if(whichCategories==3) 
@@ -1277,8 +895,8 @@ int main(int argc, char* argv[])
     }
 
     if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_%s_categories%d%s_%d_%s.root", varname.Data(), (int)min, 
-                            (int)max, islow.Data(), whichCategories, xcategoryString.Data(), (int)luminosity, whichDY.Data());
+    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s.root", varname.Data(), (int)min, 
+                            (int)max, whichCategories, xcategoryString.Data(), (int)luminosity, whichDY.Data());
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

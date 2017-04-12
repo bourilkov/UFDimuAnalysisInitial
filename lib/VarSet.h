@@ -155,6 +155,9 @@ class VarSet
 	  else return -999;
         }
 	
+        // see if the var string is in the map
+        bool checkForVar(const std::string& name){return (varMap[name] || varMapI[name]); }
+
         void setCalibrationType(TString ctype)
         {
           if(ctype == "PF") 

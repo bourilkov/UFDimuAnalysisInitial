@@ -43,7 +43,7 @@ Sample::Sample(std::vector<TString> ifilenames, TString iname, TString isampleTy
     chain = new TChain(treename);
     for (int i = 0; i < filenames.size(); i++) {
       chain->Add(filenames.at(i));
-      std::cout << i+1 << ", ";
+      //std::cout << i+1 << ", ";
     }
     N = chain->GetEntries();
 
