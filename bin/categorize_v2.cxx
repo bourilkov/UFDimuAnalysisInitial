@@ -220,7 +220,7 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
     // mu_pt
     if(varname.Contains("mu") && varname.Contains("pt"))
     {
-        bins = 100;
+        bins = 50;
         min = 0;
         max = 200;
         if(varname.Contains("dimu")) max = 300;
@@ -229,7 +229,7 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
     // mu_eta
     if(varname.Contains("mu") && varname.Contains("eta") && !varname.Contains("dEta"))
     {
-        bins = 50;
+        bins = 25;
         min = -2.5;
         max = 2.5;
     }
@@ -245,7 +245,7 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
     // jet_pt
     if(varname.Contains("jet") && varname.Contains("pt"))
     {   
-        bins = 100;
+        bins = 50;
         min = 0;
         max = 200;
     }   
@@ -269,7 +269,7 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
     // m_jj
     if(varname.Contains("m_jj") || varname.Contains("m_bb") || (varname.Contains("dijet") && varname.Contains("mass")))
     {   
-        bins = 100;
+        bins = 50;
         min = 0; 
         max = 2000;
     }   
@@ -280,6 +280,12 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
         bins = 50;
         min = -10; 
         max = 10;
+        if(varname.Contains("mu"))
+        {
+            bins = 25;
+            min = -5;
+            max = 5;
+        }
     }   
 
     // dPhi
@@ -299,7 +305,7 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
     // mT_b_MET/MT_had/mas_had
     if(varname.Contains("mT") || varname.Contains("MT") || varname.Contains("mass_had"))
     {
-        bins = 100;
+        bins = 50;
         min = 0;
         max = 2000;
     }
@@ -307,7 +313,7 @@ void initPlotSettings(TString varname, int binning, int& bins, float& min, float
     // MET
     if(varname == "MHT" || varname == "MET")
     {
-        bins = 75;
+        bins = 50;
         min = 0;
         max = 150;
     }
@@ -382,15 +388,15 @@ int main(int argc, char* argv[])
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
 
     float luminosity = 36814;       // pb-1
-    float reductionFactor = 20;     // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 1;      // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
     // gather samples map from SamplesDatabase.cxx
-    //TString whichDY = "dyAMC";
-    TString whichDY = "dyMG";
+    TString whichDY = "dyAMC";
+    //TString whichDY = "dyMG";
     GetSamples(samples, "UF", "ALL_"+whichDY);
 
     ///////////////////////////////////////////////////////////////////
@@ -675,6 +681,7 @@ int main(int argc, char* argv[])
 
           // Load the rest of the information needed for run2 categories
           s->branches.getEntry(i);
+          s->vars.setCalibrationType(pf_roch_or_kamu); // reloaded the branches, need to set mass,pt to correct calibrations again
 
           // clear vectors for the valid collections
           s->vars.validMuons.clear();

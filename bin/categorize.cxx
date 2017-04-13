@@ -551,7 +551,7 @@ int main(int argc, char* argv[])
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
 
     float luminosity = 36814;       // pb-1
-    float reductionFactor = 1;      // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 1;     // reduce the number of events you run over in case you want to debug or some such thing
 
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------

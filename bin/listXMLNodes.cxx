@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
    float reductionFactor = 1;
 
    
-   CategorySelectionBDT categorySelection(xmlfile);
+   XMLCategorizer categorySelection(xmlfile);
 
    std::map<TString, Sample*> samples;
    GetSamples(samples, "UF", "H2Mu_VH");
@@ -153,6 +153,8 @@ int main(int argc, char* argv[])
 
             // Figure out which category the event belongs to
             categorySelection.evaluate(s->vars);
+            EventTools::outputEvent(s->vars, categorySelection);
+            return 0;
 
             // ouput pt, mass info etc for the event
             if(s->vars.validExtraMuons.size() + s->vars.validElectrons.size() >= 1)
