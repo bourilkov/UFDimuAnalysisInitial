@@ -22,8 +22,8 @@
 
 void CategoryNode::theMiracleOfChildBirth()
 {
-    left = new CategoryNode(this, 0, 0, this->name+"_left", -999, "", -999, -999) ; 
-    right = new CategoryNode(this, 0, 0, this->name+"_right", -999, "", -999, -999) ;
+    left = new CategoryNode(this, 0, 0, this->key+"_left", -999, "", -999, -999) ; 
+    right = new CategoryNode(this, 0, 0, this->key+"_right", -999, "", -999, -999) ;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ void XMLCategorizer::evaluate(VarSet& vars)
 void XMLCategorizer::evaluateRecursive(VarSet& vars, CategoryNode* cnode)
 {
     // if it was filtered into this node then it's in this category
-    categoryMap[cnode->name].inCategory = true;
+    categoryMap[cnode->key].inCategory = true;
 
     // return if terminal node
     if(cnode->left == 0 || cnode->right == 0)
@@ -116,7 +116,28 @@ void XMLCategorizer::loadFromXML(TString filename)
    
     // Release memory before exit
     xml->FreeDoc(xmldoc);
+
     delete xml;
+
+    int i=0;
+    for(auto& c: categoryMap)
+    {
+        if(c.second.isTerminal)
+        {
+            c.second.name = Form("c%d", i);
+            i++;
+        }
+        else if(c.second.key == "root")
+        {
+            c.second.name = c.second.key;
+        }
+        else
+        {
+            c.second.name = c.second.key;
+            c.second.hide = true;
+        }
+    }
+      
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -178,11 +199,11 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
         sig.ReplaceAll(" ", "");
         sig.ReplaceAll(".", "p");
         sig.ReplaceAll("-", "n");
-        cnode->name = "T_"+sig+"_"+cnode->name;
+        cnode->key = "T_"+sig+"_"+cnode->key;
 
         //cnode->output();
-        categoryMap[cnode->name] = Category(cnode->name);
-        categoryMap[cnode->name].isTerminal = true;
+        categoryMap[cnode->key] = Category(cnode->key);
+        categoryMap[cnode->key].isTerminal = true;
         return;
     }
     else
@@ -191,10 +212,10 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
         scut.ReplaceAll(" ", "");
         scut.ReplaceAll(".", "p");
         scut.ReplaceAll("-", "n");
-        if(cnode->mother == 0) cnode->name = "root";
+        if(cnode->mother == 0) cnode->key = "root";
         //cnode->output();
 
-        categoryMap[cnode->name] = Category(cnode->name);
+        categoryMap[cnode->key] = Category(cnode->key);
 
         cnode->theMiracleOfChildBirth();
         CategoryNode* cleft = cnode->left; 
@@ -202,13 +223,13 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
 
         if(cnode->mother==0)
         {
-            cleft->name = "lt_"+scut;
-            cright->name = "gt_"+scut;
+            cleft->key = "lt_"+scut;
+            cright->key = "gt_"+scut;
         }
         else
         {
-            cleft->name = cnode->name+"_lt_"+scut;
-            cright->name = cnode->name+"_gt_"+scut;
+            cleft->key = cnode->key+"_lt_"+scut;
+            cright->key = cnode->key+"_gt_"+scut;
         }
 
         loadFromXMLRecursive(xml, xleft, cleft);

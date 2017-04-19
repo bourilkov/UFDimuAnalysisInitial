@@ -127,16 +127,16 @@ void Sample::setBranchAddresses(TString options)
 
           if(options == "JES_down")
           {
-              branches.jets      = chain->GetBranch("jets_JES_down");
-              branches.jetPairs  = chain->GetBranch("jetPairs_JES_down");
-              branches.mht       = chain->GetBranch("mht_JES_down");
-              branches.met       = chain->GetBranch("met_JES_down");
-              branches.nJets     = chain->GetBranch("nJets_JES_down");
-              branches.nJetsCent = chain->GetBranch("nJetsCent_JES_down");
-              branches.nJetsFwd  = chain->GetBranch("nJetsFwd_JES_down");
-              branches.nBLoose   = chain->GetBranch("nBLoose_JES_down");
-              branches.nBMed     = chain->GetBranch("nBMed_JES_down");
-              branches.nBTight   = chain->GetBranch("nBTight_JES_down");
+              //branches.jets      = chain->GetBranch("jets_JES_down");
+              //branches.jetPairs  = chain->GetBranch("jetPairs_JES_down");
+              //branches.mht       = chain->GetBranch("mht_JES_down");
+              //branches.met       = chain->GetBranch("met_JES_down");
+              //branches.nJets     = chain->GetBranch("nJets_JES_down");
+              //branches.nJetsCent = chain->GetBranch("nJetsCent_JES_down");
+              //branches.nJetsFwd  = chain->GetBranch("nJetsFwd_JES_down");
+              //branches.nBLoose   = chain->GetBranch("nBLoose_JES_down");
+              //branches.nBMed     = chain->GetBranch("nBMed_JES_down");
+              //branches.nBTight   = chain->GetBranch("nBTight_JES_down");
           }
 
           branches.eff_wgt = chain->GetBranch("IsoMu_eff_3");

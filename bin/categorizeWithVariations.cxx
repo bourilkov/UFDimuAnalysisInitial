@@ -45,7 +45,38 @@
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-TList* groupMC(TList* list, TString categoryName)
+struct Settings
+{
+// default settings here, may be overwritten by terminal input, see main() below
+
+    int whichCategories = 1;              // run2categories = 1, run2categories = 2, "categories.xml" = 3 -> xmlcategories
+    TString varname = "dimu_mass_Roch";   // the variable to plot, must match name in ../lib/VarSet
+    int binning = 0;                      // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
+                                          //  negative numbers unblind the data for limit setting
+                                          //  see initPlotSettings above for more information
+    
+    bool rebin = true;        // rebin the ratio plots so that each point has small errors
+    int nthreads = 10;        // number of threads to use in parallelization
+    bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
+    
+    TString xmlfile;          // filename for the xmlcategorizer, if you chose to use one 
+
+    float luminosity = 36814;                // pb-1
+    float reductionFactor = 50;              // reduce the number of events you run over in case you want to debug or some such thing
+
+    TString whichDY = "dyAMC";               // use amc@nlo or madgraph for Drell Yan : {"dyAMC", "dyMG"}
+    TString systematics;                     // which systematics to plot
+
+    float min;
+    float max;
+    int bins;
+};
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
+TList* groupMC(TList* list, TString categoryName, TString suffix)
 {
 // Group backgrounds into categories so there aren't a million of them in the legend
 // drell_yan, ttbar + single top, diboson + rest, group VH together also
@@ -90,10 +121,10 @@ TList* groupMC(TList* list, TString categoryName)
         }
     }
     // Don't forget to group VH together and retitle other signal samples
-    TH1D* vh_histo = DiMuPlottingSystem::addHists(vh_list, categoryName+"VH", "VH");
-    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan", "Drell Yan");
-    TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop", "TTbar + SingleTop");
-    TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus", "Diboson +");
+    TH1D* vh_histo = DiMuPlottingSystem::addHists(vh_list, categoryName+"VH"+suffix, "VH");
+    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan_"+suffix, "Drell Yan");
+    TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop"+suffix, "TTbar + SingleTop");
+    TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus"+suffix, "Diboson +");
 
     grouped_list->AddFirst(vh_histo);
     grouped_list->Add(diboson_histo);
@@ -119,215 +150,180 @@ UInt_t getNumCPUs()
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-// set bins, min, max, and the var to plot based upon varNumber and binning
-void initPlotSettings(TString varname, int binning, int& bins, float& min, float& max)
+// set bins, min, max, and the var to plot based upon varNumber and settings.binning
+void initPlotSettings(Settings& settings)
 {
-    bins = 100;
-    min = -10;
-    max = 10;
+    settings.bins = 100;
+    settings.min = -10;
+    settings.max = 10;
 
     // dimu_mass
-    if(varname.Contains("dimu_mass"))
+    if(settings.varname.Contains("dimu_mass"))
     {
-        if(binning == 0)       // blind data in 120-130 GeV, plot in 50-200 GeV to include z-peak
+        if(settings.binning == 0)       // blind data in 120-130 GeV, plot in 50-200 GeV to include z-peak
         {                      // 1 GeV bins, used mostly for validation plots
-            bins = 150;
-            min = 50;
-            max = 200;
+            settings.bins = 150;
+            settings.min = 50;
+            settings.max = 200;
         }
-        else if(binning == -1) // unblind data in 120-130 GeV for limit setting, 110-160 window
+        else if(settings.binning == -1) // unblind data in 120-130 GeV for limit setting, 110-160 window
         {                      // 1 GeV bins
-            bins = 50;
-            min = 110;
-            max = 160;
+            settings.bins = 50;
+            settings.min = 110;
+            settings.max = 160;
         }
-        else if(binning == 1)  // blind data in 120-130 GeV, 110-160 window
+        else if(settings.binning == 1)  // blind data in 120-130 GeV, 110-160 window
         {                      // 1 GeV bins, study background fits
-            bins = 50;
-            min = 110;
-            max = 160;
+            settings.bins = 50;
+            settings.min = 110;
+            settings.max = 160;
         }
-        else if(binning == -2) // unblind data in 120-130 GeV for limit setting, 110-310 window
+        else if(settings.binning == -2) // unblind data in 120-130 GeV for limit setting, 110-310 window
         {                      // 1 GeV bins
-            bins = 200;
-            min = 110;
-            max = 310;
+            settings.bins = 200;
+            settings.min = 110;
+            settings.max = 310;
         }
-        else if(binning == 2)  // blind data in 120-130 GeV, plot in 110 to 310 GeV range
+        else if(settings.binning == 2)  // blind data in 120-130 GeV, plot in 110 to 310 GeV range
         {                      // 2 GeV bins, study background fits
-            bins = 100;
-            min = 110;
-            max = 310;
+            settings.bins = 100;
+            settings.min = 110;
+            settings.max = 310;
         }
         else
         {
-            bins = 150;
-            min = 50;
-            max = 200;
+            settings.bins = 150;
+            settings.min = 50;
+            settings.max = 200;
         }
     }
 
     // mu_pt
-    if(varname.Contains("mu") && varname.Contains("pt"))
+    if(settings.varname.Contains("mu") && settings.varname.Contains("pt"))
     {
-        bins = 50;
-        min = 0;
-        max = 200;
-        if(varname.Contains("dimu")) max = 300;
+        settings.bins = 50;
+        settings.min = 0;
+        settings.max = 200;
+        if(settings.varname.Contains("dimu")) settings.max = 300;
     }
  
     // mu_eta
-    if(varname.Contains("mu") && varname.Contains("eta") && !varname.Contains("dEta"))
+    if(settings.varname.Contains("mu") && settings.varname.Contains("eta") && !settings.varname.Contains("dEta"))
     {
-        bins = 25;
-        min = -2.5;
-        max = 2.5;
+        settings.bins = 25;
+        settings.min = -2.5;
+        settings.max = 2.5;
     }
 
     // NPV
-    if(varname == "NPV")
+    if(settings.varname == "NPV")
     {
-        bins = 50;
-        min = 0;
-        max = 50;
+        settings.bins = 50;
+        settings.min = 0;
+        settings.max = 50;
     }
 
     // jet_pt
-    if(varname.Contains("jet") && varname.Contains("pt"))
+    if(settings.varname.Contains("jet") && settings.varname.Contains("pt"))
     {   
-        bins = 50;
-        min = 0;
-        max = 200;
+        settings.bins = 50;
+        settings.min = 0;
+        settings.max = 200;
     }   
 
     // jet_eta 
-    if(varname.Contains("jet") && varname.Contains("eta"))
+    if(settings.varname.Contains("jet") && settings.varname.Contains("eta"))
     {   
-        bins = 50;
-        min = -5; 
-        max = 5;
+        settings.bins = 50;
+        settings.min = -5; 
+        settings.max = 5;
     }   
 
     // # of jets, ele, mu, etc
-    if(varname.Contains("nJets") || varname.Contains("nVal") || varname.Contains("nExtra") || varname.Contains("nB") || varname.Contains("nEle"))
+    if(settings.varname.Contains("nJets") || settings.varname.Contains("nVal") || settings.varname.Contains("nExtra") || settings.varname.Contains("nB") || settings.varname.Contains("nEle"))
     {   
-        bins = 11;
-        min = 0; 
-        max = 11;
+        settings.bins = 11;
+        settings.min = 0; 
+        settings.max = 11;
     }   
 
     // m_jj
-    if(varname.Contains("m_jj") || varname.Contains("m_bb") || (varname.Contains("dijet") && varname.Contains("mass")))
+    if(settings.varname.Contains("m_jj") || settings.varname.Contains("m_bb") || (settings.varname.Contains("dijet") && settings.varname.Contains("mass")))
     {   
-        bins = 50;
-        min = 0; 
-        max = 2000;
+        settings.bins = 50;
+        settings.min = 0; 
+        settings.max = 2000;
     }   
 
     // dEta
-    if(varname.Contains("dEta"))
+    if(settings.varname.Contains("dEta"))
     {   
-        bins = 50;
-        min = -10; 
-        max = 10;
-        if(varname.Contains("mu"))
+        settings.bins = 50;
+        settings.min = -10; 
+        settings.max = 10;
+        if(settings.varname.Contains("mu"))
         {
-            bins = 25;
-            min = -5;
-            max = 5;
+            settings.bins = 25;
+            settings.min = -5;
+            settings.max = 5;
         }
     }   
 
     // dPhi
-    if(varname.Contains("dPhi"))
+    if(settings.varname.Contains("dPhi"))
     {   
-        bins = 50;
-        min = -3.2; 
-        max = 3.2;
+        settings.bins = 50;
+        settings.min = -3.2; 
+        settings.max = 3.2;
 
-        if(varname.Contains("Star"))
+        if(settings.varname.Contains("Star"))
         {
-            min = 0;
-            max = 10;
+            settings.min = 0;
+            settings.max = 10;
         }
     }   
 
     // mT_b_MET/MT_had/mas_had
-    if(varname.Contains("mT") || varname.Contains("MT") || varname.Contains("mass_had"))
+    if(settings.varname.Contains("mT") || settings.varname.Contains("MT") || settings.varname.Contains("mass_had"))
     {
-        bins = 50;
-        min = 0;
-        max = 2000;
+        settings.bins = 50;
+        settings.min = 0;
+        settings.max = 2000;
     }
 
     // MET
-    if(varname == "MHT" || varname == "MET")
+    if(settings.varname == "MHT" || settings.varname == "MET")
     {
-        bins = 50;
-        min = 0;
-        max = 150;
+        settings.bins = 50;
+        settings.min = 0;
+        settings.max = 150;
     }
 
     // bdt_score
-    if(varname == "bdt_score")
+    if(settings.varname == "bdt_score")
     {
-        bins = 50;
-        min = -1;
-        max = 1;
+        settings.bins = 50;
+        settings.min = -1;
+        settings.max = 1;
     }
 
-    if(varname.Contains("abs"))
+    if(settings.varname.Contains("abs"))
     {
-        bins = bins/2;
-        min = 0;
+        settings.bins = settings.bins/2;
+        settings.min = 0;
     }
 }
-
 
 //////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
-int main(int argc, char* argv[])
+Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 {
     gROOT->SetBatch();
     // save the errors for the histogram correctly so they depend upon 
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();
-
-    int whichCategories = 1;              // run2categories = 1, run2categories = 2, "categories.xml" = 3 -> xmlcategories
-    TString varname = "dimu_mass_Roch";   // the variable to plot, 0 is dimu_mass for instance
-    int binning = 0;                      // binning = 1 -> plot dimu_mass from 110 to 160 for limit setting
-                                          //  negative numbers unblind the data for limit setting
-                                          //  see initPlotSettings above for more information
-
-    bool rebin = true;        // rebin the ratio plots so that each point has small errors
-    int nthreads = 1;         // number of threads to use in parallelization
-    bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
-
-    TString xmlfile;          // filename for the xmlcategorizer, if you chose to use one 
-
-    for(int i=1; i<argc; i++)
-    {   
-        std::stringstream ss; 
-        ss << argv[i];
-        if(i==1) 
-        {
-            size_t found = ss.str().find(".xml");
-            if(found!=std::string::npos)
-            {
-                xmlfile = TString(ss.str().c_str());
-                whichCategories = 3;
-            }
-            else
-                ss >> whichCategories;
-        }
-        if(i==2) varname = TString(ss.str().c_str());
-        if(i==3) ss >> binning;
-        if(i==4) ss >> rebin;
-        if(i==5) ss >> nthreads;
-        if(i==6) ss >> fitratio;
-    }   
 
     // Use this as the main database and choose from it to make the vector
     std::map<TString, Sample*> samples;
@@ -338,18 +334,11 @@ int main(int argc, char* argv[])
     // Use this to plot some things if we wish
     DiMuPlottingSystem* dps = new DiMuPlottingSystem();
 
-    float luminosity = 36814;                // pb-1
-    float reductionFactor = 50;              // reduce the number of events you run over in case you want to debug or some such thing
-    TString systematics_to_load = "JES_up";  // "JES_up/down", "PU_up/down" or ""
-
     ///////////////////////////////////////////////////////////////////
     // SAMPLES---------------------------------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    // gather samples map from SamplesDatabase.cxx
-    TString whichDY = "dyAMC";
-    //TString whichDY = "dyMG";
-    GetSamples(samples, "UF", "ALL_"+whichDY);
+    GetSamples(samples, "UF", "ALL_"+settings.whichDY);
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -364,7 +353,7 @@ int main(int argc, char* argv[])
     
     for(auto &i : samples)
     {
-        //if(i.second->sampleType != "signal" && i.second->name != "ZJets_AMC" && i.second->name != "tt_ll_AMC" && i.second->sampleType != "data") continue;
+        if(i.second->sampleType == "data" && systematic!="") continue;
         // Output some info about the current file
         std::cout << "  /// Using sample " << i.second->name << std::endl;
         std::cout << std::endl;
@@ -376,7 +365,7 @@ int main(int argc, char* argv[])
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
 
-        i.second->setBranchAddresses(systematics_to_load);          // tell the ttree to load the variable values into sample->vars
+        i.second->setBranchAddresses(systematic);          // tell the ttree to load the variable values into sample->vars
         samplevec.push_back(i.second);                              // add the sample to the vector of samples which we will run over
     }
 
@@ -387,39 +376,37 @@ int main(int argc, char* argv[])
     // Get Histo Information from Input -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    // histo settings
-    int bins;
-    float min;
-    float max;
-
-    // set nbins, min, max, and var to plot based upon input from the terminal: varNumber and binning
-    initPlotSettings(varname, binning, bins, min, max);
+    // set nbins, min, max, and var to plot based upon input from the terminal: varNumber and settings.binning
+    initPlotSettings(settings);
 
     std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
-    std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
+    std::cout << "@@@ nCPUs used     : " << settings.nthreads << std::endl;
     std::cout << "@@@ nSamples used  : " << samplevec.size() << std::endl;
 
-    // print out xmlfilename if using xmlcategorizer otherwise print out 1 or 2
-    TString categoryString = Form("%d", whichCategories);
-    if(whichCategories == 3) categoryString = xmlfile;
+    // print out settings.xmlfilename if using xmlcategorizer otherwise print out 1 or 2
+    TString categoryString = Form("%d", settings.whichCategories);
+    if(settings.whichCategories == 3) categoryString = settings.xmlfile;
 
     std::cout << std::endl;
     std::cout << "======== Plot Configs ========" << std::endl;
-    std::cout << "categories  : " << categoryString << std::endl;
-    std::cout << "var         : " << varname << std::endl;
-    std::cout << "min         : " << min << std::endl;
-    std::cout << "max         : " << max << std::endl;
-    std::cout << "bins        : " << bins << std::endl;
-    std::cout << "binning     : " << binning << std::endl;
-    std::cout << "rebin       : " << rebin << std::endl;
+    std::cout << "categories     : " << categoryString << std::endl;
+    std::cout << "systematic     : " << systematic << std::endl;
+    std::cout << "var            : " << settings.varname << std::endl;
+    std::cout << "min            : " << settings.min << std::endl;
+    std::cout << "max            : " << settings.max << std::endl;
+    std::cout << "bins           : " << settings.bins << std::endl;
+    std::cout << "binning        : " << settings.binning << std::endl;
+    std::cout << "reductionFactor: " << settings.reductionFactor << std::endl;
+    std::cout << "whichDY        : " << settings.whichDY << std::endl;
+    std::cout << "rebin ratio    : " << settings.rebin << std::endl;
+    std::cout << "fit ratio      : " << settings.fitratio << std::endl;
     std::cout << std::endl;
 
     ///////////////////////////////////////////////////////////////////
     // Define Task for Parallelization -------------------------------
     ///////////////////////////////////////////////////////////////////
 
-    auto makeHistoForSample = [varname, binning, bins, min, max, rebin, whichCategories, 
-                               whichDY, xmlfile, luminosity, reductionFactor](Sample* s)
+    auto makeHistoForSample = [settings, systematic](Sample* s)
     {
 
       // info to check that this event is different than the last event
@@ -429,14 +416,14 @@ int main(int argc, char* argv[])
       long long int this_run = -999;
       long long int this_event = -999;
 
-      bool isblinded = true;              // negative binning: unblind data in 120-130 GeV 
-      if(binning < 0) isblinded = false;
+      bool isblinded = true;              // negative settings.binning: unblind data in 120-130 GeV 
+      if(settings.binning < 0) isblinded = false;
 
       // Output some info about the current file
       std::cout << Form("  /// Processing %s \n", s->name.Data());
-      if(!s->vars.checkForVar(varname.Data()))
+      if(!s->vars.checkForVar(settings.varname.Data()))
       {
-          std::cout << Form("  !!! %s is not a valid variable %s \n", varname.Data(), s->name.Data());
+          std::cout << Form("  !!! %s is not a valid variable %s \n", settings.varname.Data(), s->name.Data());
       }
 
 
@@ -464,7 +451,7 @@ int main(int argc, char* argv[])
       //std::map<TString, Float_t> smap_multi;
 
       // load tmva binary classification and multiclass classifiers
-      if(whichCategories == 3)
+      if(settings.whichCategories == 3)
       {
           reader       = TMVATools::bookVars(methodName, weightfile, tmap, smap);
           //reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
@@ -484,21 +471,22 @@ int main(int argc, char* argv[])
 
       Categorizer* categorySelection = 0;
 
-      if(whichCategories == 1) categorySelection = new CategorySelectionRun1();         // run1 categories
-      else if(whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();     // Adrian's proposed run2 categories
-      else if(whichCategories == 3 && xmlfile.Contains("hybrid")) categorySelection = new CategorySelectionBDT(xmlfile); // BDT based categories XML + object cuts
-      else if(whichCategories == 3) categorySelection = new XMLCategorizer(xmlfile);    // BDT based categories XML only
+      if(settings.whichCategories == 1) categorySelection = new CategorySelectionRun1();                  // run1 categories
+      else if(settings.whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();              // Adrian's proposed run2 categories
+      else if(settings.whichCategories == 3 && settings.xmlfile.Contains("hybrid")) 
+          categorySelection = new CategorySelectionBDT(settings.xmlfile);                                 // BDT based categories XML + object cuts
+      else if(settings.whichCategories == 3) categorySelection = new XMLCategorizer(settings.xmlfile);    // BDT based categories XML only
 
       // set some flags
       bool isData = s->sampleType.EqualTo("data");
       bool isSignal = s->sampleType.EqualTo("signal");
-      bool isMass = varname.Contains("dimu_mass");
+      bool isMass = settings.varname.Contains("dimu_mass");
 
       // use pf, roch, or kamu values for selections, categories, and fill?
       TString pf_roch_or_kamu = "PF";
-      if(varname.Contains("PF")) pf_roch_or_kamu = "PF";
-      else if(varname.Contains("Roch")) pf_roch_or_kamu = "Roch";
-      else if(varname.Contains("KaMu")) pf_roch_or_kamu = "KaMu";
+      if(settings.varname.Contains("PF")) pf_roch_or_kamu = "PF";
+      else if(settings.varname.Contains("Roch")) pf_roch_or_kamu = "Roch";
+      else if(settings.varname.Contains("KaMu")) pf_roch_or_kamu = "KaMu";
 
       ///////////////////////////////////////////////////////////////////
       // INIT HISTOGRAMS TO FILL ----------------------------------------
@@ -511,19 +499,14 @@ int main(int argc, char* argv[])
       // categorySelection has a categoryMap<TString, CategorizerObject>
       for(auto &c : categorySelection->categoryMap)
       {
-          // !!!! ADD JES_UP/DOWN and PU_UP/DOWN
-          // !!!! hkey_jes_up, hkey_jes_down, hkey_pu_up, hkey_pu_down, hkey
-
-          //number of bins for the histogram
-          int hbins = bins;
-
           // c.second is the category object, c.first is the category name
-          TString hname = c.first+"_"+s->name;
+          TString hname = c.second.name+"_"+s->name;
+          if(systematic != "" && !isData) hname+="_"+systematic;
 
           // Set up the histogram for the category and variable to plot
           // Each category has a map and some lists to keep track of different histograms
-          c.second.histoMap[hkey] = new TH1D(hname, hname, hbins, min, max);
-          c.second.histoMap[hkey]->GetXaxis()->SetTitle(varname);
+          c.second.histoMap[hkey] = new TH1D(hname, hname, settings.bins, settings.min, settings.max);
+          c.second.histoMap[hkey]->GetXaxis()->SetTitle(settings.varname);
           c.second.histoList->Add(c.second.histoMap[hkey]);                                      // need them ordered by xsec for the stack and ratio plot
           if(s->sampleType.EqualTo("data")) c.second.dataList->Add(c.second.histoMap[hkey]);     // data histo
           if(s->sampleType.EqualTo("signal")) c.second.signalList->Add(c.second.histoMap[hkey]); // signal histos
@@ -537,7 +520,7 @@ int main(int argc, char* argv[])
       ///////////////////////////////////////////////////////////////////
 
       // Sift the events into the different categories and fill the histograms for each sample x category
-      for(unsigned int i=0; i<s->N/reductionFactor; i++)
+      for(unsigned int i=0; i<s->N/settings.reductionFactor; i++)
       {
         // We are stitching together zjets_ht from 70-inf. We use the inclusive for
         // ht from 0-70.
@@ -578,14 +561,14 @@ int main(int argc, char* argv[])
 
           // only use even signal events for limit setting 
           // as to separate training and evaluation events
-          if(isSignal && whichCategories==3 && binning<0 && (s->vars.eventInfo->event % 2 == 1))
+          if(isSignal && settings.whichCategories==3 && settings.binning<0 && (s->vars.eventInfo->event % 2 == 1))
           {
               continue;
           }
 
           // only consider events w/ dimu_mass in the histogram range,
           // so the executable doesn't take forever, especially w/ tmva evaluation.
-          if(isMass && (dimu.mass < min || dimu.mass > max))
+          if(isMass && (dimu.mass < settings.min || dimu.mass > settings.max))
           {
               continue;
           }
@@ -662,7 +645,7 @@ int main(int argc, char* argv[])
           ///////////////////////////////////////////////////////////////////
 
           // XML categories require the classifier score from TMVA
-          if(whichCategories == 3)
+          if(settings.whichCategories == 3)
           {
               //std::cout << i << " !!! SETTING JETS " << std::endl;
               //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
@@ -696,18 +679,18 @@ int main(int argc, char* argv[])
               // now that we have a lot of these in the VarSet map we should just fill the s->vars.getValue("varName")
               // would save a lot of explicit code here ...
 
-              if(varname.Contains("dimu_mass") || varname == "bdt_score") 
+              if(settings.varname.Contains("dimu_mass") || settings.varname == "bdt_score") 
               {
                   if(isData && dimu.mass > 120 && dimu.mass < 130 && isblinded) continue; // blind signal region
 
                   // if the event is in the current category then fill the category's histogram for the given sample and variable
-                  c.second.histoMap[hkey]->Fill(s->vars.getValue(varname.Data()), s->getWeight());
+                  c.second.histoMap[hkey]->Fill(s->vars.getValue(settings.varname.Data()), s->getWeight());
                   //std::cout << "    " << c.first << ": " << varvalue;
                   continue;
               }
               else
               {
-                  c.second.histoMap[hkey]->Fill(s->vars.getValue(varname.Data()), s->getWeight());
+                  c.second.histoMap[hkey]->Fill(s->vars.getValue(settings.varname.Data()), s->getWeight());
               }
 
           } // end category loop
@@ -716,7 +699,7 @@ int main(int argc, char* argv[])
           // DEBUG ----------------------------------------------------------
           
           // ouput pt, mass info etc for the event
-          if(s->vars.validJets.size() >= 1)
+          if(false)
           {
             EventTools::outputEvent(s->vars, *categorySelection);
             return categorySelection;
@@ -730,18 +713,19 @@ int main(int argc, char* argv[])
         } // end dimu cand loop //
       } // end event loop //
 
-      if(whichCategories == 3) delete reader;
-      //if(whichCategories == 3) delete reader_multi;
+      if(settings.whichCategories == 3) delete reader;
+      //if(settings.whichCategories == 3) delete reader_multi;
 
-      // Scale according to luminosity and sample xsec now that the histograms are done being filled for that sample
+      // Scale according to settings.luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
       {
           // Only used half of the signal events in this case, need to boost the normalization by 2 to make up for that
-          if(whichCategories == 3 && isSignal && binning < 0) c.second.histoMap[hkey]->Scale(2*s->getLumiScaleFactor(luminosity));
-          else c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(luminosity));
+          if(settings.whichCategories == 3 && isSignal && settings.binning < 0) c.second.histoMap[hkey]->Scale(2*s->getLumiScaleFactor(settings.luminosity));
+          else c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(settings.luminosity));
       }
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
+      delete s;
       return categorySelection;
 
     }; // done defining makeHistoForSample
@@ -750,11 +734,8 @@ int main(int argc, char* argv[])
    // PARALLELIZE BY SAMPLE -----------------------------------------
    ///////////////////////////////////////////////////////////////////
 
-    ThreadPool pool(nthreads);
+    ThreadPool pool(settings.nthreads);
     std::vector< std::future<Categorizer*> > results;
-
-    TStopwatch timerWatch;
-    timerWatch.Start();
 
     for(auto &s : samplevec)
         results.push_back(pool.enqueue(makeHistoForSample, s));
@@ -764,14 +745,16 @@ int main(int argc, char* argv[])
    ///////////////////////////////////////////////////////////////////
 
     Categorizer* cAll = 0;
-    if(whichCategories == 1) cAll = new CategorySelectionRun1();      // run1 categories 
-    else if(whichCategories == 2) cAll = new LotsOfCategoriesRun2();  // Adrian's proposed run2 categories
-    else if(whichCategories == 3 && xmlfile.Contains("hybrid")) cAll = new CategorySelectionBDT(xmlfile); // BDT categories XML + Object cuts
-    else if(whichCategories == 3) cAll = new XMLCategorizer(xmlfile);                                     // BDT categories using XML only
+    if(settings.whichCategories == 1) cAll = new CategorySelectionRun1();                            // run1 categories 
+    else if(settings.whichCategories == 2) cAll = new LotsOfCategoriesRun2();                        // Adrian's proposed run2 categories
+    else if(settings.whichCategories == 3 && settings.xmlfile.Contains("hybrid")) 
+        cAll = new CategorySelectionBDT(settings.xmlfile);                                           // BDT categories XML + Object cuts
+    else if(settings.whichCategories == 3) cAll = new XMLCategorizer(settings.xmlfile);              // BDT categories using XML only
 
     // get histos from all categorizers and put them into one categorizer
     for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
     {
+        int i = 0;
         for(auto& category: categorizer.get()->categoryMap) // loop through each category for the given sample
         {
             // category.first is the category name, category.second is the Category object
@@ -793,107 +776,173 @@ int main(int argc, char* argv[])
         }
     }
 
-   ///////////////////////////////////////////////////////////////////
-   // Save All of the Histos-----------------------------------------
-   ///////////////////////////////////////////////////////////////////
+    return cAll;
+}
 
-    TList* varstacklist = new TList();   // list to save all of the stacks
-    TList* signallist = new TList();     // list to save all of the signal histos
-    TList* bglist = new TList();         // list to save all of the background histos
-    TList* datalist = new TList();       // list to save all of the data histos
-    TList* netlist = new TList();        // list to save all of the net histos
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
 
-    std::cout << "About to loop through cAll" << std::endl;
-    for(auto &c : cAll->categoryMap)
+int main(int argc, char* argv[])
+{
+    Settings settings;
+
+
+    ///////////////////////////////////////////////////////////////
+    // Parse Arguments -------------------------------------------
+    ///////////////////////////////////////////////////////////////
+
+    for(int i=1; i<argc; i++)
+    {   
+        std::stringstream ss; 
+        TString in = argv[i];
+        TString option = in(0, in.First("="));
+        option = option.ReplaceAll("--", "");
+        TString value  = in(in.First("=")+1, in.Length());
+        value = value.ReplaceAll("\"", "");
+        ss << value.Data();
+
+        if(option=="categories") 
+        {
+            if(value.Contains(".xml"))
+            {
+                settings.xmlfile = value;
+                settings.whichCategories = 3;
+            }
+            else
+                ss >> settings.whichCategories;
+        }
+        else if(option=="var")             settings.varname = value;
+        else if(option=="binning")         ss >> settings.binning;
+        else if(option=="nthreads")        ss >> settings.nthreads;
+        else if(option=="rebinRatio")      ss >> settings.rebin;
+        else if(option=="fitRatio")        ss >> settings.fitratio;
+        else if(option=="reductionFactor") ss >> settings.reductionFactor;
+        else if(option=="luminosity")      ss >> settings.luminosity;
+        else if(option=="whichDY")         settings.whichDY = value;
+        else
+        {
+            std::cout << Form("!!! %s is not a recognized option.", option) << std::endl;
+        }
+    }   
+
+    std::vector<TString> systematics = {"", "JES_down"}; //, "JES_down", "PU_up", "PU_down"};
+    TH1D* hNetData = 0; // keep the net data so that we can make DATA/MC stacks for other systematics
+                        // without rerunning over the data samples
+
+    TStopwatch timerWatch;
+    timerWatch.Start();
+
+    for(auto& systematic: systematics)
     {
-        // some categories are intermediate and we don't want to save the plots for those
-        if(c.second.hide) continue;
+        std::cout << std::endl;
+        std::cout << "/////////////////////////////////////////////////////////////////////" << std::endl;
+        std::cout << "/// SYSTEMATIC: " << systematic << std::endl;
+        std::cout << "/////////////////////////////////////////////////////////////////////" << std::endl;
+        std::cout << std::endl;
 
-        // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-        TH1D* hNetSignal = dps->addHists(c.second.signalList, c.first+"_Net_Signal", "Net Signal");
-        TH1D* hNetBkg    = dps->addHists(c.second.bkgList,    c.first+"_Net_Bkg",    "Net Background");
-        TH1D* hNetData   = dps->addHists(c.second.dataList,   c.first+"_Net_Data",   "Data");
+        Categorizer* cAll = plotWithSystematic(systematic, settings);
 
-        TList* groupedlist = groupMC(c.second.histoList, c.first);
-        groupedlist->Add(hNetData);
+        ///////////////////////////////////////////////////////////////////
+        // Save All of the Histos-----------------------------------------
+        ///////////////////////////////////////////////////////////////////
 
-        //TIter next(groupedlist);
-        //TObject* object = 0;
 
-        //while ((object = next()))
-        //{
-        //    TH1D* h = (TH1D*) object;
-        //    std::cout << Form("aboutToStack:: %s in sortedlist \n", h->GetName());
-        //}   
+        TList* varstacklist = new TList();   // list to save all of the stacks
+        TList* signallist = new TList();     // list to save all of the signal histos
+        TList* bglist = new TList();         // list to save all of the background histos
+        TList* datalist = new TList();       // list to save all of the data histos
+        TList* netlist = new TList();        // list to save all of the net histos
 
-        // Create the stack and ratio plot    
-        TString cname = c.first+"_stack";
-        //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true,
-                                  //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
-        // stack signal, bkg, and data
-        TCanvas* stack = dps->stackedHistogramsAndRatio(groupedlist, cname, cname, varname, "Num Entries", rebin, fitratio);
-        varstacklist->Add(stack);
+        TString suffix = "";
+        if(systematic != "") suffix = "_"+systematic;
 
-        // lists will contain signal, bg, and data histos for every category
-        signallist->Add(c.second.signalList);
-        bglist->Add(c.second.bkgList);
-        datalist->Add(c.second.dataList);
+        std::cout << "About to loop through cAll" << std::endl;
+        int i = 0;
+        for(auto &c : cAll->categoryMap)
+        {
+            // some categories are intermediate and we don't want to save the plots for those
+            if(c.second.hide) continue;
 
-        netlist->Add(hNetSignal);
-        netlist->Add(hNetBkg);
-        netlist->Add(groupedlist);
-       
-        stack->SaveAs("imgs/"+varname+"_"+cname+"_"+whichDY+".png");
-    }
-    std::cout << std::endl;
-    bool isblinded = binning >= 0; // binning == -1 means that we want dimu_mass from 110-160 unblinded
-    TString blinded = "blinded";
-    if(!isblinded) blinded = "UNBLINDED";
+            // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
+            TH1D* hNetSignal = DiMuPlottingSystem::addHists(c.second.signalList, c.second.name+"_Net_Signal"+suffix, "Net Signal");
+            TH1D* hNetBkg    = DiMuPlottingSystem::addHists(c.second.bkgList,    c.second.name+"_Net_Bkg"+suffix,    "Net Background");
+            if(c.second.dataList->GetSize()!=0) 
+                hNetData = DiMuPlottingSystem::addHists(c.second.dataList,   c.second.name+"_Net_Data"+suffix,   "Data");
 
-    TString xcategoryString = "";
-    if(whichCategories==3) 
-    {
-        Ssiz_t i = xmlfile.Last('/');
-        xcategoryString = xmlfile(i+1, xmlfile.Length()); // get the name of the xmlfile without all the /path/to/dir/ business 
-        xcategoryString = xcategoryString.ReplaceAll(".xml", "");
-        xcategoryString = "_"+xcategoryString;
-    }
+            TList* groupedlist = groupMC(c.second.histoList, c.second.name, suffix);
+            groupedlist->Add(hNetData);
 
-    if(varname.Contains("dimu_mass")) varname=blinded+"_"+varname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s.root", varname.Data(), (int)min, 
-                            (int)max, whichCategories, xcategoryString.Data(), (int)luminosity, whichDY.Data());
+            // Create the stack and ratio plot    
+            TString stackname = c.second.name+"_stack"+suffix;
 
-    std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
-    std::cout << std::endl;
+            //stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool settings.rebin = false, bool fit = true,
+                                      //TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
+            // stack signal, bkg, and data
+            TCanvas* stack = DiMuPlottingSystem::stackedHistogramsAndRatio(groupedlist, stackname, stackname, settings.varname, "Num Entries", settings.rebin, settings.fitratio);
+            varstacklist->Add(stack);
 
-    TFile* savefile = new TFile(savename, "RECREATE");
+            // lists will contain signal, bg, and data histos for every category
+            signallist->Add(c.second.signalList);
+            bglist->Add(c.second.bkgList);
+            datalist->Add(c.second.dataList);
 
-    TDirectory* stacks        = savefile->mkdir("stacks");
-    TDirectory* signal_histos = savefile->mkdir("signal_histos");
-    TDirectory* bg_histos     = savefile->mkdir("bg_histos");
-    TDirectory* data_histos   = savefile->mkdir("data_histos");
-    TDirectory* net_histos    = savefile->mkdir("net_histos");
+            netlist->Add(hNetSignal);
+            netlist->Add(hNetBkg);
+            netlist->Add(groupedlist);
+           
+            stack->SaveAs("imgs/"+settings.varname+"_"+stackname+"_"+settings.whichDY+".png");
+        }
+        std::cout << std::endl;
+        bool isblinded = settings.binning >= 0; // settings.binning == -1 means that we want dimu_mass from 110-160 unblinded
+        TString blinded = "blinded";
+        if(!isblinded) blinded = "UNBLINDED";
 
-    // save the different histos and stacks in the appropriate directories in the tfile
-    stacks->cd();
-    varstacklist->Write();
+        TString xcategoryString = "";
+        if(settings.whichCategories==3) 
+        {
+            Ssiz_t i = settings.xmlfile.Last('/');
+            xcategoryString = settings.xmlfile(i+1, settings.xmlfile.Length()); // get the name of the settings.xmlfile without all the /path/to/dir/ business 
+            xcategoryString = xcategoryString.ReplaceAll(".xml", "");
+            xcategoryString = "_"+xcategoryString;
+        }
 
-    signal_histos->cd();
-    signallist->Write();
+        TString xvarname = settings.varname;
+        if(settings.varname.Contains("dimu_mass")) xvarname=blinded+"_"+xvarname;
+        TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s.root", settings.varname.Data(), (int)settings.min, 
+                                (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, settings.whichDY.Data());
 
-    bg_histos->cd();
-    bglist->Write();
+        std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
+        std::cout << std::endl;
 
-    data_histos->cd();
-    datalist->Write();
+        TFile* savefile = new TFile(savename, "RECREATE");
 
-    net_histos->cd();
-    netlist->Write();
+        TDirectory* stacks        = savefile->mkdir("stacks");
+        TDirectory* signal_histos = savefile->mkdir("signal_histos");
+        TDirectory* bg_histos     = savefile->mkdir("bg_histos");
+        TDirectory* data_histos   = savefile->mkdir("data_histos");
+        TDirectory* net_histos    = savefile->mkdir("net_histos");
 
-    savefile->Close();
+        // save the different histos and stacks in the appropriate directories in the tfile
+        stacks->cd();
+        varstacklist->Write();
+
+        signal_histos->cd();
+        signallist->Write();
+
+        bg_histos->cd();
+        bglist->Write();
+
+        data_histos->cd();
+        datalist->Write();
+
+        net_histos->cd();
+        netlist->Write();
+
+        savefile->Close();
  
-    timerWatch.Stop();
-    std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
-
+        timerWatch.Stop();
+        std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
+    }
     return 0;
 }
