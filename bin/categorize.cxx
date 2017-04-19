@@ -833,6 +833,12 @@ int main(int argc, char* argv[])
     }   
 
     std::map<TString, TH1D*> netDataMap;
+    TList* varstacklist = new TList();   // list to save all of the stacks
+    TList* signallist = new TList();     // list to save all of the signal histos
+    TList* bglist = new TList();         // list to save all of the background histos
+    TList* datalist = new TList();       // list to save all of the data histos
+    TList* netlist = new TList();        // list to save all of the net histos
+
 
     TStopwatch timerWatch;
     timerWatch.Start();
@@ -848,15 +854,9 @@ int main(int argc, char* argv[])
         Categorizer* cAll = plotWithSystematic(systematic, settings);
 
         ///////////////////////////////////////////////////////////////////
-        // Save All of the Histos-----------------------------------------
+        // Gather All of the Histos---------------------------------------
         ///////////////////////////////////////////////////////////////////
 
-
-        TList* varstacklist = new TList();   // list to save all of the stacks
-        TList* signallist = new TList();     // list to save all of the signal histos
-        TList* bglist = new TList();         // list to save all of the background histos
-        TList* datalist = new TList();       // list to save all of the data histos
-        TList* netlist = new TList();        // list to save all of the net histos
 
         TString suffix = "";
         if(systematic != "") suffix = "_"+systematic;
@@ -905,56 +905,62 @@ int main(int argc, char* argv[])
            
             stack->SaveAs("imgs/"+settings.varname+"_"+stackname+"_"+settings.whichDY+".png");
         }
-        std::cout << std::endl;
-        bool isblinded = settings.binning >= 0; // settings.binning == -1 means that we want dimu_mass from 110-160 unblinded
-        TString blinded = "blinded";
-        if(!isblinded) blinded = "UNBLINDED";
-
-        TString xcategoryString = "";
-        if(settings.whichCategories==3) 
-        {
-            Ssiz_t i = settings.xmlfile.Last('/');
-            xcategoryString = settings.xmlfile(i+1, settings.xmlfile.Length()); // get the name of the settings.xmlfile without all the /path/to/dir/ business 
-            xcategoryString = xcategoryString.ReplaceAll(".xml", "");
-            xcategoryString = "_"+xcategoryString;
-        }
-
-        TString xvarname = settings.varname;
-        if(settings.varname.Contains("dimu_mass")) xvarname=blinded+"_"+xvarname;
-        TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s.root", settings.varname.Data(), (int)settings.min, 
-                                (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, settings.whichDY.Data());
-
-        std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
-        std::cout << std::endl;
-
-        TFile* savefile = new TFile(savename, "RECREATE");
-
-        TDirectory* stacks        = savefile->mkdir("stacks");
-        TDirectory* signal_histos = savefile->mkdir("signal_histos");
-        TDirectory* bg_histos     = savefile->mkdir("bg_histos");
-        TDirectory* data_histos   = savefile->mkdir("data_histos");
-        TDirectory* net_histos    = savefile->mkdir("net_histos");
-
-        // save the different histos and stacks in the appropriate directories in the tfile
-        stacks->cd();
-        varstacklist->Write();
-
-        signal_histos->cd();
-        signallist->Write();
-
-        bg_histos->cd();
-        bglist->Write();
-
-        data_histos->cd();
-        datalist->Write();
-
-        net_histos->cd();
-        netlist->Write();
-
-        savefile->Close();
- 
         timerWatch.Stop();
         std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
     }
+
+    ///////////////////////////////////////////////////////////////////
+    // Save the Histos ------------------------------------------------
+    ///////////////////////////////////////////////////////////////////
+
+
+    std::cout << std::endl;
+    bool isblinded = settings.binning >= 0; // settings.binning == -1 means that we want dimu_mass from 110-160 unblinded
+    TString blinded = "blinded";
+    if(!isblinded) blinded = "UNBLINDED";
+
+    TString xcategoryString = "";
+    if(settings.whichCategories==3) 
+    {
+        Ssiz_t i = settings.xmlfile.Last('/');
+        xcategoryString = settings.xmlfile(i+1, settings.xmlfile.Length()); // get the name of the settings.xmlfile without all the /path/to/dir/ business 
+        xcategoryString = xcategoryString.ReplaceAll(".xml", "");
+        xcategoryString = "_"+xcategoryString;
+    }
+
+    TString xvarname = settings.varname;
+    if(settings.varname.Contains("dimu_mass")) xvarname=blinded+"_"+xvarname;
+    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s.root", settings.varname.Data(), (int)settings.min, 
+                            (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, settings.whichDY.Data());
+
+    std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
+    std::cout << std::endl;
+
+    TFile* savefile = new TFile(savename, "RECREATE");
+
+    TDirectory* stacks        = savefile->mkdir("stacks");
+    TDirectory* signal_histos = savefile->mkdir("signal_histos");
+    TDirectory* bg_histos     = savefile->mkdir("bg_histos");
+    TDirectory* data_histos   = savefile->mkdir("data_histos");
+    TDirectory* net_histos    = savefile->mkdir("net_histos");
+
+    // save the different histos and stacks in the appropriate directories in the tfile
+    stacks->cd();
+    varstacklist->Write();
+
+    signal_histos->cd();
+    signallist->Write();
+
+    bg_histos->cd();
+    bglist->Write();
+
+    data_histos->cd();
+    datalist->Write();
+
+    net_histos->cd();
+    netlist->Write();
+
+    savefile->Close();
+ 
     return 0;
 }
