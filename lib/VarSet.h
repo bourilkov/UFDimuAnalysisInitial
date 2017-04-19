@@ -42,12 +42,20 @@ class VarSet
         VarSet();
         ~VarSet(){};
 
+        //////////////////////////////////////////////////////////////////////////////
+        // TMVA Binary/Multi classification vars -------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
+
         double bdt_out = -999;
         double bdt_ggh_out = -999;
         double bdt_vbf_out = -999;
         double bdt_vh_out = -999;
         double bdt_ewk_out = -999;
         double bdt_top_out = -999;
+
+        //////////////////////////////////////////////////////////////////////////////
+        // Vars loaded from Analyzer TTrees ------------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
 
         // reco weights for mc
         float eff_wgt;            // use this if you don't match MC to trigger
@@ -91,12 +99,6 @@ class VarSet
         std::vector<SlimJetInfo>* jets = 0;
         std::vector<JetPairInfo>* jetPairs = 0;
 
-        std::vector<TLorentzVector> validMuons;
-        std::vector<TLorentzVector> validExtraMuons;
-        std::vector<TLorentzVector> validElectrons;
-        std::vector<TLorentzVector> validJets;
-        std::vector<TLorentzVector> validBJets;
-
         // gen info
         std::vector<GenParentInfo>* genParents = 0;
         std::vector<GenMuonInfo>* genMuons = 0;
@@ -108,26 +110,19 @@ class VarSet
         // gen weights
         int gen_wgt;
 
-        // cuts for vbf jets
-        double cLeadPtMin = 40;
-        double cDijetMassMinVBFT = 650;
-        double cDijetDeltaEtaMinVBFT = 3.5;
+        //////////////////////////////////////////////////////////////////////////////
+        // Cleaned Collections ------------------------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
 
-        // set the above cuts if they change
-        void setVBFcuts(double leadPtMin, double dijetMassMinVBFT, double dijetDeltaEtaMinVBFT)
-        {
-            cLeadPtMin = leadPtMin;
-            cDijetMassMinVBFT = dijetMassMinVBFT;
-            cDijetDeltaEtaMinVBFT = dijetDeltaEtaMinVBFT;
-        }
+        std::vector<TLorentzVector> validMuons;
+        std::vector<TLorentzVector> validExtraMuons;
+        std::vector<TLorentzVector> validElectrons;
+        std::vector<TLorentzVector> validJets;
+        std::vector<TLorentzVector> validBJets;
 
-        // index for vbf jets
-        int vbf_j0 = -999;
-        int vbf_j1 = -999;
- 
-        // index for our "standard" jets
-        int j0 = 0;
-        int j1 = 1;
+        //////////////////////////////////////////////////////////////////////////////
+        // Map String to Feature value (double) -------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
 
         // map variable string to variable value via function pointers
         // uses functions below
@@ -158,6 +153,42 @@ class VarSet
         // see if the var string is in the map
         bool checkForVar(const std::string& name){return (varMap[name] || varMapI[name]); }
 
+        //////////////////////////////////////////////////////////////////////////////
+        // Set systematic to vary ---------------------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
+
+        //void setSystematicVariation(TString which = "")
+        //{
+        //    if(which == "jes_up") 
+        //    {
+        //        jets = jets_up;
+        //    }
+        //    else if(which == "jes_down")
+        //    {
+        //        jets = jets_down;
+        //    }
+        //    else if(which == "pu_up")
+        //    {
+        //        pu_wgt = pu_wgt_up;
+        //        // jets = jets;
+        //    }
+        //    else if(which == "pu_down")
+        //    {
+        //        pu_wgt = pu_wgt_down;
+        //        // jets = jets;
+        //    }
+        //    else
+        //    {
+        //        // pu_wgt = pu_wgt;
+        //        // jets = jets;
+        //    }
+        //}
+
+
+        //////////////////////////////////////////////////////////////////////////////
+        // Set dimu mass, mu_pt to PF, Roch, or KaMu ---------------------------------
+        //////////////////////////////////////////////////////////////////////////////
+
         void setCalibrationType(TString ctype)
         {
           if(ctype == "PF") 
@@ -180,6 +211,27 @@ class VarSet
           }
         }
 
+        //////////////////////////////////////////////////////////////////////////////
+        // Initialize VBF Jets -------------------------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
+
+        // cuts for vbf jets
+        double cLeadPtMin = 40;
+        double cDijetMassMinVBFT = 650;
+        double cDijetDeltaEtaMinVBFT = 3.5;
+
+        // set the above cuts if they change
+        void setVBFcuts(double leadPtMin, double dijetMassMinVBFT, double dijetDeltaEtaMinVBFT)
+        {
+            cLeadPtMin = leadPtMin;
+            cDijetMassMinVBFT = dijetMassMinVBFT;
+            cDijetDeltaEtaMinVBFT = dijetDeltaEtaMinVBFT;
+        }
+
+        // index for vbf jets
+        int vbf_j0 = -999;
+        int vbf_j1 = -999;
+ 
         // get jets that represent vbf jets
         void setVBFjets()
         {
@@ -209,9 +261,17 @@ class VarSet
             }
         }
 
-        // standard jets will be the two corresponding to the max mjj value 
+        //////////////////////////////////////////////////////////////////////////////
+        // Initialize Standard Jets --------------------------------------------------
+        //////////////////////////////////////////////////////////////////////////////
+
+        // index for our "standard" jets
+        int j0 = 0;
+        int j1 = 1;
+
         void setJets()
         {
+        // standard jets will be the two corresponding to the max mjj value 
             double mjj_max = -999;
             j0 = 0;
             j1 = 1;
@@ -230,6 +290,12 @@ class VarSet
                 }
             }
         }
+
+        //////////////////////////////////////////////////////////////////////////////
+        // Functions that return feature values via getValue(TString) ----------------
+        //////////////////////////////////////////////////////////////////////////////
+
+        // Map initialized in cxx file -----------------------------------------------
 
         // load the bdt score manually beforehand
         double bdt_score()    { return bdt_out;                };

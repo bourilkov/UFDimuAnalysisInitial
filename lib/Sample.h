@@ -48,9 +48,9 @@ class Sample
         int getEntry(int i, TEntryList* list);  // load ith event from the list into vars
                                                 // the ith event in the list maps to the jth tree entry
 
-        void calculateNoriginal();                    // calculate nOriginal and nOriginalWeighted
-        void setBranchAddresses(int whichCategories=1); // link the values in the tree to vars
-        double getWeight();         // get the weight for the histogram based upon the pileup weight and the MC gen weight
+        void calculateNoriginal();                      // calculate nOriginal and nOriginalWeighted
+        void setBranchAddresses(TString options = "");  // link the values in the tree to vars
+        double getWeight();                             // get the weight for the histogram based upon the pileup weight and the MC gen weight
 
         // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
         float getLumiScaleFactor(float luminosity); 

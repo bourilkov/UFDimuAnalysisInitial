@@ -76,7 +76,7 @@ Sample::~Sample() {
 // _______________________Other Functions________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-void Sample::setBranchAddresses(int whichCategories)
+void Sample::setBranchAddresses(TString options)
 {
       // Link only to the branches we need to save a lot of time
       // run 1 category info 
@@ -86,6 +86,7 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.jetPairs   = chain->GetBranch("jetPairs");
       branches.mht        = chain->GetBranch("mht");
       branches.met        = chain->GetBranch("met");
+
       branches.eventInfo  = chain->GetBranch("event");
       branches.nVertices  = chain->GetBranch("nVertices");
       branches.nJets      = chain->GetBranch("nJets");
@@ -95,31 +96,49 @@ void Sample::setBranchAddresses(int whichCategories)
       branches.nBMed      = chain->GetBranch("nBMed");
       branches.nBTight    = chain->GetBranch("nBTight");
 
-
-      branches.muons->SetAddress(&vars.muons);
-      branches.muPairs->SetAddress(&vars.muPairs);
-      branches.jets->SetAddress(&vars.jets);
-      branches.jetPairs->SetAddress(&vars.jetPairs);
-      branches.mht->SetAddress(&vars.mht);
-      branches.met->SetAddress(&vars.met);
-      branches.eventInfo->SetAddress(&vars.eventInfo);
-      branches.nVertices->SetAddress(&vars.nVertices);
-      branches.nJets->SetAddress(&vars.nJets);
-      branches.nJetsCent->SetAddress(&vars.nJetsCent);
-      branches.nJetsFwd->SetAddress(&vars.nJetsFwd);
-      branches.nBLoose->SetAddress(&vars.nBLoose);
-      branches.nBMed->SetAddress(&vars.nBMed);
-      branches.nBTight->SetAddress(&vars.nBTight);
-
       branches.electrons = chain->GetBranch("eles");
-      branches.electrons->SetAddress(&vars.electrons);
 
-      // extra branches needed for MC samples
+      // branches for MC samples
       if(!sampleType.EqualTo("data"))
       {
           branches.nPU     = chain->GetBranch("nPU");
           branches.gen_wgt = chain->GetBranch("GEN_wgt");
           branches.pu_wgt  = chain->GetBranch("PU_wgt");
+
+          if(options == "PU_up")
+              branches.pu_wgt  = chain->GetBranch("PU_wgt_up");
+
+          if(options == "PU_down")
+              branches.pu_wgt  = chain->GetBranch("PU_wgt_down");
+
+          if(options == "JES_up")
+          {
+              branches.jets      = chain->GetBranch("jets_JES_up");
+              branches.jetPairs  = chain->GetBranch("jetPairs_JES_up");
+              branches.mht       = chain->GetBranch("mht_JES_up");
+              branches.met       = chain->GetBranch("met_JES_up");
+              branches.nJets     = chain->GetBranch("nJets_JES_up");
+              branches.nJetsCent = chain->GetBranch("nJetsCent_JES_up");
+              branches.nJetsFwd  = chain->GetBranch("nJetsFwd_JES_up");
+              branches.nBLoose   = chain->GetBranch("nBLoose_JES_up");
+              branches.nBMed     = chain->GetBranch("nBMed_JES_up");
+              branches.nBTight   = chain->GetBranch("nBTight_JES_up");
+          }
+
+          if(options == "JES_down")
+          {
+              branches.jets      = chain->GetBranch("jets_JES_down");
+              branches.jetPairs  = chain->GetBranch("jetPairs_JES_down");
+              branches.mht       = chain->GetBranch("mht_JES_down");
+              branches.met       = chain->GetBranch("met_JES_down");
+              branches.nJets     = chain->GetBranch("nJets_JES_down");
+              branches.nJetsCent = chain->GetBranch("nJetsCent_JES_down");
+              branches.nJetsFwd  = chain->GetBranch("nJetsFwd_JES_down");
+              branches.nBLoose   = chain->GetBranch("nBLoose_JES_down");
+              branches.nBMed     = chain->GetBranch("nBMed_JES_down");
+              branches.nBTight   = chain->GetBranch("nBTight_JES_down");
+          }
+
           branches.eff_wgt = chain->GetBranch("IsoMu_eff_3");
           branches.lhe_ht  = chain->GetBranch("LHE_HT");
 
@@ -151,6 +170,24 @@ void Sample::setBranchAddresses(int whichCategories)
           branches.genMuons->SetAddress(&vars.genMuons);
           branches.genDimuons->SetAddress(&vars.genDimuons);
       }
+
+      branches.muons->SetAddress(&vars.muons);
+      branches.muPairs->SetAddress(&vars.muPairs);
+      branches.jets->SetAddress(&vars.jets);
+      branches.jetPairs->SetAddress(&vars.jetPairs);
+      branches.mht->SetAddress(&vars.mht);
+      branches.met->SetAddress(&vars.met);
+
+      branches.eventInfo->SetAddress(&vars.eventInfo);
+      branches.nVertices->SetAddress(&vars.nVertices);
+      branches.nJets->SetAddress(&vars.nJets);
+      branches.nJetsCent->SetAddress(&vars.nJetsCent);
+      branches.nJetsFwd->SetAddress(&vars.nJetsFwd);
+      branches.nBLoose->SetAddress(&vars.nBLoose);
+      branches.nBMed->SetAddress(&vars.nBMed);
+      branches.nBTight->SetAddress(&vars.nBTight);
+
+      branches.electrons->SetAddress(&vars.electrons);
 }
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
