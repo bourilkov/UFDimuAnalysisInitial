@@ -62,7 +62,7 @@ struct Settings
     TString xmlfile;          // filename for the xmlcategorizer, if you chose to use one 
 
     float luminosity = 36814;                // pb-1
-    float reductionFactor = 50;              // reduce the number of events you run over in case you want to debug or some such thing
+    float reductionFactor = 1;               // reduce the number of events you run over in case you want to debug or some such thing
 
     TString whichDY = "dyAMC";               // use amc@nlo or madgraph for Drell Yan : {"dyAMC", "dyMG"}
     TString systematics;                     // which systematics to plot
@@ -786,7 +786,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 int main(int argc, char* argv[])
 {
     Settings settings;
-
+    std::vector<TString> systematics = {""};
 
     ///////////////////////////////////////////////////////////////
     // Parse Arguments -------------------------------------------
@@ -820,15 +820,22 @@ int main(int argc, char* argv[])
         else if(option=="reductionFactor") ss >> settings.reductionFactor;
         else if(option=="luminosity")      ss >> settings.luminosity;
         else if(option=="whichDY")         settings.whichDY = value;
+        else if(option=="systematics")
+        {
+            TString tok;
+            Ssiz_t from = 0;
+            while (value.Tokenize(tok, from, " ")) 
+            {
+                systematics.push_back(tok);
+            }
+        }
         else
         {
             std::cout << Form("!!! %s is not a recognized option.", option) << std::endl;
         }
     }   
 
-    std::vector<TString> systematics = {"", "JES_down"}; //, "JES_down", "PU_up", "PU_down"};
-    TH1D* hNetData = 0; // keep the net data so that we can make DATA/MC stacks for other systematics
-                        // without rerunning over the data samples
+    std::map<TString, TH1D*> netDataMap;
 
     TStopwatch timerWatch;
     timerWatch.Start();
@@ -861,6 +868,8 @@ int main(int argc, char* argv[])
         int i = 0;
         for(auto &c : cAll->categoryMap)
         {
+            TH1D* hNetData = 0;
+
             // some categories are intermediate and we don't want to save the plots for those
             if(c.second.hide) continue;
 
@@ -868,7 +877,13 @@ int main(int argc, char* argv[])
             TH1D* hNetSignal = DiMuPlottingSystem::addHists(c.second.signalList, c.second.name+"_Net_Signal"+suffix, "Net Signal");
             TH1D* hNetBkg    = DiMuPlottingSystem::addHists(c.second.bkgList,    c.second.name+"_Net_Bkg"+suffix,    "Net Background");
             if(c.second.dataList->GetSize()!=0) 
+            {
                 hNetData = DiMuPlottingSystem::addHists(c.second.dataList,   c.second.name+"_Net_Data"+suffix,   "Data");
+                netDataMap[c.second.name] = hNetData;
+            }
+            else
+                hNetData = netDataMap[c.second.name];
+
 
             TList* groupedlist = groupMC(c.second.histoList, c.second.name, suffix);
             groupedlist->Add(hNetData);
