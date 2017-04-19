@@ -18,9 +18,7 @@ CFLAGS = -I ${CDIR} -I${OBJDIR} -I${LIBDIR} -I${SDIR} -I${TDIR} -I${THREADDIR} -
 # The name of the .cxx file you want to compile into an executable
 #MAIN = TMVAClassification_H2Mu
 #MAIN = TMVAClassificationApplication_H2Mu
-#MAIN = categorize
-#MAIN = categorize_v2
-MAIN = categorizeWithVariations
+MAIN = categorize
 #MAIN = dyAndDataForFEWZ
 #MAIN = outputCounts
 #MAIN = synchronize
