@@ -318,6 +318,7 @@ void initPlotSettings(Settings& settings)
 Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 {
     gROOT->SetBatch();
+
     // save the errors for the histogram correctly so they depend upon 
     // the number used to fill originally rather than the scaling
     TH1::SetDefaultSumw2();

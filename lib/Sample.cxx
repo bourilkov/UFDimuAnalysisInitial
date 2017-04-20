@@ -16,6 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "Sample.h"
+#include "TCanvas.h"
 
 ///////////////////////////////////////////////////////////////////////////
 // _______________________Constructor/Destructor_________________________//
@@ -196,6 +197,7 @@ void Sample::setBranchAddresses(TString options)
 void Sample::calculateNoriginal()
 {
   gROOT->SetBatch(1); // Don't draw TCanvas
+  TCanvas c;
   // Calculate the number of original events using the meta data tree
   // Calculate the weighted number of original events as well
   TChain* metadata = new TChain("dimuons/metadata");
