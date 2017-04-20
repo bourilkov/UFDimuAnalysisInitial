@@ -34,21 +34,21 @@ class Category
        Category(TString key)
        {
            this->key = key;
-           this->name = name;
+           this->name = key;
            this->hide = false;
        }
     
-       Category(TString name, bool hide)
+       Category(TString key, bool hide)
        {
            this->key = key;
-           this->name = name;
+           this->name = key;
            this->hide = hide;
        }
     
-       Category(TString name, bool hide, bool isTerminal)
+       Category(TString key, bool hide, bool isTerminal)
        {
            this->key = key;
-           this->name = name;
+           this->name = key;
            this->hide = hide;
            this->isTerminal = isTerminal;
        }

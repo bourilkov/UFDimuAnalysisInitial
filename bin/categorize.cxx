@@ -53,7 +53,7 @@ struct Settings
                                           //  see initPlotSettings above for more information
     
     bool rebin = true;        // rebin the ratio plots so that each point has small errors
-    int nthreads = 10;        // number of threads to use in parallelization
+    int nthreads = 1;        // number of threads to use in parallelization
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
     
     TString xmlfile;          // filename for the xmlcategorizer, if you chose to use one 
@@ -67,6 +67,8 @@ struct Settings
     float min;
     float max;
     int bins;
+
+    float subleadPt = 10;
 };
 
 //////////////////////////////////////////////////////////////////
@@ -396,6 +398,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
     std::cout << "binning        : " << settings.binning << std::endl;
     std::cout << "reductionFactor: " << settings.reductionFactor << std::endl;
     std::cout << "whichDY        : " << settings.whichDY << std::endl;
+    std::cout << "subleadPt      : " << settings.subleadPt << std::endl;
     std::cout << "rebin ratio    : " << settings.rebin << std::endl;
     std::cout << "fit ratio      : " << settings.fitratio << std::endl;
     std::cout << std::endl;
@@ -466,6 +469,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 
       Run2MuonSelectionCuts  run2MuonSelection;
       Run2EventSelectionCuts run2EventSelection;
+      run2MuonSelection.cMinPt = settings.subleadPt; 
 
       Categorizer* categorySelection = 0;
 
@@ -817,6 +821,7 @@ int main(int argc, char* argv[])
         else if(option=="fitRatio")        ss >> settings.fitratio;
         else if(option=="reductionFactor") ss >> settings.reductionFactor;
         else if(option=="luminosity")      ss >> settings.luminosity;
+        else if(option=="subleadPt")       ss >> settings.subleadPt;
         else if(option=="whichDY")         settings.whichDY = value;
         else if(option=="systematics")
         {
@@ -841,11 +846,11 @@ int main(int argc, char* argv[])
     TList* netlist = new TList();        // list to save all of the net histos
 
 
-    TStopwatch timerWatch;
-    timerWatch.Start();
-
     for(auto& systematic: systematics)
     {
+        TStopwatch timerWatch;
+        timerWatch.Start();
+
         std::cout << std::endl;
         std::cout << "/////////////////////////////////////////////////////////////////////" << std::endl;
         std::cout << "/// SYSTEMATIC: " << systematic << std::endl;
@@ -931,8 +936,9 @@ int main(int argc, char* argv[])
 
     TString xvarname = settings.varname;
     if(settings.varname.Contains("dimu_mass")) xvarname=blinded+"_"+xvarname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s.root", settings.varname.Data(), (int)settings.min, 
-                            (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, settings.whichDY.Data());
+    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s_minpt%d.root", xvarname.Data(), (int)settings.min, 
+                            (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, 
+                            settings.whichDY.Data(), (int)settings.subleadPt);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
