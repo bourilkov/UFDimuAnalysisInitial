@@ -53,7 +53,7 @@ struct Settings
                                           //  see initPlotSettings above for more information
     
     bool rebin = true;        // rebin the ratio plots so that each point has small errors
-    int nthreads = 1;        // number of threads to use in parallelization
+    int nthreads = 10;        // number of threads to use in parallelization
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
     
     TString xmlfile;          // filename for the xmlcategorizer, if you chose to use one 

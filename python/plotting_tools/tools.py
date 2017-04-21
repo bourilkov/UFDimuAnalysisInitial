@@ -118,7 +118,7 @@ def get(item_list):
         tfile = TFile(filename)
         gROOT.cd() # AHHHHH
         item = tfile.Get(itemname).Clone()
-        print item.GetName()
+        #print item.GetName()
         rlist.append(item)
     return rlist
 
