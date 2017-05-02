@@ -60,6 +60,23 @@ Sample::Sample(std::vector<TString> ifilenames, TString iname, TString isampleTy
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
 
+Sample::Sample(TString iname, TString isampleType)
+{
+    name = iname;
+    if (isampleType != "NONE")
+      sampleType = isampleType;
+
+    treename = TString("dimuons/tree");
+
+    lumiWeights = 0;
+    xsec = -999; 
+    lumi = -999;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
 Sample::~Sample() {
   // free pointed to memory!
   if (chain != 0) {

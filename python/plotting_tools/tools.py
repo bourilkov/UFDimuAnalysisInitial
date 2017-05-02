@@ -142,6 +142,9 @@ def ratio(histo_list):
 
 def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0]):
 
+    if name=="stack" and title!=stack:
+        name=title
+
     if(rlist==0):
         rlist = histo_list
 
@@ -220,7 +223,7 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     hratio.GetXaxis().SetLabelSize(15);
 
 
-    c.SaveAs("stack.png")
+    c.SaveAs(name+".png")
 
 ##################################################################
 #-----------------------------------------------------------------

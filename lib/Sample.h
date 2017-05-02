@@ -20,6 +20,7 @@ class Sample
     public:
         Sample();
 	Sample(std::vector<TString> infilenames, TString name, TString sampleType="NONE");
+	Sample(TString name, TString sampleType="NONE");
         ~Sample();
 
         TString name;
@@ -52,7 +53,7 @@ class Sample
         void setBranchAddresses(TString options = "");  // link the values in the tree to vars
         double getWeight();                             // get the weight for the histogram based upon the pileup weight and the MC gen weight
 
-        // get the scale factor for the MC histogram based upon the number of events, the data luminosity, and the xsec for the process 
+        // scale by xsec*lumi/N_weighted for MC and 1.0 for data
         float getLumiScaleFactor(float luminosity); 
 
     protected:

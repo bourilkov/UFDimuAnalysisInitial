@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////
 // ======================================================================//
-// ZCalibration.cxx                                                      //
+// MassCalibration.cxx                                                   //
 // ======================================================================//
 // Plot Z Mass Resolution vs mu+/- eta, mu+/- phi, etc.                  //
 // Creates mass histograms in different bins of some x variable.         //
@@ -14,7 +14,7 @@
 // _______________________Includes_______________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-#include "ZCalibration.h"
+#include "MassCalibration.h"
 
 #include "TMinuit.h"
 #include "TGraphAsymmErrors.h"
@@ -36,7 +36,7 @@
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-ZCalibration::ZCalibration()
+MassCalibration::MassCalibration()
 {
     massname = "mass";
     xname = "phi_plus";
@@ -58,8 +58,8 @@ ZCalibration::ZCalibration()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
-                           Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins)
+MassCalibration::MassCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                           Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins, Float_t voigt_gamma)
 {
     this->xname = xname;
     this->massname = massname;
@@ -71,6 +71,7 @@ ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Floa
     this->xbins = xbins;
  
     this->fitsig = fitsig;
+    this->voigt_gamma = voigt_gamma;
 
     histos = std::vector<TH1D*>();
     binning = std::vector<Float_t>();
@@ -82,8 +83,8 @@ ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Floa
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
-                           Float_t massmax, Int_t massbins, std::vector<Float_t> binning)
+MassCalibration::MassCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                           Float_t massmax, Int_t massbins, std::vector<Float_t> binning, Float_t voigt_gamma)
 {
     this->xname = xname;
     this->massname = massname;
@@ -93,6 +94,7 @@ ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Floa
     this->binning = binning;
  
     this->fitsig = fitsig;
+    this->voigt_gamma = voigt_gamma;
 
     histos = std::vector<TH1D*>();
     vfis = std::vector<VoigtFitInfo>();
@@ -103,7 +105,7 @@ ZCalibration::ZCalibration(TString xname, TString massname, Float_t fitsig, Floa
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void ZCalibration::init()
+void MassCalibration::init()
 {
     TString basename = "Z_Peak_Calibration_";
     basename+=massname+"_"+xname;
@@ -143,12 +145,12 @@ void ZCalibration::init()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void ZCalibration::init(std::vector<Float_t>& binning)
+void MassCalibration::init(std::vector<Float_t>& binning)
 {
     TString basename = "Z_Peak_Calibration_";
     basename+=massname+"_"+xname;
 
-    if(binning.size() < 2) std::cout << "!!!! ERROR in ZCalibration::init, binning.size() < 2 !!! \n";
+    if(binning.size() < 2) std::cout << "!!!! ERROR in MassCalibration::init, binning.size() < 2 !!! \n";
 
     variableBinning = true;
     xmin = binning[0];
@@ -172,7 +174,7 @@ void ZCalibration::init(std::vector<Float_t>& binning)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-int ZCalibration::whichTH1D(Float_t xvalue)
+int MassCalibration::whichTH1D(Float_t xvalue)
 {
     // constant binning
     if(!variableBinning)
@@ -228,7 +230,7 @@ int ZCalibration::whichTH1D(Float_t xvalue)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
+void MassCalibration::fill(Float_t xvalue, Float_t massvalue)
 {
     int h = whichTH1D(xvalue);
     //if(h>=histos.size())
@@ -244,7 +246,7 @@ void ZCalibration::fill(Float_t xvalue, Float_t massvalue)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void ZCalibration::fill(Float_t xvalue, Float_t massvalue, double weight)
+void MassCalibration::fill(Float_t xvalue, Float_t massvalue, double weight)
 {
     int h = whichTH1D(xvalue);
     //if(h>=histos.size())
@@ -260,8 +262,10 @@ void ZCalibration::fill(Float_t xvalue, Float_t massvalue, double weight)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
+VoigtFitInfo MassCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
 {
+    //std::cout << Form("==== Fitting %s ==== \n", inhist->GetTitle());
+    
     VoigtFitInfo vfi;
     vfi.x = x;
     vfi.x_err = x_err;
@@ -279,15 +283,21 @@ VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
     TString fitname = TString("fit_")+massname+"_"+xname+Form("_%5.2f", x);
     fitname.ReplaceAll(" ", "");
     fitname.ReplaceAll(".", "p");
-    TF1* fit = new TF1(fitname, "[0]*TMath::Voigt(x - [1], [2], [3])", 87, 95);
+    TF1* fit = new TF1(fitname, "[0]*TMath::Voigt(x - [1], [2], [3])", massmin, massmax);
     fit->SetParNames("Constant", "Mean", "Sigma", "Gamma");
     
+    float initial_sigma = vfi.hrms - voigt_gamma;
+    if(initial_sigma < 0) initial_sigma = vfi.hrms/100;
+
     // Reasonable initial guesses for the fit parameters
-    fit->SetParameters(inhist->GetMaximum(), inhist->GetMean(), inhist->GetRMS(), vfi.gamma);
-    fit->SetParLimits(2, 0.001, 2 * inhist->GetRMS());
+    fit->SetParameters(inhist->GetMaximum(), inhist->GetMean(), initial_sigma, voigt_gamma);
+    fit->SetParLimits(2, 0, 10*initial_sigma);
+    fit->SetParLimits(1, massmin, massmax);
+
+    //std::cout << Form("sigma = %f, in (%f, %f)", initial_sigma, 0, 2*vfi.hrms);
 
     // Fix the intrinsic width to the theoretical value
-    fit->FixParameter(3, 0.083985);
+    fit->FixParameter(3, voigt_gamma);
 
     // Sometimes we have to fit the data a few times before the fit converges
     bool converged = 0;
@@ -297,12 +307,12 @@ VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
     while(!converged) 
     {
       if(ntries >= 50) break;
-      //std::cout << Form("==== Fitting %s ==== \n", inhist->GetTitle());
-      fit->SetParameter(1, inhist->GetRMS());
+      fit->SetParameter(2, initial_sigma);
       inhist->Fit(fitname, "q");
 
       // Fit to a width of fitsig sigmas
-      inhist->Fit(fitname,"q","", fit->GetParameter(1) - fitsig*fit->GetParameter(2), fit->GetParameter(1) + fitsig*fit->GetParameter(2));
+      inhist->Fit(fitname,"q","", fit->GetParameter(1) - fitsig*vfi.hrms, fit->GetParameter(1) + fitsig*vfi.hrms);
+      //inhist->Fit(fitname,"q","", massmin, massmax);
       TString sconverge = gMinuit->fCstatu.Data();
       converged = sconverge.Contains(TString("CONVERGED"));
       ntries++; 
@@ -323,7 +333,7 @@ VoigtFitInfo ZCalibration::fit(TH1D* inhist, Float_t x, Float_t x_err)
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void ZCalibration::fit()
+void MassCalibration::fit()
 {
     for(unsigned int h=0; h<histos.size(); h++)
     {
@@ -336,7 +346,7 @@ void ZCalibration::fit()
 // ----------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
 
-void ZCalibration::plot()
+void MassCalibration::plot()
 {
     fit();
     mean_vs_x = new TGraphErrors();

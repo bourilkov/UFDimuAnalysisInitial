@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////
 // ======================================================================//
-// ZCalibration.h                                                        //
+// MassCalibration.h                                                        //
 // ======================================================================//
 // Plot Z Mass Resolution vs mu+/- eta, mu+/- phi, etc.                  //
 // Creates mass histograms in different bins of some x variable.         //
@@ -34,14 +34,14 @@
 // the fit mean and rms for each histogram, one for each xbin
 struct VoigtFitInfo 
 {
-// Datastructure to keep track of fit information for the ZCalibration
+// Datastructure to keep track of fit information for the MassCalibration
 
   Float_t hmean = -999;
   Float_t hmean_err = -999;
   Float_t hrms = -999;
   Float_t hrms_err = -999;
 
-  Float_t gamma = 0.08399;
+  Float_t gamma = 0.0838;
 
   Float_t vmean = -999;
   Float_t vmean_err = -999;
@@ -60,7 +60,7 @@ struct VoigtFitInfo
 // -----------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////
 
-class ZCalibration
+class MassCalibration
 {
 // Fit the z peak with a voigtian in different ranges of the x variable
 
@@ -69,16 +69,16 @@ class ZCalibration
         // Constructors/Destructors ---------------------------
         // ====================================================
 
-        ZCalibration();
+        MassCalibration();
 
         // For a nonvariable binning scheme, all bins with the same width
-        ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
-                     Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins);
+        MassCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                     Float_t massmax, Int_t massbins, Float_t xmin, Float_t xmax, Int_t xbins, Float_t voigt_gamma = 2.5);
 
         // For a variable binning scheme
-        ZCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
-                     Float_t massmax, Int_t massbins, std::vector<Float_t> binning);
-        ~ZCalibration(){};
+        MassCalibration(TString xname, TString massname, Float_t fitsig, Float_t massmin, 
+                     Float_t massmax, Int_t massbins, std::vector<Float_t> binning, Float_t voigt_gamma = 2.5);
+        ~MassCalibration(){};
 
         // ====================================================
         // Variables ------------------------------------------
@@ -99,6 +99,7 @@ class ZCalibration
         // The number of sigma-withs on the histogram to fit the voigtian
         // fitsig=1 means fit the voigtian to a 1 sigma fit window around the mean
         Float_t fitsig;
+        Float_t voigt_gamma = 2.5;
 
         std::vector<Float_t> binning;
         std::vector<TH1D*> histos;

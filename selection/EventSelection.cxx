@@ -33,24 +33,6 @@ Run2EventSelectionCuts::Run2EventSelectionCuts()
 {
 // Default values for the modified run 1 event selection
 
-    isData = 0;
-    cTrigMuPtMin = 26; 
-    // sublead pt condition is met in muon selection
-                                
-    cDimuMassMin = 60;
-    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
-    makeCutSet();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-Run2EventSelectionCuts::Run2EventSelectionCuts(bool isData)
-{
-// Default values for the modified run 1 event selection
-
-    this->isData = isData;
     cTrigMuPtMin = 26; 
     // sublead pt condition is met in muon selection
                                 
@@ -67,24 +49,6 @@ Run2EventSelectionCuts::Run2EventSelectionCuts(float trigMuPtMin, float dimuMass
 {
 // Default values for the modified run 1 event selection
 
-    isData = 0;
-    cTrigMuPtMin = trigMuPtMin;          // >
-    // sublead pt condition is met in muon selection
-
-    cDimuMassMin = dimuMassMin;          // >
-    cutset.cuts = std::vector<CutInfo>(3, CutInfo());
-    makeCutSet();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-Run2EventSelectionCuts::Run2EventSelectionCuts(bool isData, float trigMuPtMin, float dimuMassMin)
-{
-// Default values for the modified run 1 event selection
-
-    this->isData = isData;
     cTrigMuPtMin = trigMuPtMin;          // >
     // sublead pt condition is met in muon selection
 

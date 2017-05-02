@@ -97,7 +97,8 @@ TList* groupMC(TList* list, TString categoryName, TString suffix)
         TString sampleName = name.ReplaceAll(categoryName, "");
 
         // filter out the data, since we add that to the end of this list later
-        if(sampleName.Contains("Run") || sampleName.Contains("Data")) continue;
+        // filter out the signal M=120 and M=130 signal samples since we don't use those in the stack comparison
+        if(sampleName.Contains("Run") || sampleName.Contains("Data") || sampleName.Contains("_120") || sampleName.Contains("_130")) continue;
         else // group the monte carlo 
         {            
             if(sampleName.Contains("H2Mu"))
@@ -166,8 +167,8 @@ void initPlotSettings(Settings& settings)
             settings.max = 200;
         }
         else if(settings.binning == -1) // unblind data in 120-130 GeV for limit setting, 110-160 window
-        {                      // 1 GeV bins
-            settings.bins = 50;
+        {                      // 0.2 GeV bins
+            settings.bins = 250;
             settings.min = 110;
             settings.max = 160;
         }
@@ -339,6 +340,8 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
     ///////////////////////////////////////////////////////////////////
 
     GetSamples(samples, "UF", "ALL_"+settings.whichDY);
+    GetSamples(samples, "UF", "SIGNAL120");
+    GetSamples(samples, "UF", "SIGNAL130");
 
     ///////////////////////////////////////////////////////////////////
     // PREPROCESSING: SetBranchAddresses-------------------------------
@@ -483,6 +486,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
       bool isData = s->sampleType.EqualTo("data");
       bool isSignal = s->sampleType.EqualTo("signal");
       bool isMass = settings.varname.Contains("dimu_mass");
+      bool isBDTscore = settings.varname.Contains("bdt_score");
 
       // use pf, roch, or kamu values for selections, categories, and fill?
       TString pf_roch_or_kamu = "PF";
@@ -564,6 +568,11 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
           // only use even signal events for limit setting 
           // as to separate training and evaluation events
           if(isSignal && settings.whichCategories==3 && settings.binning<0 && (s->vars.eventInfo->event % 2 == 1))
+          {
+              continue;
+          }
+
+          if(isBDTscore && TMath::Abs(settings.binning) == 1 && (dimu.mass < 110 || dimu.mass > 160))
           {
               continue;
           }
@@ -838,6 +847,14 @@ int main(int argc, char* argv[])
         }
     }   
 
+    ///////////////////////////////////////////////////////////////////
+    // SAMPLES---------------------------------------------------------
+    ///////////////////////////////////////////////////////////////////
+
+    // get the signal samples so that we know their lumi and xsec
+    std::map<TString, Sample*> samples;
+    GetSamples(samples, "UF", "SIGNALX", true);
+
     std::map<TString, TH1D*> netDataMap;
     TList* varstacklist = new TList();   // list to save all of the stacks
     TList* signallist = new TList();     // list to save all of the signal histos
@@ -900,7 +917,22 @@ int main(int argc, char* argv[])
             TCanvas* stack = DiMuPlottingSystem::stackedHistogramsAndRatio(groupedlist, stackname, stackname, settings.varname, "Num Entries", settings.rebin, settings.fitratio);
             varstacklist->Add(stack);
 
-            // lists will contain signal, bg, and data histos for every category
+            // we scaled by lumi*xsec/n_weighted for the stack comparisons
+            // the limit setting needs the signal scaled only by 1/n_weighted
+            // higgs combine will scale by lumi*xsec in the limit setting process
+            for(unsigned int i=0; i<c.second.signalList->GetSize(); i++)
+            {
+                TH1D* hist = (TH1D*)c.second.signalList->At(i); 
+                TString name = hist->GetName();
+
+                // extract sampleName from histname = categoryName_SampleName_systematic
+                TString sampleName = name.ReplaceAll(c.second.name+"_", "");
+                sampleName = sampleName.ReplaceAll((systematic=="")?"":"_"+systematic, "");
+
+                // unscale the lumi*xsec part of the normalization for limit setting
+                if(settings.binning<0) hist->Scale(1/(settings.luminosity*samples[sampleName]->xsec));
+            }
+
             signallist->Add(c.second.signalList);
             bglist->Add(c.second.bkgList);
             datalist->Add(c.second.dataList);
