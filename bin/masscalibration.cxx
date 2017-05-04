@@ -212,7 +212,9 @@ void initPlotSettings(Settings& settings)
 
     if(settings.xname.Contains("eta"))
     {
-        settings.yres_max = 1.4*settings.yres_max;
+        settings.yres_max = 1.55*settings.yres_max;
+        if(settings.peak == "JPsi") settings.yres_max = 4.0*settings.yres_max;
+        if(settings.peak == "Upsilon") settings.yres_max = 2.25*settings.yres_max;
         settings.xmin = -2.41;
         settings.xmax = 2.41;
     }
@@ -812,7 +814,7 @@ int main(int argc, char* argv[])
 
         TCanvas* c = DiMuPlottingSystem::overlay(item.second, ymin, ymax, item.first+"_"+settings.muID, item.first+"_"+settings.muID, settings.xname, yname, false);
         overlays_list->Add(c);
-        c->SaveAs("imgs/"+item.first+"_"+settings.muID+"_"+settings.xname+"_"+settings.whichDY+".png");
+        c->SaveAs("imgs/"+settings.peak+"_"+item.first+"_"+settings.muID+"_"+settings.xname+"_"+settings.whichDY+".png");
     }   
 
     TString savename = Form("rootfiles/masscalibration_%s_%s_%s_data_MC_%s_leadPt%d.root", settings.peak.Data(), settings.xname.Data(), 

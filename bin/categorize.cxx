@@ -529,7 +529,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
       for(unsigned int i=0; i<s->N/settings.reductionFactor; i++)
       {
         // We are stitching together zjets_ht from 70-inf. We use the inclusive for
-        // ht from 0-70.
+        // ht from 0-70, using the inclusive for 70 and beyond would double count.
         if(!isData)
         {
             s->branches.lhe_ht->GetEntry(i);
@@ -930,6 +930,7 @@ int main(int argc, char* argv[])
                 sampleName = sampleName.ReplaceAll((systematic=="")?"":"_"+systematic, "");
 
                 // unscale the lumi*xsec part of the normalization for limit setting
+                // combine will normalize by xsec*lumi in the limit setting process
                 if(settings.binning<0) hist->Scale(1/(settings.luminosity*samples[sampleName]->xsec));
             }
 

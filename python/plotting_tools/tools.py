@@ -140,7 +140,7 @@ def ratio(histo_list):
 #-----------------------------------------------------------------
 ##################################################################
 
-def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0]):
+def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0], yrange_ratio=(-999,-999)):
 
     if name=="stack" and title!=stack:
         name=title
@@ -201,8 +201,17 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     pad2.Draw()
     pad2.cd()
     hratio = ratio(rlist)
-    hratio.SetMinimum(0.58)
-    hratio.SetMaximum(1.42)
+
+    if yrange_ratio[0] == -999: 
+        hratio.SetMinimum(0.58)
+    else: 
+        hratio.SetMinimum(yrange_ratio[0])
+
+    if yrange_ratio[1] == -999: 
+        hratio.SetMaximum(1.42)
+    else: 
+        hratio.SetMaximum(yrange_ratio[1])
+
     hratio.SetMarkerStyle(20)
     hratio.Draw("ep")
 
