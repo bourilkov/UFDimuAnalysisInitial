@@ -173,8 +173,8 @@ void initPlotSettings(Settings& settings)
             settings.max = 160;
         }
         else if(settings.binning == 1)  // blind data in 120-130 GeV, 110-160 window
-        {                      // 1 GeV bins, study background fits
-            settings.bins = 50;
+        {                      // 0.2 GeV bins, study background fits
+            settings.bins = 250;
             settings.min = 110;
             settings.max = 160;
         }

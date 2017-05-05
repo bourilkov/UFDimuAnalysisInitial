@@ -65,7 +65,7 @@ def bwZGamma(x, mix_min=0.001):
     
     phoExpMmumu = RooGenericPdf("phoExpMmumu","exp(@0*@1)*pow(@0,-2)",RooArgList(x,expParam))
     bwExpMmumu  = RooGenericPdf("bwExpMmumu","exp(@0*@3)*(@2)/(pow(@0-@1,2)+0.25*pow(@2,2))",RooArgList(x,bwmZ,bwWidth,expParam))
-    bwmodel     = RooAddPdf("bwzg_model","bw_model", RooArgList(bwExpMmumu,phoExpMmumu),RooArgList(mixParam))
+    bwmodel     = RooAddPdf("bwzg_model","bwzg_model", RooArgList(bwExpMmumu,phoExpMmumu),RooArgList(mixParam))
 
     return bwmodel, [bwWidth, bwmZ, expParam, mixParam, phoExpMmumu, bwExpMmumu]
     
@@ -84,7 +84,7 @@ def bwZredux(x):
     
     f = RooFormulaVar("bwz_redux_f", "(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a2, a3))
     #expmodel = RooGenericPdf("bwz_redux_model", "exp(@2)*(2.5)/(pow(@0-91.2,@1)+0.25*pow(2.5,@1))", RooArgList(x, a1, f))
-    expmodel = RooGenericPdf("bwz_redux_model", "exp(@2)*(2.5)/(pow(@0-91.2,@1)+pow(2.5/2,@1))", RooArgList(x, a1, f))
+    expmodel = RooGenericPdf("bwz_redux_model", "bwz_redux_model", "exp(@2)*(2.5)/(pow(@0-91.2,@1)+pow(2.5/2,@1))", RooArgList(x, a1, f))
     return expmodel, [a1, a2, a3, f]
 
 #----------------------------------------
@@ -120,6 +120,24 @@ def chebychev(x, order=7):
 
     chebychev = RooChebychev("chebychev"+str(order),"chebychev"+str(order), x,args) 
     return chebychev, params
+
+#----------------------------------------
+# bernstein
+#----------------------------------------
+def bernstein(x, order=5): 
+    #c0 = RooRealVar("c0","c0", 1.0,-1.0,1.0)
+    #c1 = RooRealVar("c1","c1", 1.0,-1.0,1.0)
+    #c2 = RooRealVar("c2","c2", 1.0,-1.0,1.0)
+
+    args = RooArgList()
+    params = []
+    for i in range(0,order):
+        c = RooRealVar("c"+str(i),"c"+str(i), 1.0/2**i,-1.0,1.0)
+        args.add(c)
+        params.append(c)
+
+    bernstein = RooBernstein("bernstein"+str(order),"bernstein"+str(order), x, args) 
+    return bernstein, params
 
 #--------------------------------------------------------
 # breit weigner scaled by falling exp, then add a line
