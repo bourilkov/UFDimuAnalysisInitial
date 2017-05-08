@@ -27,6 +27,8 @@ VarSet::VarSet()
 
   TString str;
 
+  varMap["nVertices"]     = &VarSet::_nVertices;
+
   varMap["bdt_score"]     = &VarSet::bdt_score;
   varMap["bdt_vbf_score"] = &VarSet::bdt_vbf_score;
   varMap["bdt_ggh_score"] = &VarSet::bdt_ggh_score;

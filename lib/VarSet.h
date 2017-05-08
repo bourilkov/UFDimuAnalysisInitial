@@ -296,6 +296,7 @@ class VarSet
         //////////////////////////////////////////////////////////////////////////////
 
         // Map initialized in cxx file -----------------------------------------------
+        double _nVertices(){ return nVertices;            };
 
         // load the bdt score manually beforehand
         double bdt_score()    { return bdt_out;                };

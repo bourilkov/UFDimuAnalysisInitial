@@ -577,6 +577,11 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
               continue;
           }
 
+          if(!isBDTscore && !isMass && TMath::Abs(settings.binning) == 1 && (dimu.mass < 110 || dimu.mass > 160))
+          {
+              continue;
+          }
+
           // only consider events w/ dimu_mass in the histogram range,
           // so the executable doesn't take forever, especially w/ tmva evaluation.
           if(isMass && (dimu.mass < settings.min || dimu.mass > settings.max))
@@ -942,7 +947,7 @@ int main(int argc, char* argv[])
             netlist->Add(hNetBkg);
             netlist->Add(groupedlist);
            
-            stack->SaveAs("imgs/"+settings.varname+"_"+stackname+"_"+settings.whichDY+".png");
+            stack->SaveAs("imgs/"+settings.varname+"_"+stackname+"_"+settings.whichDY+Form("_b%d.png", settings.binning));
         }
         timerWatch.Stop();
         std::cout << "### DONE " << timerWatch.RealTime() << " seconds" << std::endl;
@@ -969,9 +974,9 @@ int main(int argc, char* argv[])
 
     TString xvarname = settings.varname;
     if(settings.varname.Contains("dimu_mass")) xvarname=blinded+"_"+xvarname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s_minpt%d.root", xvarname.Data(), (int)settings.min, 
+    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s_minpt%d_b%d.root", xvarname.Data(), (int)settings.min, 
                             (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, 
-                            settings.whichDY.Data(), (int)settings.subleadPt);
+                            settings.whichDY.Data(), (int)settings.subleadPt, settings.binning);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;
