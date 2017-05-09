@@ -48,10 +48,10 @@
 const UInt_t SIG_PRESC  = 1;
 const UInt_t BKG_PRESC  = 1;
 const UInt_t DAT_PRESC  = 1;
-const UInt_t REPORT_EVT = 10000;
+const UInt_t REPORT_EVT = 100000000;
 const UInt_t MAX_EVT    = 1000000000; // Maximum number of events per sample
 
-const bool MULTICLASS = true;
+const bool MULTICLASS = false;
 
 const double PI = 3.14159265359;
 const double BIT = 0.000001; // Tiny value or offset
@@ -128,10 +128,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // Here the preparation phase begins
 
    // Create a new root output file
-   TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/TMVA/root";
+   TString out_dir = "/home/puno/h2mumu/UFDimuAnalysis_v2/bin/tmva_out";
    // out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_04_01_half_ge0j.root", out_dir.Data() );
+   out_file_name.Form( "%s/TMVA_BDT_UF_H2Mu_out.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
@@ -146,10 +146,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // or "CERN" if you at CERN. "ALL" specifies that we want to load the Data
    // and all of the MC samples. Can loop through and remove the ones you don't want 
    // to use if you desire or just grab the ones you care about from the map.
-   GetSamples(samples, "CERN_hiM", "SIGNAL" );
-   GetSamples(samples, "CERN_hiM", "ZJets_MG");
-   GetSamples(samples, "CERN_hiM", "tt_ll_MG");
-   GetSamples(samples, "CERN_hiM", "singleTop");
+   GetSamples(samples, "UF", "SIGNAL" );
+   GetSamples(samples, "UF", "ZJets_AMC-J");
+   GetSamples(samples, "UF", "tt_ll_MG");
+   GetSamples(samples, "UF", "singleTop");
    // GetSamples(samples, "CERN_hiM", "VV");
    // GetSamples(samples, "CERN_hiM", "ttX");
    // GetSamples(samples, "CERN_hiM", "DATA");
@@ -169,15 +169,19 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    sig_samps.push_back( std::make_tuple(samples["H2Mu_WH_neg"], -5) );
    // sig_samps.push_back( std::make_tuple(samples["H2Mu_ttH"],    -6) );
    
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG"],              + 1) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_70_100"],    + 2) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_100_200"],   + 3) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_200_400"],   + 4) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_400_600"],   + 5) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_600_800"],   + 6) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_800_1200"],  + 7) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_1200_2500"], + 8) );
-   bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_2500_inf"],  + 9) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG"],              + 1) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_70_100"],    + 2) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_100_200"],   + 3) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_200_400"],   + 4) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_400_600"],   + 5) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_600_800"],   + 6) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_800_1200"],  + 7) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_1200_2500"], + 8) );
+   //bkg_samps.push_back( std::make_tuple(samples["ZJets_MG_HT_2500_inf"],  + 9) );
+
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_AMC_0j"], +1) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_AMC_1j"], +2) );
+   bkg_samps.push_back( std::make_tuple(samples["ZJets_AMC_2j"], +3) );
 
    bkg_samps.push_back( std::make_tuple(samples["tt_ll_MG"], +10) );
    bkg_samps.push_back( std::make_tuple(samples["tW_pos"],   +11) );
@@ -212,7 +216,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // Tells the TTree that it should load the event information into samp->vars
    for (int iSamp = 0; iSamp < all_samps.size(); iSamp++) {
      std::cout << "  * Setting branches for " << std::get<0>(all_samps.at(iSamp))->name << " (i = " << iSamp << ")" << std::endl;
-     std::get<0>(all_samps.at(iSamp))->setBranchAddresses(2);
+     std::get<0>(all_samps.at(iSamp))->setBranchAddresses("");
      std::get<0>(all_samps.at(iSamp))->calculateNoriginal();
    }
 
@@ -662,14 +666,14 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        Double_t LHE_HT = samp->vars.lhe_ht;
 
        // Scale for missing events in MC and data
-       if (samp->name == "ZJets_MG_HT_100_200") samp_wgt *= (1.0 / (1.0 - 0.1217));
-       if (samp->name == "ZJets_MG_HT_200_400") samp_wgt *= (1.0 / (1.0 - 0.1008));
-       if (samp->name == "ZJets_MG_HT_400_600") samp_wgt *= (1.0 / (1.0 - 0.1651));
-       if (samp->name == "tt_ll_MG") samp_wgt *= (1.0 / (1.0 - 0.2164));
-       if (samp->name == "tW_pos")   samp_wgt *= (1.0 / (1.0 - 0.6218));
-       if (samp->name == "tW_neg")   samp_wgt *= (1.0 / (1.0 - 0.6254));
-       if (samp->name == "ttW")      samp_wgt *= (1.0 / (1.0 - 0.4098));
-       if (samp_ID == 0) samp_wgt *= (36814. / (36814. - 0.9751*9014.)); // 97.5% of RunH lost
+       //if (samp->name == "ZJets_MG_HT_100_200") samp_wgt *= (1.0 / (1.0 - 0.1217));
+       //if (samp->name == "ZJets_MG_HT_200_400") samp_wgt *= (1.0 / (1.0 - 0.1008));
+       //if (samp->name == "ZJets_MG_HT_400_600") samp_wgt *= (1.0 / (1.0 - 0.1651));
+       //if (samp->name == "tt_ll_MG") samp_wgt *= (1.0 / (1.0 - 0.2164));
+       //if (samp->name == "tW_pos")   samp_wgt *= (1.0 / (1.0 - 0.6218));
+       //if (samp->name == "tW_neg")   samp_wgt *= (1.0 / (1.0 - 0.6254));
+       //if (samp->name == "ttW")      samp_wgt *= (1.0 / (1.0 - 0.4098));
+       //if (samp_ID == 0) samp_wgt *= (36814. / (36814. - 0.9751*9014.)); // 97.5% of RunH lost
 
        Double_t res_wgt = tripGaus->Eval(dimu.mass_Roch) / tripGausNorm;
 

@@ -448,7 +448,8 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 
 
       // sig vs bkg and multiclass (ggf, vbf, ... drell yan, ttbar) weight files
-      TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+      //TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+      TString weightfile = dir+"binaryclass_amc.weights.xml";
       TString weightfile_multi = dir+"f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
 
       /////////////////////////////////////////////////////
