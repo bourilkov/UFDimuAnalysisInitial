@@ -61,14 +61,15 @@ struct Settings
     float luminosity = 36814;                // pb-1
     float reductionFactor = 1;               // reduce the number of events you run over in case you want to debug or some such thing
 
-    TString whichDY = "dyAMC";               // use amc@nlo or madgraph for Drell Yan : {"dyAMC", "dyMG"}
+    TString whichDY = "dyAMC-J";             // use amc@nlo or madgraph for Drell Yan : {"dyAMC", "dyAMC-J", "dyMG"}
     TString systematics;                     // which systematics to plot
 
-    float min;
+    float min; // min, max, and bins for the var to plot
     float max;
     int bins;
 
-    float subleadPt = 10;
+    float subleadPt = 10;     // subleading muon pt cut
+    bool sig_xlumi = true;    // if true, scale signal by xsec*lumi
 };
 
 //////////////////////////////////////////////////////////////////
@@ -122,7 +123,7 @@ TList* groupMC(TList* list, TString categoryName, TString suffix)
     }
     // Don't forget to group VH together and retitle other signal samples
     TH1D* vh_histo = DiMuPlottingSystem::addHists(vh_list, categoryName+"VH"+suffix, "VH");
-    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan_"+suffix, "Drell Yan");
+    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan"+suffix, "Drell Yan");
     TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop"+suffix, "TTbar + SingleTop");
     TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus"+suffix, "Diboson +");
 
@@ -189,6 +190,12 @@ void initPlotSettings(Settings& settings)
             settings.bins = 100;
             settings.min = 110;
             settings.max = 310;
+        }
+        else if(settings.binning == -3) // unblind data in 120-130 GeV for limit setting, 110-160 window
+        {                      // 1 GeV bins
+            settings.bins = 50;
+            settings.min = 110;
+            settings.max = 160;
         }
         else
         {
@@ -399,6 +406,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
     std::cout << "max            : " << settings.max << std::endl;
     std::cout << "bins           : " << settings.bins << std::endl;
     std::cout << "binning        : " << settings.binning << std::endl;
+    std::cout << "sig xlumi      : " << settings.sig_xlumi << std::endl;
     std::cout << "reductionFactor: " << settings.reductionFactor << std::endl;
     std::cout << "whichDY        : " << settings.whichDY << std::endl;
     std::cout << "subleadPt      : " << settings.subleadPt << std::endl;
@@ -837,6 +845,7 @@ int main(int argc, char* argv[])
         else if(option=="luminosity")      ss >> settings.luminosity;
         else if(option=="subleadPt")       ss >> settings.subleadPt;
         else if(option=="whichDY")         settings.whichDY = value;
+        else if(option=="sig_xlumi")       ss >> settings.sig_xlumi;
         else if(option=="systematics")
         {
             TString tok;
@@ -936,7 +945,8 @@ int main(int argc, char* argv[])
 
                 // unscale the lumi*xsec part of the normalization for limit setting
                 // combine will normalize by xsec*lumi in the limit setting process
-                if(settings.binning<0) hist->Scale(1/(settings.luminosity*samples[sampleName]->xsec));
+                if(!settings.sig_xlumi) 
+                    hist->Scale(1/(settings.luminosity*samples[sampleName]->xsec));
             }
 
             signallist->Add(c.second.signalList);
@@ -974,9 +984,9 @@ int main(int argc, char* argv[])
 
     TString xvarname = settings.varname;
     if(settings.varname.Contains("dimu_mass")) xvarname=blinded+"_"+xvarname;
-    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s_minpt%d_b%d.root", xvarname.Data(), (int)settings.min, 
+    TString savename = Form("rootfiles/validate_%s_%d_%d_categories%d%s_%d_%s_minpt%d_b%d_sig-xlumi%d.root", xvarname.Data(), (int)settings.min, 
                             (int)settings.max, settings.whichCategories, xcategoryString.Data(), (int)settings.luminosity, 
-                            settings.whichDY.Data(), (int)settings.subleadPt, settings.binning);
+                            settings.whichDY.Data(), (int)settings.subleadPt, settings.binning, settings.sig_xlumi);
 
     std::cout << "  /// Saving plots to " << savename << " ..." << std::endl;
     std::cout << std::endl;

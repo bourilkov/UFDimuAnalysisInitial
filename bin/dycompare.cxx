@@ -49,25 +49,26 @@ int main(int argc, char* argv[])
   TH1::SetDefaultSumw2();
   std::map<TString, Sample*> sampleMap;
   std::vector<Sample*> sampleVec;
-  GetSamples(sampleMap, "UF", "ZJets_MG");
+  //GetSamples(sampleMap, "UF", "ZJets_MG");
 
   // Get DY AMC sample so that we can compare that to MG as well
   GetSamples(sampleMap, "UF", "ZJets_AMC");
 
-  int nthreads = 9;        // number of threads to use in parallelization
+  int nthreads = 4;        // number of threads to use in parallelization
   float luminosity = 36814;
   float reductionFactor=1;
   std::map<TString, TH1D*> histMap;
 
-  TString xname = "dimu_mass";
-  int xbins = 140;
-  float xmin = 60;
-  float xmax = 200;
+  TString xname = "nJetsCent";
+  int xbins = 11;
+  float xmin = 0;
+  float xmax = 11;
 
-  //TString xname = "HT";
-  //int xbins = 300;
-  //float xmin = 0;
-  //float xmax = 3000;
+  // use pf, roch, or kamu values for selections, categories, and fill?
+  TString pf_roch_or_kamu = "PF";
+  if(xname.Contains("PF")) pf_roch_or_kamu = "PF";
+  else if(xname.Contains("Roch")) pf_roch_or_kamu = "Roch";
+  else if(xname.Contains("KaMu")) pf_roch_or_kamu = "KaMu";
 
   for(auto &s : sampleMap)
   {    
@@ -83,26 +84,28 @@ int main(int argc, char* argv[])
       std::cout << "    nOriginalWeighted: " << s.second->nOriginalWeighted << std::endl;
       std::cout << std::endl;
 
-      s.second->setBranchAddresses(2); // tell the ttree to load the variable values into sample->vars
+      s.second->setBranchAddresses(""); // tell the ttree to load the variable values into sample->vars
       sampleVec.push_back(s.second);   // add the sample to the vector of samples which we will run over
 
       // maps sample to histogram
       histMap[s.second->name] = new TH1D(s.second->name, s.second->name+Form(";%s;", xname.Data()), xbins, xmin, xmax);
   }    
 
-  histMap["ZJets_MG_HT_0_70"] = new TH1D("ZJets_MG_HT_0_70", TString("ZJets_MG_HT_0_70")+Form(";%s;", xname.Data()), xbins, xmin, xmax);
-
-
   std::cout << "@@@ nCPUs Available: " << getNumCPUs() << std::endl;
   std::cout << "@@@ nCPUs used     : " << nthreads << std::endl;
   std::cout << "@@@ nSamples used  : " << sampleVec.size() << std::endl;
 
 
-  auto makeHistoForSample = [&histMap, xname, reductionFactor, luminosity](Sample* s)
+  auto makeHistoForSample = [&histMap, xname, pf_roch_or_kamu, reductionFactor, luminosity](Sample* s)
   {
     std::cout << Form("  /// Processing %s \n", s->name.Data());
     Run2MuonSelectionCuts  run2MuonSelection;
     Run2EventSelectionCuts run2EventSelection;
+
+    JetCollectionCleaner      jetCollectionCleaner;
+    MuonCollectionCleaner     muonCollectionCleaner;
+    EleCollectionCleaner      eleCollectionCleaner;
+
 
     for(unsigned int i=0; i<s->N/reductionFactor; i++)
     {
@@ -121,6 +124,8 @@ int main(int argc, char* argv[])
           s->vars.dimuCand = &dimu; 
           MuonInfo& mu1 = s->vars.muons->at(s->vars.dimuCand->iMu1);
           MuonInfo& mu2 = s->vars.muons->at(s->vars.dimuCand->iMu2);
+
+          s->vars.setCalibrationType(pf_roch_or_kamu); // set mass calibrations
 
           ///////////////////////////////////////////////////////////////////
           // CUTS  ----------------------------------------------------------
@@ -143,23 +148,30 @@ int main(int argc, char* argv[])
           // the first good dimu candidate
           found_good_dimuon = true;
 
-          // Load MC branches if MC
-          if(s->sampleType!="data")
-          {
-              s->branches.nPU->GetEntry(i);
-              s->branches.getEntryWeightsMC(i); // gen_wgt, pu_wgt and hlt, iso, mu_id scale factors
-              s->branches.lhe_ht->GetEntry(i);
-          }
+          // Load the rest of the information needed for run2 categories
+          s->branches.getEntry(i);
+          s->vars.setCalibrationType(pf_roch_or_kamu); // reloaded the branches, need to set mass,pt to correct calibrations again
+
+          // clear vectors for the valid collections
+          s->vars.validMuons.clear();
+          s->vars.validExtraMuons.clear();
+          s->vars.validElectrons.clear();
+          s->vars.validJets.clear();
+          s->vars.validBJets.clear();
+
+          // load valid collections from s->vars raw collections
+          jetCollectionCleaner.getValidJets(s->vars, s->vars.validJets, s->vars.validBJets);
+          muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
+          eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
+
+          // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
+          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
+          CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
           double varvalue = -999;
-          if(xname == "dimu_mass") varvalue = dimu.mass;
-          if(xname == "HT") varvalue = s->vars.lhe_ht;
-
+          varvalue = s->vars.getValue(xname.Data()); 
           histMap[s->name]->Fill(varvalue, s->getWeight());
-          if(s->name == "ZJets_MG" && s->vars.lhe_ht < 70)
-          {
-              histMap["ZJets_MG_HT_0_70"]->Fill(varvalue, s->getWeight()); 
-          }
 
           if(found_good_dimuon) break; // only fill one dimuon, break from dimu cand loop
 
@@ -167,8 +179,6 @@ int main(int argc, char* argv[])
     } // end event loop //
 
     histMap[s->name]->Scale(s->getLumiScaleFactor(luminosity));
-    if(s->name == "ZJets_MG")
-        histMap["ZJets_MG_HT_0_70"]->Scale(s->getLumiScaleFactor(luminosity));
 
     std::cout << Form("  /// Done processing %s \n", s->name.Data());
     return 0;
@@ -199,19 +209,13 @@ int main(int argc, char* argv[])
       std::cout << Form("%s: %f\n", h.first.Data(), h.second->Integral());
   }
 
-  ht->Add(histMap["ZJets_MG_HT_2500_inf"]);
-  ht->Add(histMap["ZJets_MG_HT_1200_2500"]);
-  ht->Add(histMap["ZJets_MG_HT_800_1200"]);
-  ht->Add(histMap["ZJets_MG_HT_600_800"]);
-  ht->Add(histMap["ZJets_MG_HT_400_600"]);
-  ht->Add(histMap["ZJets_MG_HT_200_400"]);
-  ht->Add(histMap["ZJets_MG_HT_100_200"]);
-  ht->Add(histMap["ZJets_MG_HT_70_100"]);
-  ht->Add(histMap["ZJets_MG_HT_0_70"]);
+  ht->Add(histMap["ZJets_AMC_0j"]);
+  ht->Add(histMap["ZJets_AMC_1j"]);
+  ht->Add(histMap["ZJets_AMC_2j"]);
 
-  TH1D* hNetHT   = DiMuPlottingSystem::addHists(ht, "Net_DY_HT", "Net_DY_HT");
+  TH1D* hNetHT   = DiMuPlottingSystem::addHists(ht, "Net_DY_Jets", "Net_DY_Jets");
 
-  ht->Add(histMap["ZJets_MG"]);
+  ht->Add(histMap["ZJets_AMC"]);
   std::cout << std::endl;
 
   TCanvas* stack = DiMuPlottingSystem::stackedHistogramsAndRatio(ht, "DY_Compare", "DY_Compare", xname, "Num Entries", true, false, "Inclusive/Stitched");
@@ -226,7 +230,6 @@ int main(int argc, char* argv[])
   stacklist->Write();
   hNetHT->Write();
   ht->Write();
-  histMap["ZJets_AMC"]->Write();
 
   f->Close();
 

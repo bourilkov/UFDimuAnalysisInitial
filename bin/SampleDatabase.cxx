@@ -34,7 +34,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   else if (location == "UF_DoubleMu")
   {
     in_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/simplified/"; 
-    data_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/DoubleMuon/simplified/"; 
+    data_dir = "/cms/data/store/user/t2/users/acarnes/h2mumu/awb_samples/doubleMu_simplified/"; 
   }
   else if (location == "CERN")
     in_dir = "root://eoscms.cern.ch//store/group/phys_higgs/HiggsExo/H2Mu/UF/ntuples/Moriond17/Mar13";
@@ -406,7 +406,8 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
   float DY_xsec_m50 = 5765.4; // pb // old value = 6025.2
   float DY_m100to200_factor = 1.235; 
   
-  if ((select.Contains("ALL") && select.Contains("AMC")) || select == "MC" || select == "BACKGROUND" || select == "ZJets" || select == "ZJets_AMC") {
+  if ((select.Contains("ALL") && select.Contains("AMC") && !select.Contains("AMC-J")) || select == "MC" || select == "BACKGROUND" 
+       || select == "ZJets" || select == "ZJets_AMC") {
     std::cout << "Adding files for ZJets_AMC ..." << std::endl;
     std::vector<TString> in_files;
     TString in_file;
@@ -418,6 +419,60 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     }
     samples["ZJets_AMC"] = new Sample(in_files, "ZJets_AMC", "background");
     samples["ZJets_AMC"]->xsec = DY_xsec_m50; 
+     if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if ((select.Contains("ALL") && select.Contains("AMC-J")) || select == "MC" || select == "BACKGROUND" 
+       || select == "ZJets" || select == "ZJets_AMC" || select == "ZJets_AMC-J") {
+    std::cout << "Adding files for ZJets_AMC_0j ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location.Contains("UF")) {
+      in_files.push_back( TString(in_dir+"dy/DYToLL_0J_13TeV-amcatnloFXFX-pythia8_ZJets_AMC_0j_A.root") );
+    } else {
+    //  in_file.Form( "%s/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    }
+    samples["ZJets_AMC_0j"] = new Sample(in_files, "ZJets_AMC_0j", "background");
+    samples["ZJets_AMC_0j"]->xsec = 4754*0.96; 
+     if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if ((select.Contains("ALL") && select.Contains("AMC-J")) || select == "MC" || select == "BACKGROUND" || 
+       select == "ZJets" || select == "ZJets_AMC" || select == "ZJets_AMC-J") {
+    std::cout << "Adding files for ZJets_AMC_1j ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location.Contains("UF")) {
+      in_files.push_back( TString(in_dir+"dy/DYToLL_1J_13TeV-amcatnloFXFX-pythia8_ZJets_AMC_1j_A.root") );
+    } else {
+    //  in_file.Form( "%s/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    }
+    samples["ZJets_AMC_1j"] = new Sample(in_files, "ZJets_AMC_1j", "background");
+    samples["ZJets_AMC_1j"]->xsec = 888.9*0.95; 
+     if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if ((select.Contains("ALL") && select.Contains("AMC-J")) || select == "MC" || select == "BACKGROUND" || 
+       select == "ZJets" || select == "ZJets_AMC" || select == "ZJets_AMC-J") {
+    std::cout << "Adding files for ZJets_AMC_2j ..." << std::endl;
+    std::vector<TString> in_files;
+    TString in_file;
+    if (location.Contains("UF")) {
+      in_files.push_back( TString(in_dir+"dy/DYToLL_2J_13TeV-amcatnloFXFX-pythia8_ZJets_AMC_2j.root") );
+    } else {
+    //  in_file.Form( "%s/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/ZJets_AMC/NTuple_0.root", in_dir.Data() );
+    //  in_files.push_back(in_file);
+    }
+    samples["ZJets_AMC_2j"] = new Sample(in_files, "ZJets_AMC_2j", "background");
+    samples["ZJets_AMC_2j"]->xsec = 348.8; 
      if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
