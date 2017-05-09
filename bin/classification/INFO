@@ -5,3 +5,6 @@ f_Opt3_oneClass_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml # TMVA 
 f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml                # TMVA multiclass >= 0jets, 0b (use as if inclusive)
 f_Opt3_half_all_sig_all_bkg_ge0j_eq0b_met80_BDTG_default.weights.xml     # TMVA multiclass >= 0 jets, 0b, met < 80
 f_Opt3_all_sig_all_bkg_eq2j_eq0b_met80_BDTG_default.weights.xml          # TMVA multiclass == 2jets, 0b, met < 80
+
+f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml                     # TMVA binary classification 1/2 sig for training 
+f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml               # TMVA multiclass 1/2 sig for training

@@ -22,8 +22,8 @@
 
 void CategoryNode::theMiracleOfChildBirth()
 {
-    left = new CategoryNode(this, 0, 0, this->name+"_left", -999, "", -999, -999) ; 
-    right = new CategoryNode(this, 0, 0, this->name+"_right", -999, "", -999, -999) ;
+    left = new CategoryNode(this, 0, 0, this->key+"_left", -999, "", -999, -999) ; 
+    right = new CategoryNode(this, 0, 0, this->key+"_right", -999, "", -999, -999) ;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ void XMLCategorizer::evaluate(VarSet& vars)
 void XMLCategorizer::evaluateRecursive(VarSet& vars, CategoryNode* cnode)
 {
     // if it was filtered into this node then it's in this category
-    categoryMap[cnode->name].inCategory = true;
+    categoryMap[cnode->key].inCategory = true;
 
     // return if terminal node
     if(cnode->left == 0 || cnode->right == 0)
@@ -116,7 +116,28 @@ void XMLCategorizer::loadFromXML(TString filename)
    
     // Release memory before exit
     xml->FreeDoc(xmldoc);
+
     delete xml;
+
+    int i=0;
+    for(auto& c: categoryMap)
+    {
+        if(c.second.isTerminal)
+        {
+            c.second.name = Form("c%d", i);
+            i++;
+        }
+        else if(c.second.key == "root")
+        {
+            c.second.name = c.second.key;
+        }
+        else
+        {
+            c.second.name = c.second.key;
+            c.second.hide = true;
+        }
+    }
+      
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -178,11 +199,11 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
         sig.ReplaceAll(" ", "");
         sig.ReplaceAll(".", "p");
         sig.ReplaceAll("-", "n");
-        cnode->name = "T_"+sig+"_"+cnode->name;
+        cnode->key = "T_"+sig+"_"+cnode->key;
 
         //cnode->output();
-        categoryMap[cnode->name] = Category(cnode->name);
-        categoryMap[cnode->name].isTerminal = true;
+        categoryMap[cnode->key] = Category(cnode->key);
+        categoryMap[cnode->key].isTerminal = true;
         return;
     }
     else
@@ -191,10 +212,10 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
         scut.ReplaceAll(" ", "");
         scut.ReplaceAll(".", "p");
         scut.ReplaceAll("-", "n");
-        if(cnode->mother == 0) cnode->name = "root";
+        if(cnode->mother == 0) cnode->key = "root";
         //cnode->output();
 
-        categoryMap[cnode->name] = Category(cnode->name);
+        categoryMap[cnode->key] = Category(cnode->key);
 
         cnode->theMiracleOfChildBirth();
         CategoryNode* cleft = cnode->left; 
@@ -202,17 +223,109 @@ void XMLCategorizer::loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnod
 
         if(cnode->mother==0)
         {
-            cleft->name = "lt_"+scut;
-            cright->name = "gt_"+scut;
+            cleft->key = "lt_"+scut;
+            cright->key = "gt_"+scut;
         }
         else
         {
-            cleft->name = cnode->name+"_lt_"+scut;
-            cright->name = cnode->name+"_gt_"+scut;
+            cleft->key = cnode->key+"_lt_"+scut;
+            cright->key = cnode->key+"_gt_"+scut;
         }
 
         loadFromXMLRecursive(xml, xleft, cleft);
         loadFromXMLRecursive(xml, xright, cright);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// _______________________CategorySelectionBDT___________________________//
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionBDT::initCategoryMap()
+{
+// Initialize the categories
+
+    // Category(name), Category(name, hide?), Category(name, hide?, isTerminal?)
+    // defaults are hide = false, isTerminal = false
+
+    categoryMap["c_ALL"] = Category("c_ALL", true, false);
+    categoryMap["c_1_xlepton"] = Category("c_1_xlepton", false, true);
+    categoryMap["c_2_xlepton"] = Category("c_2_xlepton", true, false);
+    categoryMap["c_2_xlepton_Z"] = Category("c_2_xlepton_Z", false, true);
+    categoryMap["c_2_xlepton_other"] = Category("c_2_xlepton_other", false, true);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionBDT::CategorySelectionBDT()
+{
+// initialize the default cut values in the constructor
+
+    initCategoryMap();
+}
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+CategorySelectionBDT::CategorySelectionBDT(TString xmlfile)
+{
+// initialize the default cut values in the constructor
+
+    initCategoryMap();
+    loadFromXML(xmlfile);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
+void CategorySelectionBDT::evaluate(VarSet& vars)
+{
+// Determine which category the event belongs to
+
+    // Inclusive category, all events that passed the selection cuts
+    categoryMap["c_ALL"].inCategory = true;
+    if(vars.validExtraMuons.size() + vars.validElectrons.size() == 0) evaluateRecursive(vars, rootNode);
+    else if(vars.validExtraMuons.size() + vars.validElectrons.size() == 1) categoryMap["c_1_xlepton"].inCategory = true;
+    else categoryMap["c_2_xlepton"].inCategory = true; 
+  
+    if(categoryMap["c_2_xlepton"].inCategory)
+    {
+        if(vars.validExtraMuons.size() >= 2)
+        {
+            for(unsigned int i=0; i<vars.validExtraMuons.size(); i++)
+            {
+                for(unsigned int j=i+1; j<vars.validExtraMuons.size(); j++)
+                {
+                    TLorentzVector dimu = vars.validExtraMuons[i] + vars.validExtraMuons[j];
+                    if(TMath::Abs(dimu.M() - 91) < 10) 
+                    {
+                        categoryMap["c_2_xlepton_Z"].inCategory = true;
+                        return;
+                    }
+                }
+            }
+        }
+        if(vars.validElectrons.size() >= 2)
+        {
+            for(unsigned int i=0; i<vars.validElectrons.size(); i++)
+            {
+                for(unsigned int j=i+1; j<vars.validElectrons.size(); j++)
+                {
+                    TLorentzVector diele = vars.validElectrons[i] + vars.validElectrons[j];
+                    if(TMath::Abs(diele.M() - 91) < 10) 
+                    {
+                        categoryMap["c_2_xlepton_Z"].inCategory = true;
+                        return;
+                    }
+                }
+            }
+        }
+        categoryMap["c_2_xlepton_other"].inCategory = true;
     }
 }
 

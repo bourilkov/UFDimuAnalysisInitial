@@ -11,6 +11,8 @@ import prettytable
 import string
 import re
 import argparse
+import math as math
+import numpy as np
 from ROOT import *
 
 import sys
@@ -39,11 +41,11 @@ class BGSpectrumFitter:
         self.infilename = infilename
         self.category = category
         self.tfile = TFile(infilename)
-        self.setBGHists()
+        self.setHists()
     
-    def setBGHists(self):
+    def setHists(self):
         self.data_hist      = self.tfile.Get('net_histos/'+self.category+"_Net_Data")
-        self.bg_dy_hist      = self.tfile.Get('net_histos/'+self.category+"_Drell_Yan")
+        self.bg_dy_hist      = self.tfile.Get('net_histos/'+self.category+"_Drell_Yan_")
         self.bg_ttbar_hist   = self.tfile.Get('net_histos/'+self.category+"_TTbar_Plus_SingleTop")
         self.bg_diboson_hist = self.tfile.Get('net_histos/'+self.category+"_Diboson_plus")
         self.bg_all_hist  = self.tfile.Get('net_histos/'+self.category+"_Net_Bkg")
@@ -75,7 +77,7 @@ class BGSpectrumFitter:
   
         return x
     
-    def fitAndSave(self, histo, pdfMmumu, x, xmin=110, xmax=310):
+    def fit(self, histo, pdfMmumu, x, xmin=110, xmax=160, blinded=True, save=True):
     # make workspace with signal model and background model for analytic shape fit.
     # save it to a root file.
 
@@ -95,7 +97,7 @@ class BGSpectrumFitter:
         x.setRange("right",130-0.1, xmax+0.1)
 
       
-        if "Data" in histo.GetName():
+        if "Data" in histo.GetName() and blinded:
             pdfMmumu.fitTo(data, RooFit.Range("left,right"))
         else: 
             pdfMmumu.fitTo(data, RooFit.Range("window"))
@@ -103,9 +105,9 @@ class BGSpectrumFitter:
         xframe = x.frame(RooFit.Name(histo.GetName()+"_Fit"), RooFit.Title(histo.GetName()+"_Fit"))
         xframe.GetXaxis().SetNdivisions(505)
         data.plotOn(xframe)
-        pdfMmumu.plotOn(xframe)
+        pdfMmumu.plotOn(xframe, RooFit.Name(pdfMmumu.GetName()))
         pdfMmumu.paramOn(xframe, RooFit.Format("NELU", RooFit.AutoPrecision(2)), RooFit.Layout(0.3, 0.95, 0.92) )
-        chi2 = xframe.chiSquare(2)
+        chi2 = xframe.chiSquare()
 
         print "chi2    :     %7.3f"               % chi2
         print
@@ -115,8 +117,14 @@ class BGSpectrumFitter:
         t = TLatex(.6,.6,"#chi^{2}/ndof = %7.3f" % chi2);  
         t.SetNDC(kTRUE);
         t.Draw();
-        c1.SaveAs('img/'+c1.GetName()+'.png')
-        c1.SaveAs(histo.GetName()+"_"+pdfMmumu.GetName()+'.root');
+
+        f = xframe.findObject(pdfMmumu.GetName());
+
+        if(save):
+            c1.SaveAs('img/'+c1.GetName()+'.png')
+            c1.SaveAs(histo.GetName()+"_"+pdfMmumu.GetName()+'.root');
+
+        return f;
 
 #----------------------------------------
 # Let's fit some backgrounds using the
@@ -124,16 +132,27 @@ class BGSpectrumFitter:
 #----------------------------------------
 
 print('program is running ...')
-#category = 'c_01_Jet_Tight_OE' 
-#category = 'c_01_Jet_Tight_OO' 
-#category = 'c_2_Jet_VBF_Loose' 
-#category = 'c_2_Jet_GGF_Tight' 
 
-categories = ['c_01_Jet_Tight_OE', 'c_01_Jet_Tight_BB', 'c_2_Jet_VBF_Loose', 'c_2_Jet_VBF_Tight', 'c_2_Jet_GGF_Tight']
+categories = ['c12', 'c11', 'c10', 'c9', 'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2', 'c1', 'c0', 'root']
+#categories = ['c12']
 
+filedir = '/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/'
+#filename = 'validate_blinded_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
+filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
+
+# fit values at 125 GeV for each category
+bwzredux125 = [] 
+bwzgamma125 = []
+bernstein125 = []
+
+max_diff_bwzr = []
+max_diff_bwzg = []
+max_diff_bern = []
+
+order = 6 # order for bernstein poly
 
 for category in categories:
-    wdm = BGSpectrumFitter('/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/validate_blinded_dimu_mass_PF_110_310_nolow_run1categories_36814.root', category) 
+    wdm = BGSpectrumFitter(filedir+filename, category) 
     print wdm.infilename, wdm.category
     
     #----------------------------------------
@@ -142,36 +161,80 @@ for category in categories:
     #----------------------------------------
     
     #histo = wdm.bg_dy_hist
-    #histo = wdm.bg_all_hist
     #histo = wdm.bg_not_dy_hist
+    #histo = wdm.bg_all_hist
     histo = wdm.data_hist
     
     x = wdm.getX(histo)
     
-    lin_model, lin_params     = pdfs.linear(x)
-    hgg_model, hgg_params     = pdfs.higgsGammaGamma(x)
     bwzr_model, bwzr_params   = pdfs.bwZredux(x)
+    bwzg_model, bwzg_params   = pdfs.bwZGamma(x)
+    bernstein_model, bernstein_params   = pdfs.bernstein(x, order=order)
+    
+    fr = wdm.fit(histo, bwzr_model, x, blinded=False,      save=False)
+    fg = wdm.fit(histo, bwzg_model, x, blinded=False,      save=False)
+    fb = wdm.fit(histo, bernstein_model, x, blinded=False, save=False)
 
-    bwzg_model = 0
-    bwzg_params = 0
-    if "2_Jet" in category:
-        bwzg_model, bwzg_params = pdfs.bwZGamma(x)
-    else:
-        bwzg_model, bwzg_params = pdfs.bwZGamma(x)
+    print "%s at 125 GeV = %f " % (fr.GetName(), fr.Eval(125))
+    print "%s at 125 GeV = %f " % (fg.GetName(), fg.Eval(125))
+    print "%s at 125 GeV = %f " % (fb.GetName(), fb.Eval(125))
 
-    #bwz_model, bwz_params      = pdfs.bwZ(x)
-    #bwg_model, bwg_params     = pdfs.bwGamma(x)
-    #bwzl_model, bwzl_params   = pdfs.bwZPlusLinear(x)
-    #cheby_model, cheby_params = pdfs.chebychev(x)
-    #bwzgl_model, bwzgl_params = pdfs.bwZGammaPlusLinear(x)
-    
-    #mix = RooRealVar("mix_exp_lin","mix",0.1,0,1)
-    #hgg_lin_model = RooAddPdf("hggexp_plus_linear","hggexp_plus_linear", RooArgList(hgg_model,lin_model),RooArgList(mix))
-    #fewz_lin_model = RooAddPdf("fewz_plus_linear","fewz_plus_linear", RooArgList(fewz_model,lin_model),RooArgList(mix))
-    
-    #model = lin_model
-    #model = bwzg_model
-    #model = bwzr_model
-    model = hgg_model
-    
-    wdm.fitAndSave(histo, model, x, xmax=310)
+    fr.SetLineColor(2)
+    fg.SetLineColor(3)
+    fb.SetLineColor(4)
+
+    c = TCanvas("%s" % category, "%s" % category)
+    l = TLegend(0.58, 0.67, 0.89, 0.89, "", "brNDC");
+
+    # Draw data histogram
+    histo.SetTitle(category)
+    histo.Draw()
+
+    # Draw bg fits
+    fr.Draw("SAME")
+    fg.Draw("SAME")
+    fb.Draw("SAME")
+
+    # Add bg fits to legend
+    l.AddEntry(fr, fr.GetName(), "l")
+    l.AddEntry(fg, fg.GetName(), "l")
+    l.AddEntry(fb, fb.GetName(), "l")
+
+    bwzredux125.append(fr.Eval(125))
+    bwzgamma125.append(fg.Eval(125))
+    bernstein125.append(fb.Eval(125))
+
+    max_diff_bwzr.append(max(abs(fr.Eval(125) - fg.Eval(125)), abs(fr.Eval(125) - fb.Eval(125))))
+    max_diff_bwzg.append(max(abs(fg.Eval(125) - fr.Eval(125)), abs(fg.Eval(125) - fb.Eval(125))))
+    max_diff_bern.append(max(abs(fb.Eval(125) - fg.Eval(125)), abs(fb.Eval(125) - fr.Eval(125))))
+
+    # Put fit values @ 125 GeV on canvas
+    tr = TLatex(.4,.60,"%s(125 GeV) = %7.3f" % (fr.GetName(), fr.Eval(125))) 
+    tg = TLatex(.4,.55,"%s(125 GeV) = %7.3f" % (fg.GetName(), fg.Eval(125)))
+    tb = TLatex(.4,.50,"%s(125 GeV) = %7.3f" % (fb.GetName(), fb.Eval(125)))  
+    tr.SetNDC(kTRUE);
+    tg.SetNDC(kTRUE);
+    tb.SetNDC(kTRUE);
+    tr.Draw();
+    tg.Draw();
+    tb.Draw();
+
+    l.Draw("SAME");
+    c.SaveAs("fits_%s.root" % category)
+
+print '\n=========== Fits at 125 GeV ==============\n'
+
+print '{:<15}'.format('category') + '{:<15}'.format('bwz_redux_125') + '{:<15}'.format('bwzg_125') + '{:<15}'.format('bernstein%d_125' % order) 
+for i in range(0,len(categories)):
+    print ('{:<15}'.format(categories[i]) + '{:<15.2f}'.format(bwzredux125[i]) + '{:<15.2f}'.format(bwzgamma125[i]) + 
+          '{:<15.2f}'.format(bernstein125[i]))
+
+print '\n=========== max(bias)/sqrt(b) at 125 GeV ==============\n'
+
+print '{:<15}'.format('category') + '{:<15}'.format('bwz_redux_125') + '{:<15}'.format('bwzg_125') + '{:<15}'.format('bernstein%d_125' % order) 
+for i in range(0,len(categories)):
+    b = np.mean([bwzredux125[i], bwzgamma125[i], bernstein125[i]])
+    unc = math.sqrt(b)
+    print ('{:<15}'.format(categories[i]) + '{:<15.2f}'.format(max_diff_bwzr[i]/unc) + '{:<15.2f}'.format(max_diff_bwzg[i]/unc) + 
+          '{:<15.2f}'.format(max_diff_bern[i]/unc))
+

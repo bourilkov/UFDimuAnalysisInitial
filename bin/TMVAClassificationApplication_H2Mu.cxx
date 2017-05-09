@@ -59,11 +59,13 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
    std::map<TString, Sample*> sampleMap;
    GetSamples(sampleMap, "UF", "ZJets_MG_incl");
    GetSamples(sampleMap, "UF", "H2Mu_gg");
+   GetSamples(sampleMap, "UF", "H2Mu_VBF");
    for(auto& i: sampleMap)
        printf("/// %s in Sample Map\n", i.second->name.Data());
 
-   //Sample* s = sampleMap["ZJets_MG"];
-   Sample* s = sampleMap["H2Mu_gg"];
+   Sample* s = sampleMap["ZJets_MG"];
+   //Sample* s = sampleMap["H2Mu_gg"];
+   //Sample* s = sampleMap["H2Mu_VBF"];
    printf("/// Using %s for training\n", s->name.Data());
 
    TMVA::Tools::Instance();
@@ -72,9 +74,10 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
    std::cout << "==> Start TMVAClassificationApplication_H2Mu" << std::endl << std::endl;
 
    TString dir    = "classification/";
-   //TString weightfile = dir+"f_Opt1_BDTG_default.weights.xml";
-   TString weightfile = dir+"f_Opt2_all_sig_all_bkg_ge0j_eq0b_BDTG_default.weights.xml";
-   TString methodName = "BDTG_default";
+   TString methodName = "BDTG_UF_v1";
+
+   TString weightfile       = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+   TString weightfile_multi = dir+"f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
 
    /////////////////////////////////////////////////////
    // Book training and spectator vars into reader
@@ -83,8 +86,12 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
    std::map<TString, Float_t> smap;
    TMVA::Reader* reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
    
+   std::map<TString, Float_t> tmap_multi;
+   std::map<TString, Float_t> smap_multi;
+   TMVA::Reader* reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
+   
    std::vector<TString> classes; 
-   TMVATools::getClassNames(weightfile, classes);
+   TMVATools::getClassNames(weightfile_multi, classes);
    
    /////////////////////////////////////////////////////
    // Loop over the events in the sample
@@ -112,6 +119,7 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       // only load essential information for the first set of cuts 
       s->branches.muPairs->GetEntry(i);
       s->branches.muons->GetEntry(i);
+      s->branches.eventInfo->GetEntry(i);
 
       // loop and find a good dimuon candidate
       if(s->vars.muPairs->size() != 1) continue;
@@ -168,12 +176,13 @@ void TMVAClassificationApplication_H2Mu( TString myMethodList = "" )
       //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
 
       std::cout << std::endl;
-      //Float_t val = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
-      //printf("\n  !!! %d) BDT_Prediction: %f\n\n", i, val);
-      std::vector<float> vals = TMVATools::getMulticlassScores(reader, methodName, tmap, s->vars);
+      Float_t valb = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars);
+      printf("!!! %d) BDT_Prediction: %f\n", s->vars.eventInfo->event, valb);
+
+      std::vector<float> vals = TMVATools::getMulticlassScores(reader_multi, methodName, tmap_multi, s->vars);
       for(unsigned int j=0; j<vals.size(); j++)
       {
-          printf("!!! %d) %s: %f\n", i, classes[j].Data(), vals[j]);
+          printf("!!! %d) %s: %f\n", s->vars.eventInfo->event, classes[j].Data(), vals[j]);
       }
       std::cout << std::endl;
     

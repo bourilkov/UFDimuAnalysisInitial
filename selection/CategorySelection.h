@@ -31,21 +31,24 @@ class Category
        Category(){};
        ~Category(){};
 
-       Category(TString name)
+       Category(TString key)
        {
-           this->name = name;
+           this->key = key;
+           this->name = key;
            this->hide = false;
        }
     
-       Category(TString name, bool hide)
+       Category(TString key, bool hide)
        {
-           this->name = name;
+           this->key = key;
+           this->name = key;
            this->hide = hide;
        }
     
-       Category(TString name, bool hide, bool isTerminal)
+       Category(TString key, bool hide, bool isTerminal)
        {
-           this->name = name;
+           this->key = key;
+           this->name = key;
            this->hide = hide;
            this->isTerminal = isTerminal;
        }
@@ -71,7 +74,8 @@ class Category
        TList* dataList = new TList();       // data histo
 
        // Book-keeping
-       TString name;
+       TString key;
+       TString name = "";
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -103,7 +107,10 @@ class Categorizer
         void outputResults()
         {
             for(auto &entry : categoryMap)
-                if(!entry.second.hide) std::cout << "    " << entry.first << ": " << entry.second.inCategory << std::endl;
+                if(!entry.second.hide && entry.second.name != entry.second.key) 
+                    std::cout << "    (" << entry.second.name << ") " << entry.first << ": " << entry.second.inCategory << std::endl;
+                else if(!entry.second.hide)
+                    std::cout << "    " << entry.first << ": " << entry.second.inCategory << std::endl;
 
             std::cout << std::endl;
         };
@@ -120,12 +127,13 @@ class CategoryNode
     public: 
         CategoryNode(){};
         CategoryNode(CategoryNode* cmother, CategoryNode* cleft, CategoryNode* cright, 
-                     TString cname, double csplitVar, TString csplitVarName, double csplitVal, double csignificanceSquared)
+                     TString ckey, double csplitVar, TString csplitVarName, double csplitVal, double csignificanceSquared)
         {
             mother = cmother;
             left = cleft;
             right = cright;
-            name = cname;
+            key = ckey;
+            name = key;
             splitVar = csplitVar;
             splitVarName = csplitVarName;
             splitVal = csplitVal;
@@ -146,6 +154,7 @@ class CategoryNode
         CategoryNode* left = 0;
         CategoryNode* right = 0;
 
+        TString key;
         TString name;
         int splitVar;
         TString splitVarName;
@@ -170,6 +179,22 @@ class XMLCategorizer : public Categorizer
         void loadFromXMLRecursive(TXMLEngine* xml, XMLNodePointer_t xnode, CategoryNode* cnode);
         CategoryNode* filterEvent(VarSet& vars);
         CategoryNode* filterEventRecursive(VarSet& vars);
+};
+
+//////////////////////////////////////////////////////////////////////////
+//// ______________________BDTHybrid____________________________________//
+//////////////////////////////////////////////////////////////////////////
+
+class CategorySelectionBDT : public XMLCategorizer
+{
+// The run1 H->MuMu category selection
+    public:
+        CategorySelectionBDT(); 
+        CategorySelectionBDT(TString xmlfile); 
+
+        // Determine which category the event belongs to
+        void evaluate(VarSet& vars);
+        void initCategoryMap();
 };
 
 //////////////////////////////////////////////////////////////////////////

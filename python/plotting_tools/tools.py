@@ -22,13 +22,20 @@ import sys
 
 colors = [58, 2, 8, 36, 91, 46, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91]
 
-def overlay(plot_list, title="overlay", savename="", name="", xtitle="", ytitle="", yrange=(-999,-999)):
-    """ Overlay histograms or tgraphs onto the same canvas. plot_list = [('plotfile1.root', 'plotname1'), ('plotfile2.root', 'plotname2'), ... ]"""
+def overlay(plot_list, title="overlay", savename="", name="", xtitle="", ytitle="", yrange=(-999,-999), ldim=[0.71,0.82,1.0,1.0]):
+    """ Overlay histograms or tgraphs onto the same canvas. plot_list = [hist/graph, hist/graph, hist/graph, ...]"""
+
     if savename == "": savename = title
+    legend = TLegend(ldim[0], ldim[1], ldim[2], ldim[3], "", "brNDC")
     c = TCanvas()
     for i,plot in enumerate(plot_list):
-        plot.SetLineColor(i)
+        plot.SetFillStyle(3001)
+        plot.SetFillColor(colors[i])
+        plot.SetLineColor(colors[i])
+        plot.SetLineWidth(2)
+        plot.SetMarkerSize(2)
         if(i==0):
+            plot.SetStats(0)
             plot.Draw()
             if yrange != (-999,-999): plot.GetYaxis().SetRangeUser(yrange[0], yrange[1])
             if xtitle!="": plot.GetXaxis().SetTitle(xtitle)
@@ -36,11 +43,15 @@ def overlay(plot_list, title="overlay", savename="", name="", xtitle="", ytitle=
             c.SetGridx()
             c.SetGridy()
             c.SetTitle(title)
-            plot.SetTitle(title)
             c.SetName(title)
             if name!="": c.SetName(name)
         else:
             plot.Draw("SAME")
+
+        legend.AddEntry(plot, plot.GetTitle(), "l")
+        legend.Draw("SAME")
+        plot_list[0].SetTitle(title)
+
         c.SaveAs('imgs/%s.png' % savename)
         c.SaveAs('rootfiles/%s.root' % savename)
 
@@ -107,7 +118,7 @@ def get(item_list):
         tfile = TFile(filename)
         gROOT.cd() # AHHHHH
         item = tfile.Get(itemname).Clone()
-        print item.GetName()
+        #print item.GetName()
         rlist.append(item)
     return rlist
 
@@ -129,7 +140,10 @@ def ratio(histo_list):
 #-----------------------------------------------------------------
 ##################################################################
 
-def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0]):
+def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0], yrange_ratio=(-999,-999)):
+
+    if name=="stack" and title!=stack:
+        name=title
 
     if(rlist==0):
         rlist = histo_list
@@ -187,8 +201,17 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     pad2.Draw()
     pad2.cd()
     hratio = ratio(rlist)
-    hratio.SetMinimum(0.58)
-    hratio.SetMaximum(1.42)
+
+    if yrange_ratio[0] == -999: 
+        hratio.SetMinimum(0.58)
+    else: 
+        hratio.SetMinimum(yrange_ratio[0])
+
+    if yrange_ratio[1] == -999: 
+        hratio.SetMaximum(1.42)
+    else: 
+        hratio.SetMaximum(yrange_ratio[1])
+
     hratio.SetMarkerStyle(20)
     hratio.Draw("ep")
 
@@ -209,7 +232,7 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     hratio.GetXaxis().SetLabelSize(15);
 
 
-    c.SaveAs("stack.png")
+    c.SaveAs(name+".png")
 
 ##################################################################
 #-----------------------------------------------------------------

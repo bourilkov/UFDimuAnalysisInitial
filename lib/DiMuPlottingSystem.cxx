@@ -617,8 +617,8 @@ TCanvas* DiMuPlottingSystem::stackedHistogramsAndRatio(TList* ilist, TString nam
     //hadd->Scale(scale);
 
     hratio->SetLineColor(kBlack);
-    hratio->SetMinimum(0.58);  // Define Y ..
-    hratio->SetMaximum(1.42); // .. range
+    hratio->SetMinimum(0.18);  // Define Y ..
+    hratio->SetMaximum(1.82); // .. range
     hratio->Sumw2();
     hratio->SetStats(1);
 
