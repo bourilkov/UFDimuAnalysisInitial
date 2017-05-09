@@ -45,8 +45,8 @@
 #include "TMVA_helper.h"
 
 // Prescales for data and MC: select 1/Xth of the events in each sample
-const UInt_t SIG_PRESC  = 2;
-const UInt_t BKG_PRESC  = 2;
+const UInt_t SIG_PRESC  = 1;
+const UInt_t BKG_PRESC  = 1;
 const UInt_t DAT_PRESC  = 1;
 const UInt_t REPORT_EVT = 10000;
 const UInt_t MAX_EVT    = 1000000000; // Maximum number of events per sample
@@ -91,22 +91,12 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // Boosted Decision Trees
    Use["BDT"]                     = 0;
 
-   Use["BDTG_default"]            = 1;
+   Use["BDTG_default"]            = 0;
+
+   Use["BDTG_UF_v1"]              = 1;
 
    Use["BDTG_AWB"]                = 0;
    Use["BDTG_AWB_lite"]           = 0;
-
-   Use["BDTG_AWB_50_trees"]       = 0;
-   Use["BDTG_AWB_100_trees"]      = 0;
-   Use["BDTG_AWB_200_trees"]      = 0;
-   Use["BDTG_AWB_400_trees"]      = 0;
-   Use["BDTG_AWB_800_trees"]      = 0;
-
-   Use["BDTG_AWB_3_deep"]         = 0;
-   Use["BDTG_AWB_4_deep"]         = 0;
-   Use["BDTG_AWB_5_deep"]         = 0;
-   Use["BDTG_AWB_6_deep"]         = 0;
-
    Use["BDTG_Carnes"]             = 0;
 
    // ---------------------------------------------------------------
@@ -138,10 +128,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // Here the preparation phase begins
 
    // Create a new root output file
-   TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/TMVA";
+   TString out_dir = "/afs/cern.ch/work/a/abrinke1/public/H2Mu/TMVA/root";
    // out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_04_01_half_ge0j_eq0b_met80.root", out_dir.Data() );
+   out_file_name.Form( "%s/TMVAClassification_H2Mu_17_04_01_half_ge0j.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
@@ -255,6 +245,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    //////////////////////////////////////////////////////////////////
    
    TString         fact_set = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
+   fact_set                 = "!V:!Silent:Color:DrawProgressBar:Transformations=I;G:AnalysisType=Classification";
    if (MULTICLASS) fact_set = "!V:!Silent:Color:DrawProgressBar:Transformations=I;G:AnalysisType=multiclass";
 
    std::vector<TString> var_names; // Holds names of variables for a given factory and permutation
@@ -277,59 +268,30 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    // factories.push_back( std::make_tuple( nullF, nullL, "f_evtVars", var_names, var_vals, 
    // 					 0x0000, 0x0000, 0xfffe, "all", "all", "ge0j") );
 
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_simple_multi", var_names, var_vals, 
+   // 					 0x0010, 0x0000, 0x001f, "all", "all", "ge0j") );
    // factories.push_back( std::make_tuple( nullF, nullL, "f_BASE", var_names, var_vals, 
    // 					 0x001c, 0x0ff0, 0x0011, "all", "all", "ge0j") );
    // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
    // 					 0x0e5c, 0x0fff, 0x001e, "all", "all", "ge0j") );
 
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0000, 0x0010, "ggH", "all", "eq0j") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0005, 0x001e, "ggH", "all", "eq1j") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "ggH", "all", "ge2j") );
+   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1", var_names, var_vals, 
+   					 0x0650, 0x033c, 0x001e, "all", "all", "ge0j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1", var_names, var_vals, 
+   // 					 0x0650, 0x0004, 0x001e, "all", "all", "le1j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1", var_names, var_vals, 
+   // 					 0x0650, 0x0114, 0x001c, "all", "all", "eq2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1", var_names, var_vals, 
+   // 					 0x0650, 0x033c, 0x001e, "all", "all", "ge3j") );
 
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x011f, 0x001a, "VBF", "all", "eq2j") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "VBF", "all", "ge3j") );
-
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x011f, 0x001a, "VH", "all", "eq2j") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "VH", "all", "ge3j") );
-
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "ggH", "ZJets", "ge0j") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "ggH", "ttbar", "ge0j") );
-
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "VBF", "ZJets", "ge2j") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt1", var_names, var_vals, 
-   // 					 0x0e5c, 0x0fff, 0x001e, "VBF", "ttbar", "ge2j") );
-
-   // factories.push_back( std::make_tuple( nullF, nullL, "SimpleTest", var_names, var_vals, 
-   // 					 0x0003, 0x0003, 0x0003, "all", "all", "ge0j") );
-
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt2", var_names, var_vals, 
-   // 					 0x065c, 0x077f, 0x001e, "all", "all", "ge0j") );
-
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3", var_names, var_vals, 
-   // 					 0x065c, 0x0fff, 0x001e, "all", "all", "ge0j") );
-   factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3_half", var_names, var_vals, 
-   					 0x065c, 0x0fff, 0x001e, "all", "all", "ge0j_eq0b_met80") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3", var_names, var_vals, 
-   // 					 0x065c, 0x0000, 0x0000, "ggH", "ZJets", "eq0j_eq0b_met80") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3", var_names, var_vals, 
-   // 					 0x065c, 0x0005, 0x001c, "all", "all", "eq1j_eq0b_met80") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3_oneClass", var_names, var_vals, 
-   // 					 0x065c, 0x011f, 0x001c, "all", "all", "eq2j_eq0b_met80") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3", var_names, var_vals, 
-   // 					 0x065c, 0x077f, 0x001c, "all", "all", "eq3j_eq0b_met80") );
-   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt3", var_names, var_vals, 
-   // 					 0x065c, 0x0fff, 0x001e, "all", "all", "ge4j_eq0b_met80") );
-
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1_multi", var_names, var_vals, 
+   // 					 0x0650, 0x033c, 0x001e, "all", "all", "ge0j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1_multi", var_names, var_vals, 
+   // 					 0x0650, 0x0004, 0x001e, "all", "all", "le1j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1_multi", var_names, var_vals, 
+   // 					 0x0650, 0x011c, 0x001c, "all", "all", "eq2j") );
+   // factories.push_back( std::make_tuple( nullF, nullL, "f_Opt_v1_multi", var_names, var_vals, 
+   // 					 0x0650, 0x033c, 0x001e, "all", "all", "ge3j") );
 
 
 
@@ -394,8 +356,8 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    evt_vars.push_back( TMVA_var( "nJets",       "# of jets",            "", 'I', -88 ) ); // 0x0001
    evt_vars.push_back( TMVA_var( "nJetsCent",   "# of central jets",    "", 'I', -88 ) ); // 0x0002
    evt_vars.push_back( TMVA_var( "nJetsFwd",    "# of forward jets",    "", 'I', -88 ) ); // 0x0004
-   // evt_vars.push_back( TMVA_var( "nBMed",       "# of medium b-tags",   "", 'I', -88 ) ); // 0x0008
-   evt_vars.push_back( TMVA_var( "nBLoose",     "# of loose b-tags",    "", 'I', -88 ) ); // 0x0008
+   evt_vars.push_back( TMVA_var( "nBMed",       "# of medium b-tags",   "", 'I', -88 ) ); // 0x0008
+   // evt_vars.push_back( TMVA_var( "nBLoose",     "# of loose b-tags",    "", 'I', -88 ) ); // 0x0008
 
    evt_vars.push_back( TMVA_var( "MET",         "MET",               "GeV", 'F', -88 ) ); // 0x0010
    evt_vars.push_back( TMVA_var( "MHT",         "MHT",               "GeV", 'F', -88 ) ); // 0x0020
@@ -567,6 +529,10 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
        if (samp->name == "RunF_2" && samp->vars.eventInfo->run < 278802)
 	 continue;
 
+       // Discard half of signal events for use in limit-setting
+       if (samp_ID < 0 && (this_evt % 2) == 0) 
+	 continue;
+
        // Muon pairs
        samp->branches.muPairs->GetEntry(iEvt);
 
@@ -690,6 +656,8 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	 samp_wgt = 2.0 * samp->getWeight() * samp->getLumiScaleFactor(LUMI);
        if (samp_ID != 0) // Reweight for prescale
 	 samp_wgt *= (1.0 * presc / DAT_PRESC);
+       if (samp_ID < 0)
+	 samp_wgt *= 2.0; // Reserve even-numbered signal events for limit-setting
 
        Double_t LHE_HT = samp->vars.lhe_ht;
 
@@ -742,10 +710,13 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
 	 if (jet_cut.Contains("eq1j") && nJets != 1) continue;
 	 if (jet_cut.Contains("eq2j") && nJets != 2) continue;
 	 if (jet_cut.Contains("eq3j") && nJets != 3) continue;
-	 if (jet_cut.Contains("ge1j") && nJets <  1) continue;
-	 if (jet_cut.Contains("ge2j") && nJets <  2) continue;
-	 if (jet_cut.Contains("ge3j") && nJets <  3) continue;
-	 if (jet_cut.Contains("ge4j") && nJets <  4) continue;
+
+	 if (jet_cut.Contains("ge1j") && nJets < 1) continue;
+	 if (jet_cut.Contains("ge2j") && nJets < 2) continue;
+	 if (jet_cut.Contains("ge3j") && nJets < 3) continue;
+	 if (jet_cut.Contains("ge4j") && nJets < 4) continue;
+
+	 if (jet_cut.Contains("le1j") && nJets > 1) continue;
 
 	 if (jet_cut.Contains("eq0b") && nBMed != 0) continue;
 	 if (jet_cut.Contains("eq1b") && nBMed != 1) continue;
@@ -1040,55 +1011,28 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    			  "nCuts=20:PruneMethod=CostComplexity:PruneStrength=30" );
      
      // Default TMVA settings
-     if (Use["BDTG_default"]) {
-       if (!MULTICLASS)
-	 factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_default", (std::string)
-			    "!H:!V:NTrees=2000::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
-			    "BaggedSampleFraction=0.5:nCuts=20:MaxDepth=3" );
-       else
-	 factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_default", (std::string)
-			    "!H:!V:NTrees=1000::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
-			    "BaggedSampleFraction=0.5:nCuts=20:MaxDepth=3" );
-     }
+     if (Use["BDTG_default"])
+       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_default", (std::string)
+			  "!H:!V:NTrees=2000::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
+			  "BaggedSampleFraction=0.5:nCuts=20:MaxDepth=3" );
 
-     // AWB settings - AbsoluteDeviation
-     if (Use["BDTG_AWB"]) // Optimized settings
+
+
+     if (Use["BDTG_UF_v1"]) // Optimized settings - AWB 04.04.17
+       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_UF_v1", (std::string)
+			  "!H:!V:NTrees=500::BoostType=Grad:Shrinkage=0.1:UseBaggedBoost:"+
+			  "BaggedSampleFraction=0.5:nCuts=20:MaxDepth=5" );
+
+
+
+     if (Use["BDTG_AWB"]) // Optimized settings from EMTF pT assignment
        factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB", (std::string)
-   			  "!H:!V:NTrees=400::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=5:MinNodeSize=0.000001" );
-
+                          "!H:!V:NTrees=400::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=5:MinNodeSize=0.000001" );
+     
      if (Use["BDTG_AWB_lite"]) // Fast, simple BDT
        factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_lite", (std::string)
    			  "!H:!V:NTrees=40::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.000001" );
 
-     if (Use["BDTG_AWB_50_trees"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_50_trees", (std::string)
-   			  "!H:!V:NTrees=50::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_100_trees"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_100_trees", (std::string)
-   			  "!H:!V:NTrees=100::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_200_trees"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_200_trees", (std::string)
-   			  "!H:!V:NTrees=200::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_400_trees"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_400_trees", (std::string)
-   			  "!H:!V:NTrees=400::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_800_trees"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_800_trees", (std::string)
-   			  "!H:!V:NTrees=800::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=3:MinNodeSize=0.001" );
-     
-     if (Use["BDTG_AWB_3_deep"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_3_deep", (std::string)
-   			  "!H:!V:NTrees=100::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=4:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_4_deep"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_4_deep", (std::string)
-   			  "!H:!V:NTrees=100::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=4:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_5_deep"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_5_deep", (std::string)
-   			  "!H:!V:NTrees=100::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=5:MinNodeSize=0.001" );
-     if (Use["BDTG_AWB_6_deep"])
-       factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_AWB_6_deep", (std::string)
-   			  "!H:!V:NTrees=100::BoostType=Grad:Shrinkage=0.1:nCuts=1000:MaxDepth=6:MinNodeSize=0.001" );
-     
      // Factory settings from Andrew Carnes ... what do they do? - AWB 04.01.17
      if (Use["BDTG_Carnes"])
        factX->BookMethod( loadX, TMVA::Types::kBDT, "BDTG_Carnes", (std::string)
