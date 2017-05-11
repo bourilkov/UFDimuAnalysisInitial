@@ -48,6 +48,7 @@ class DiMuPlottingSystem
         // Functions-------------------------------------------
         // ====================================================
 
+        static TList* groupMC(TList* list, TString categoryName, TString suffix="");
         static THStack* stackComparison(TList* list, TString title, TString xaxistitle, TString yaxistitle, bool log = true, bool stats = false, int legend = 0);
         static TCanvas* overlay(TList* list, float ymin, float ymax, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log = true);
 
@@ -57,9 +58,6 @@ class DiMuPlottingSystem
         static TCanvas* stackedHistogramsAndRatio(TList* list, TString name, TString title, TString xaxistitle, TString yaxistitle, bool rebin = false, bool fit = true, 
                                            TString ratiotitle = "Data/MC", bool log = true, bool stats = false, int legend = 0);
         static TH1D* addHists(TList* list, TString name, TString title);
-
-        static void arrangeStatBox(TCanvas* c, int i);
-        static void arrangeLegend(TCanvas* c, int i);
 };
 
 #endif

@@ -57,43 +57,71 @@ DiMuPlottingSystem::~DiMuPlottingSystem() {
 // _______________________Other Functions________________________________//
 ///////////////////////////////////////////////////////////////////////////
 
-void DiMuPlottingSystem::arrangeStatBox(TCanvas* c, int i)
+TList* DiMuPlottingSystem::groupMC(TList* list, TString categoryName, TString suffix) 
 {
-  // Align the stat box better.
-  // Input i determines how big the stat box should be and where it should go
+// Group backgrounds into categories so there aren't a million of them in the legend
+// drell_yan, ttbar + single top, diboson + rest, group VH together also
 
-  c->Update(); // Need this line to get the stats box
-  TPaveStats *st = (TPaveStats*)c->GetPrimitive("stats");
-  st->SetX1NDC(0.68);
-  st->SetY1NDC(0.64);
-  st->SetX2NDC(0.88);
-  st->SetY2NDC(0.88);
-  st->Draw("same");
+    categoryName+="_";
+
+    TList* grouped_list = new TList();
+    TList* drell_yan_list = new TList();
+    TList* ttbar_list = new TList();
+    TList* diboson_list = new TList();
+    TList* vh_list = new TList();
+
+    TObject* obj = 0;
+    TIter iter(list);
+
+    // strip data and get a sorted vector of mc samples
+    while(obj = iter())
+    {
+        TH1D* hist = (TH1D*)obj;
+        TString name = hist->GetName();
+        // the sampleName is after the last underscore: categoryName_SampleName
+        TString sampleName = name.ReplaceAll(categoryName, "");
+
+        // filter out the data, since we add that to the end of this list later
+        // filter out the signal M=120 and M=130 signal samples since we don't use those in the stack comparison
+        if(sampleName.Contains("Run") || sampleName.Contains("Data") || sampleName.Contains("_120") || sampleName.Contains("_130")) continue;
+        else // group the monte carlo 
+        {
+            if(sampleName.Contains("H2Mu"))
+            {
+                if(sampleName.Contains("gg"))
+                {
+                    hist->SetTitle("GGF");
+                    grouped_list->Add(hist); // go ahead and add the signal to the final list
+                }
+                if(sampleName.Contains("VBF")) 
+                {
+                    hist->SetTitle("VBF");
+                    grouped_list->Add(hist); // go ahead and add the signal to the final list
+                }
+                if(sampleName.Contains("WH") || sampleName.Contains("ZH")) vh_list->Add(hist);
+            }
+            else if(sampleName.Contains("ZJets")) drell_yan_list->Add(hist);
+            else if(sampleName.Contains("tt") || sampleName.Contains("tW") || sampleName.Contains("tZ")) ttbar_list->Add(hist);
+            else diboson_list->Add(hist);
+        }
+    }
+    // Don't forget to group VH together and retitle other signal samples
+    TH1D* vh_histo = DiMuPlottingSystem::addHists(vh_list, categoryName+"VH"+suffix, "VH");
+    TH1D* drell_yan_histo = DiMuPlottingSystem::addHists(drell_yan_list, categoryName+"Drell_Yan"+suffix, "Drell Yan");
+    TH1D* ttbar_histo = DiMuPlottingSystem::addHists(ttbar_list, categoryName+"TTbar_Plus_SingleTop"+suffix, "TTbar + SingleTop");
+    TH1D* diboson_histo = DiMuPlottingSystem::addHists(diboson_list, categoryName+"Diboson_plus"+suffix, "Diboson +");
+
+    grouped_list->AddFirst(vh_histo);
+    grouped_list->Add(diboson_histo);
+    grouped_list->Add(ttbar_histo);
+    grouped_list->Add(drell_yan_histo);
+
+    return grouped_list;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
-
-void DiMuPlottingSystem::arrangeLegend(TCanvas* c, int i)
-{
-  // Align the legend better.
-  // Input i determines how big the legend should be and where it should go
-
-  // Might need to get TLegend from the pad instead of the canvas
-
-  c->Update(); // Need this line to get the stats box
-  TPaveStats *st = (TPaveStats*)c->GetPrimitive("stats");
-  st->SetX1NDC(0.68);
-  st->SetY1NDC(0.64);
-  st->SetX2NDC(0.88);
-  st->SetY2NDC(0.88);
-  st->Draw("same");
-}
-
-//////////////////////////////////////////////////////////////////////////
-// ----------------------------------------------------------------------
-//////////////////////////////////////////////////////////////////////////
 
 TCanvas* DiMuPlottingSystem::overlay(TList* ilist, float ymin, float ymax, TString name, TString title, TString xaxistitle, TString yaxistitle, bool log)
 {
