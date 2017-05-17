@@ -385,8 +385,8 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 
 
       // sig vs bkg and multiclass (ggf, vbf, ... drell yan, ttbar) weight files
-      //TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
-      TString weightfile = dir+"binaryclass_amc.weights.xml";
+      TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+      //TString weightfile = dir+"binaryclass_amc.weights.xml";
       TString weightfile_multi = dir+"f_Opt_v1_multi_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
 
       /////////////////////////////////////////////////////
@@ -609,6 +609,8 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
           // XML categories require the classifier score from TMVA
           if(settings.whichCategories == 3)
           {
+              s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
+
               //std::cout << i << " !!! SETTING JETS " << std::endl;
               //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
               s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
@@ -620,8 +622,6 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
               //s->vars.bdt_vh_out  = bdt_multi_scores[2];
               //s->vars.bdt_ewk_out = bdt_multi_scores[3];
               //s->vars.bdt_top_out = bdt_multi_scores[4];
-
-              s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
           }
 
           // Figure out which category the event belongs to
@@ -845,8 +845,28 @@ int main(int argc, char* argv[])
             // some categories are intermediate and we don't want to save the plots for those
             if(c.second.hide) continue;
 
+            TObject* obj = 0;
+            TList* signalList120 = new TList();
+            TList* signalList125 = new TList();
+            TList* signalList130 = new TList();
+
+            TIter iter(c.second.signalList);
+
+            // filter signal samples into appropriate lists for masses
+            while(obj = iter())
+            {
+                TH1D* hist = (TH1D*)obj;
+                TString name = hist->GetName();
+                if(name.Contains("_120")) signalList120->Add(hist);
+                else if(name.Contains("_130")) signalList130->Add(hist);
+                else signalList125->Add(hist);
+            }
+
             // we need the data histo, the net signal, and the net bkg dimu mass histos for the datacards
-            TH1D* hNetSignal = DiMuPlottingSystem::addHists(c.second.signalList, c.second.name+"_Net_Signal"+suffix, "Net Signal");
+            TH1D* hNetSignal120 = DiMuPlottingSystem::addHists(signalList120, c.second.name+"_Net_Signal_120"+suffix, "Net Signal M120");
+            TH1D* hNetSignal125 = DiMuPlottingSystem::addHists(signalList125, c.second.name+"_Net_Signal"+suffix, "Net Signal");
+            TH1D* hNetSignal130 = DiMuPlottingSystem::addHists(signalList130, c.second.name+"_Net_Signal_130"+suffix, "Net Signal M130");
+
             TH1D* hNetBkg    = DiMuPlottingSystem::addHists(c.second.bkgList,    c.second.name+"_Net_Bkg"+suffix,    "Net Background");
             if(c.second.dataList->GetSize()!=0) 
             {
@@ -872,10 +892,12 @@ int main(int argc, char* argv[])
             // we scaled by lumi*xsec/n_weighted for the stack comparisons
             // the limit setting needs the signal scaled only by 1/n_weighted
             // higgs combine will scale by lumi*xsec in the limit setting process
+            std::cout << Form("\n");
             for(unsigned int i=0; i<c.second.signalList->GetSize(); i++)
             {
                 TH1D* hist = (TH1D*)c.second.signalList->At(i); 
                 TString name = hist->GetName();
+                std::cout << Form("%s: %f \n", name.Data(), hist->Integral());
 
                 // extract sampleName from histname = categoryName_SampleName_systematic
                 TString sampleName = name.ReplaceAll(c.second.name+"_", "");
@@ -886,12 +908,17 @@ int main(int argc, char* argv[])
                 if(!settings.sig_xlumi) 
                     hist->Scale(1/(settings.luminosity*samples[sampleName]->xsec));
             }
+            std::cout << Form("%s: %f \n", hNetSignal120->GetName(), hNetSignal120->Integral());
+            std::cout << Form("%s: %f \n", hNetSignal125->GetName(), hNetSignal125->Integral());
+            std::cout << Form("%s: %f \n\n", hNetSignal130->GetName(), hNetSignal130->Integral());
 
             signallist->Add(c.second.signalList);
             bglist->Add(c.second.bkgList);
             datalist->Add(c.second.dataList);
 
-            netlist->Add(hNetSignal);
+            netlist->Add(hNetSignal125);
+            netlist->Add(hNetSignal120);
+            netlist->Add(hNetSignal130);
             netlist->Add(hNetBkg);
             netlist->Add(groupedlist);
            

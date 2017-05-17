@@ -88,6 +88,28 @@ def bwZredux(x):
     return expmodel, [a1, a2, a3, f]
 
 #----------------------------------------
+# perturbed exponential times bwz
+# with an off power for the breit weigner
+#----------------------------------------
+def bwZreduxFixed(x):
+    a1 = RooRealVar("bwz_redux_fixed_a1", "a1", 2.0, 0.7, 2.1)
+    a2 = RooRealVar("bwz_redux_fixed_a2", "a2", 0.36, 0.0, 50.0)
+    a3 = RooRealVar("bwz_redux_fixed_a3", "a3", -0.36, -50.0, 0)
+    bwmZ = RooRealVar("bwz_redux_fixed_mZ","mZ",91.2,89,93)
+    w = RooRealVar("bwz_redux_fixed_w","w",2.5,0,10)
+
+    a1.setConstant()
+    #a2.setConstant()
+    #a3.setConstant()
+    bwmZ.setConstant()
+    w.setConstant()
+    
+    f = RooFormulaVar("bwz_redux_fixed_f", "(@1*(@0/100)+@2*(@0/100)^2)", RooArgList(x, a2, a3))
+    #expmodel = RooGenericPdf("bwz_redux_model", "exp(@2)*(2.5)/(pow(@0-91.2,@1)+0.25*pow(2.5,@1))", RooArgList(x, a1, f))
+    expmodel = RooGenericPdf("bwz_redux_fixed_model", "bwz_redux_fixed_model", "exp(@2)*(2.5)/(pow(@0-@3,@1)+pow(@4/2,@1))", RooArgList(x, a1, f, bwmZ, w))
+    return expmodel, [a1, a2, a3, f, bwmZ, w]
+
+#----------------------------------------
 # hgg falling exponential
 #----------------------------------------
 def higgsGammaGamma(x):
@@ -138,6 +160,87 @@ def bernstein(x, order=5):
 
     bernstein = RooBernstein("bernstein"+str(order),"bernstein"+str(order), x, args) 
     return bernstein, params
+
+#----------------------------------------
+# h2mupoly
+#----------------------------------------
+def h2mupoly(x, order=5): 
+    #c0 = RooRealVar("c0","c0", 1.0,-1.0,1.0)
+
+    args = RooArgList()
+    args.add(x)
+    params = []
+    poly_str = ""
+    for i in range(0,order):
+        c = RooRealVar("c"+str(i),"c"+str(i), 1.0/2**i,-1.0,1.0)
+        args.add(c)
+        params.append(c)
+        if i==0:
+            poly_str += '(@%d)^2' % (i+1)
+        else:
+            poly_str += '+ pow(@%d,2)*((160-@0)/50)^%d' % ((i+1), i)
+
+    print "h2mupoly = "+poly_str
+
+    h2mupoly = RooGenericPdf("h2mupoly%d"%order, "h2mupoly%d"%order, poly_str, args)
+    return h2mupoly, params
+
+#----------------------------------------
+# h2mupolyf
+#----------------------------------------
+def h2mupolyf(x, order=10): 
+    #c0 = RooRealVar("c0","c0", 1.0,-1.0,1.0)
+
+    args = RooArgList()
+    args.add(x)
+    params = []
+    poly_str = ""
+    for i in range(0,order):
+        c = RooRealVar("c"+str(i),"c"+str(i), 1.0/2,-1.0,1.0)
+        args.add(c)
+        params.append(c)
+        if i==0:
+            poly_str += '(@%d)^2' % (i+1)
+        else:
+            poly_str += '+ pow(@%d,2)*sqrt(pow((160-@0)/50,%d))' % ((i+1), i)
+
+    print "h2mupolyf = "+poly_str
+
+    h2mupolyf = RooGenericPdf("h2mupolyf%d"%order, "h2mupolyf%d"%order, poly_str, args)
+    return h2mupolyf, params
+
+#----------------------------------------
+# h2mupolypow
+#----------------------------------------
+def h2mupolypow(x, order=6): 
+    #c0 = RooRealVar("c0","c0", 1.0,-1.0,1.0)
+
+    args = RooArgList()
+    args.add(x)
+    params = []
+    poly_str = ""
+
+    ic = 1
+    ib = 2
+    for o in range(0,order):
+        c = RooRealVar("c"+str(o),"c"+str(o), 1.0/2,-1.0,1.0)
+        b = RooRealVar("b"+str(o),"b"+str(o), 1.0/2,-3.14,3.14)
+        args.add(c)
+        args.add(b)
+        params.append(c)
+        params.append(b)
+        if o==0:
+            poly_str += '(@%d)^2' % (ic)
+        else:
+            poly_str += '+ TMath::Power(@%d,2)*TMath::Power((160-@0)/50,%d+(cos(@%d))^2)' % (ic, o, ib)
+
+        ic+=2
+        ib+=2
+
+    print "h2mupolypow = "+poly_str
+
+    h2mupolypow = RooGenericPdf("h2mupolypow%d"%order, "h2mupolypow%d"%order, poly_str, args)
+    return h2mupolypow, params
 
 #--------------------------------------------------------
 # breit weigner scaled by falling exp, then add a line

@@ -22,6 +22,7 @@
 #include "EleCollectionCleaner.h"
 #include "SampleDatabase.cxx"
 
+#include "TMVATools.h"
 #include "EventTools.h"
 #include "PUTools.h"
 #include "ThreadPool.hxx"
@@ -165,6 +166,34 @@ Categorizer* getHistos(TString xmlfile, int nthreads, float reductionFactor, flo
       float massmin = 120;
       float massmax = 130;
 
+
+      /////////////////////////////////////////////////////
+      // Load TMVA classifiers
+    
+      TString dir    = "classification/";
+      //TString methodName = "BDTG_default";
+      TString methodName = "BDTG_UF_v1";
+
+
+      // sig vs bkg and multiclass (ggf, vbf, ... drell yan, ttbar) weight files
+      TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+      //TString weightfile = dir+"binaryclass_amc.weights.xml";
+
+      /////////////////////////////////////////////////////
+      // Book training and spectator vars into reader
+
+      TMVA::Reader* reader = 0;
+      std::map<TString, Float_t> tmap;
+      std::map<TString, Float_t> smap;
+
+      //TMVA::Reader* reader_multi = 0;
+      //std::map<TString, Float_t> tmap_multi;
+      //std::map<TString, Float_t> smap_multi;
+
+      // load tmva binary classification and multiclass classifiers
+      reader       = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+      //reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
+
       // Objects to help with the cuts and selections
       JetCollectionCleaner      jetCollectionCleaner;
       MuonCollectionCleaner     muonCollectionCleaner;
@@ -296,6 +325,7 @@ Categorizer* getHistos(TString xmlfile, int nthreads, float reductionFactor, flo
           //std::cout << i << " !!! SETTING JETS " << std::endl;
           //s->vars.setJets();    // jets sorted and paired by mjj, turn this off to simply take the leading two jets
           s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
+          s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
 
           categorySelection->evaluate(s->vars);
 
@@ -326,6 +356,8 @@ Categorizer* getHistos(TString xmlfile, int nthreads, float reductionFactor, flo
         } // end dimucand loop
       } // end event loop
 
+      delete reader;
+
       for(auto& c : categorySelection->categoryMap)
       {
           for(auto& h: c.second.histoMap)
@@ -339,6 +371,7 @@ Categorizer* getHistos(TString xmlfile, int nthreads, float reductionFactor, flo
       }
 
       std::cout << Form("  /// Done processing %s \n", s->name.Data());
+      delete s;
       return categorySelection;
     }; // end sample lambda function
 
@@ -390,7 +423,7 @@ int main(int argc, char* argv[])
 
     TString xmlfile = "";
     int nthreads = 10;
-    float reductionFactor = 10;
+    float reductionFactor = 1;
     float luminosity = 36814;      // pb-1
     //TString whichDY = "dyAMC";
     TString whichDY = "dyAMC-J";
@@ -476,7 +509,7 @@ int main(int argc, char* argv[])
     mlim["c11"] =  6.34;
     mlim["c12"] =  4.67;
     mlim["root"] = 1.85;
-    SignificanceMetric* s0 = new PoissonSignificance(0, 200);
+    SignificanceMetric* s0 = new PoissonSignificance(0, 10);
 
     double net_significance = 0;
     double net_s_sqrt_b = 0;
@@ -484,8 +517,8 @@ int main(int argc, char* argv[])
     // loop through categories to calculate significance, other info for the table of category info
     for(auto &c : cAll->categoryMap)
     {
-        double lim = mlim[c.first];
-        TString cname = c.first;
+        double lim = mlim[c.second.name];
+        TString cname = c.second.name;
         double sig0 = -999;
         double signal = -999;
         double signal_fwhm = -999;
