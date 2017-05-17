@@ -134,6 +134,30 @@ void initPlotSettings(Settings& settings)
             settings.min = 110;
             settings.max = 160;
         }
+        else if(settings.binning == -4) // unblind data in 120-130 GeV for limit setting, 90-310 window
+        {                      // 0.2 GeV bins
+            settings.bins = 220*5;
+            settings.min = 90;
+            settings.max = 310;
+        }
+        else if(settings.binning == 4)  // blind data in 120-130 GeV, 90-310 window
+        {                      // 0.2 GeV bins, study background fits
+            settings.bins = 220*5;
+            settings.min = 90;
+            settings.max = 310;
+        }
+        else if(settings.binning == -5) // unblind data in 120-130 GeV for limit setting, 90-310 window
+        {                      // 0.05 GeV bins
+            settings.bins = 220*20;
+            settings.min = 90;
+            settings.max = 310;
+        }
+        else if(settings.binning == 5)  // blind data in 120-130 GeV, 90-310 window
+        {                      // 0.05 GeV bins, study background fits
+            settings.bins = 220*20;
+            settings.min = 90;
+            settings.max = 310;
+        }
         else
         {
             settings.bins = 150;

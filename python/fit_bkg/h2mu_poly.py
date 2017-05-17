@@ -31,10 +31,13 @@ categories = ['c12', 'c11', 'c10', 'c9', 'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2
 
 filedir = '/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/'
 #filename = 'validate_blinded_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
-filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
+#filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
 #filename = 'validate_blinded_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC-J_minpt10_b1_sig-xlumi1.root'
+#filename = 'validate_UNBLINDED_dimu_mass_Roch_100_150_categories3_tree_categorization_final_36814_dyAMC-J_minpt10_b-4_sig-xlumi1.root'
+filename = 'validate_blinded_dimu_mass_Roch_100_150_categories3_tree_categorization_final_36814_dyAMC-J_minpt10_b4_sig-xlumi1.root'
 
 order = 4 # order for bernstein poly
+blinded = True
 
 for category in categories:
     wdm = BGSpectrumFitter(filedir+filename, category) 
@@ -58,4 +61,4 @@ for category in categories:
     bwzr_model, bwzr_params = pdfs.bwZreduxFixed(x)
     bwzg_model, bwzg_params = pdfs.bwZGamma(x)
     
-    f = wdm.fit(histo, bwzr_model, x, blinded=False, save=True)
+    f = wdm.fit(histo, bwzr_model, x, blinded=blinded, save=True)

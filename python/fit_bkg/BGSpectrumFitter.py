@@ -77,7 +77,7 @@ class BGSpectrumFitter:
   
         return x
     
-    def fit(self, histo, pdfMmumu, x, xmin=110, xmax=160, blinded=True, save=True):
+    def fit(self, histo, pdfMmumu, x, xmin=100, xmax=150, blinded=True, save=True):
     # make workspace with signal model and background model for analytic shape fit.
     # save it to a root file.
 

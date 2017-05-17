@@ -31,20 +31,18 @@ categories = ['c12', 'c11', 'c10', 'c9', 'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2
 
 filedir = '/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/'
 #filename = 'validate_blinded_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
-filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
+#filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
+filename = 'validate_UNBLINDED_dimu_mass_Roch_100_150_categories3_tree_categorization_final_36814_dyAMC-J_minpt10_b-4_sig-xlumi1.root'
 
 # fit values at 125 GeV for each category
-bwzredux125 = [] 
-bwzgamma125 = []
-bernstein125 = []
+blinded = False
+order = 8 # order for bernstein poly
 
-max_diff_bwzr = []
-max_diff_bwzg = []
-max_diff_bern = []
+vals_by_cat = []
+diffs_by_cat = []
+fitnames = []
 
-order = 6 # order for bernstein poly
-
-for category in categories:
+for ic, category in enumerate(categories):
     wdm = BGSpectrumFitter(filedir+filename, category) 
     print wdm.infilename, wdm.category
     
@@ -53,28 +51,32 @@ for category in categories:
     # we want to fit
     #----------------------------------------
     
-    #histo = wdm.bg_dy_hist
-    #histo = wdm.bg_not_dy_hist
-    #histo = wdm.bg_all_hist
     histo = wdm.data_hist
-    
     x = wdm.getX(histo)
     
-    bwzr_model, bwzr_params   = pdfs.bwZredux(x)
+    bwzr_model, bwzr_params   = pdfs.bwZreduxFixed(x)
     bwzg_model, bwzg_params   = pdfs.bwZGamma(x)
     bernstein_model, bernstein_params   = pdfs.bernstein(x, order=order)
-    
-    fr = wdm.fit(histo, bwzr_model, x, blinded=False,      save=False)
-    fg = wdm.fit(histo, bwzg_model, x, blinded=False,      save=False)
-    fb = wdm.fit(histo, bernstein_model, x, blinded=False, save=False)
 
-    print "%s at 125 GeV = %f " % (fr.GetName(), fr.Eval(125))
-    print "%s at 125 GeV = %f " % (fg.GetName(), fg.Eval(125))
-    print "%s at 125 GeV = %f " % (fb.GetName(), fb.Eval(125))
+    models = [bwzr_model, bwzg_model, bernstein_model]
 
-    fr.SetLineColor(2)
-    fg.SetLineColor(3)
-    fb.SetLineColor(4)
+    fits = []
+    vals = []
+    diffs = []
+
+    for i,m in enumerate(models):
+        f = wdm.fit(histo, m, x, blinded=False, save=False)
+        v = f.Eval(125)
+        vals.append(v)
+        fits.append(f)
+        if ic == 0: 
+            fitnames.append(f.GetName())
+
+    for vi in vals:
+        idiff = []
+        for vj in vals:
+            idiff.append(abs(vi-vj))
+        diffs.append(idiff)
 
     c = TCanvas("%s" % category, "%s" % category)
     l = TLegend(0.58, 0.67, 0.89, 0.89, "", "brNDC");
@@ -83,51 +85,59 @@ for category in categories:
     histo.SetTitle(category)
     histo.Draw()
 
-    # Draw bg fits
-    fr.Draw("SAME")
-    fg.Draw("SAME")
-    fb.Draw("SAME")
-
-    # Add bg fits to legend
-    l.AddEntry(fr, fr.GetName(), "l")
-    l.AddEntry(fg, fg.GetName(), "l")
-    l.AddEntry(fb, fb.GetName(), "l")
-
-    bwzredux125.append(fr.Eval(125))
-    bwzgamma125.append(fg.Eval(125))
-    bernstein125.append(fb.Eval(125))
-
-    max_diff_bwzr.append(max(abs(fr.Eval(125) - fg.Eval(125)), abs(fr.Eval(125) - fb.Eval(125))))
-    max_diff_bwzg.append(max(abs(fg.Eval(125) - fr.Eval(125)), abs(fg.Eval(125) - fb.Eval(125))))
-    max_diff_bern.append(max(abs(fb.Eval(125) - fg.Eval(125)), abs(fb.Eval(125) - fr.Eval(125))))
-
-    # Put fit values @ 125 GeV on canvas
-    tr = TLatex(.4,.60,"%s(125 GeV) = %7.3f" % (fr.GetName(), fr.Eval(125))) 
-    tg = TLatex(.4,.55,"%s(125 GeV) = %7.3f" % (fg.GetName(), fg.Eval(125)))
-    tb = TLatex(.4,.50,"%s(125 GeV) = %7.3f" % (fb.GetName(), fb.Eval(125)))  
-    tr.SetNDC(kTRUE);
-    tg.SetNDC(kTRUE);
-    tb.SetNDC(kTRUE);
-    tr.Draw();
-    tg.Draw();
-    tb.Draw();
+    for i,f in enumerate(fits):
+        print "%s at 125 GeV = %f " % (f.GetName(), v)
+        f.SetLineColor(i+1)
+        f.Draw("SAME")
+        l.AddEntry(f, f.GetName(), "l")
+        t = TLatex(.4,.60-0.05*i,"%s(125 GeV) = %7.3f" % (f.GetName(), f.Eval(125))) 
+        t.SetNDC(kTRUE);
+        t.Draw();
 
     l.Draw("SAME");
-    c.SaveAs("fits_%s.root" % category)
+    c.SaveAs("rootfiles/fits_%s.root" % category)
+
+    vals_by_cat.append(vals)
+    diffs_by_cat.append(diffs)
 
 print '\n=========== Fits at 125 GeV ==============\n'
 
-print '{:<15}'.format('category') + '{:<15}'.format('bwz_redux_125') + '{:<15}'.format('bwzg_125') + '{:<15}'.format('bernstein%d_125' % order) 
-for i in range(0,len(categories)):
-    print ('{:<15}'.format(categories[i]) + '{:<15.2f}'.format(bwzredux125[i]) + '{:<15.2f}'.format(bwzgamma125[i]) + 
-          '{:<15.2f}'.format(bernstein125[i]))
+titles = '{:<25}'.format('category') 
+fields = ''
+
+for f in fitnames:
+    titles+='{:<25}'.format(f)
+
+for i,c in enumerate(categories):
+    vals = vals_by_cat[i]
+    fields+='{:<25}'.format(c)
+    for v in vals:
+        fields+='{:<25.2f}'.format(v)
+    fields+='\n'
+
+
+print titles
+print fields
 
 print '\n=========== max(bias)/sqrt(b) at 125 GeV ==============\n'
 
-print '{:<15}'.format('category') + '{:<15}'.format('bwz_redux_125') + '{:<15}'.format('bwzg_125') + '{:<15}'.format('bernstein%d_125' % order) 
-for i in range(0,len(categories)):
-    b = np.mean([bwzredux125[i], bwzgamma125[i], bernstein125[i]])
+titles = '{:<25}'.format('category') 
+fields = ''
+
+for f in fitnames:
+    titles+='{:<25}'.format(f)
+
+for i,c in enumerate(categories):
+    fields+='{:<25}'.format(c)
+    vals = vals_by_cat[i]
+    diffs = diffs_by_cat[i]
+    b = np.mean(vals)
     unc = math.sqrt(b)
-    print ('{:<15}'.format(categories[i]) + '{:<15.2f}'.format(max_diff_bwzr[i]/unc) + '{:<15.2f}'.format(max_diff_bwzg[i]/unc) + 
-          '{:<15.2f}'.format(max_diff_bern[i]/unc))
+    for d in diffs:
+        fields+='{:<25.2f}'.format(max(d)/unc)
+    fields+='\n'
+
+
+print titles
+print fields
 
