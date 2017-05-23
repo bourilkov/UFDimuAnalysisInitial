@@ -214,6 +214,18 @@ void EventTools::outputEvent(VarSet& vars)
 //---------------------------------------------------------------
 //////////////////////////////////////////////////////////////////
 
+void EventTools::outputEvent(VarSet& vars, std::map<TString, Float_t>& tmap)
+{
+    std::cout << std::endl << "+++ TMVA FEATURES +++" << std::endl;
+    for(auto& item: tmap)
+        std::cout << Form("  %s: %f \n", item.first.Data(), item.second);
+    std::cout << std::endl;
+}
+
+//////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------
+//////////////////////////////////////////////////////////////////
+
 void EventTools::outputEvent(VarSet& vars, Categorizer& categorizer)
 {
 // output the event and its categorization

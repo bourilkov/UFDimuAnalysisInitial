@@ -35,6 +35,7 @@ class EventTools
         static bool sameRunAndEvent(std::pair<int,long long int> a, std::pair<int,long long int> b);
         static bool eventInVector(std::pair<int,long long int> e, std::vector<std::pair<int,long long int>> events);
         static void outputEvent(VarSet& vars);
+        static void outputEvent(VarSet& vars, std::map<TString, Float_t>& tmap);
         static void outputEvent(VarSet& vars, Categorizer& categorizer);
 };
 #endif

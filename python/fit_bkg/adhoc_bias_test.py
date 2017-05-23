@@ -31,8 +31,8 @@ categories = ['c12', 'c11', 'c10', 'c9', 'c8', 'c7', 'c6', 'c5', 'c4', 'c3', 'c2
 
 filedir = '/home/puno/h2mumu/UFDimuAnalysis_v2/bin/rootfiles/'
 #filename = 'validate_blinded_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
-#filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
-filename = 'validate_UNBLINDED_dimu_mass_Roch_100_150_categories3_tree_categorization_final_36814_dyAMC-J_minpt10_b-4_sig-xlumi1.root'
+filename = 'validate_UNBLINDED_dimu_mass_Roch_110_160_categories3_tree_categorization_final_36814_dyAMC_minpt10.root';
+#filename = 'validate_UNBLINDED_dimu_mass_Roch_100_150_categories3_tree_categorization_final_36814_dyAMC-J_minpt10_b-4_sig-xlumi1.root'
 
 # fit values at 125 GeV for each category
 blinded = False
@@ -57,15 +57,17 @@ for ic, category in enumerate(categories):
     bwzr_model, bwzr_params   = pdfs.bwZreduxFixed(x)
     bwzg_model, bwzg_params   = pdfs.bwZGamma(x)
     bernstein_model, bernstein_params   = pdfs.bernstein(x, order=order)
+    h2mupoly_model, h2mupoly_params   = pdfs.h2mupoly(x, order=order)
 
     models = [bwzr_model, bwzg_model, bernstein_model]
+    #models = [bwzr_model, bwzg_model, h2mupoly_model]
 
     fits = []
     vals = []
     diffs = []
 
     for i,m in enumerate(models):
-        f = wdm.fit(histo, m, x, blinded=False, save=False)
+        f = wdm.fit(histo, m, x, blinded=False, save=False, xmin=110, xmax=160)
         v = f.Eval(125)
         vals.append(v)
         fits.append(f)

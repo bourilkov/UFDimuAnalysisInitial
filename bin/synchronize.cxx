@@ -18,6 +18,7 @@
 #include "MuonCollectionCleaner.h"
 #include "EleCollectionCleaner.h"
 
+#include "TMVATools.h"
 #include "EventTools.h"
 #include "PUTools.h"
 
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
         std::cout << "    nOriginalWeighted: " << i.second->nOriginalWeighted << std::endl;
         std::cout << std::endl;
 
-        i.second->setBranchAddresses(2);
+        i.second->setBranchAddresses("");
         samplevec.push_back(i.second);
     }
 
@@ -140,34 +141,27 @@ int main(int argc, char* argv[])
 
     auto synchSample = [reductionFactor](Sample* s)
     {
+      // set the muon calibration type for synchronization
+      TString pf_roch_or_kamu = "PF";
+      float dimuMassMin = 60;
+
+      // TMVA Classifier
+      TString dir    = "classification/";
+      TString methodName = "BDTG_UF_v1";
+      TString weightfile = dir+"f_Opt_v1_all_sig_all_bkg_ge0j_BDTG_UF_v1.weights.xml";
+
+      TMVA::Reader* reader = 0; 
+      std::map<TString, Float_t> tmap;
+      std::map<TString, Float_t> smap;
+      reader = TMVATools::bookVars(methodName, weightfile, tmap, smap);
+
       std::vector<std::pair<int,long long int>> eventsToCheck;
       //loadEventsFromFile("synchcsv/xCheck.txt", eventsToCheck);
 
-      // Adrian's requests
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 23261));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 32300));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 65309));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 70044));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 85465));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 97203));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 112520));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 115968));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 123462));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 160391));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 160532));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 177536));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 179489));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 187698));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 211623));
-      //eventsToCheck.push_back(std::pair<int, long long int>(1, 211877));
       //eventsToCheck.push_back(std::pair<int, long long int>(1, 212289));
       //eventsToCheck.push_back(std::pair<int, long long int>(1, 215743));
       //eventsToCheck.push_back(std::pair<int, long long int>(1, 232626));
       //eventsToCheck.push_back(std::pair<int, long long int>(1, 241209));
-
-      // Output some info about the current file
-      bool useMedium2016 = s->sampleType == "data" && s->name != "RunG" && s->name != "RunH";
-      std::cout << Form("  /// Processing %s with useMedium2016 = %d \n", s->name.Data(), (int)useMedium2016);
 
       ///////////////////////////////////////////////////////////////////
       // INIT Cuts and Categories ---------------------------------------
@@ -177,12 +171,14 @@ int main(int argc, char* argv[])
       JetCollectionCleaner      jetCollectionCleaner;
       MuonCollectionCleaner     muonCollectionCleaner;
       EleCollectionCleaner      eleCollectionCleaner;
-      muonCollectionCleaner.cUseMedium2016 = useMedium2016; // set the correct medium ID depending on the Run/MC
 
       Run2MuonSelectionCuts    synchMuonSelection;
-      SynchEventSelectionCuts  synchEventSelection;
+      Run2EventSelectionCuts   synchEventSelection;
+      synchEventSelection.cDimuMassMin = dimuMassMin;
+      //SynchEventSelectionCuts  synchEventSelection;
 
-      Categorizer* categorySelection = new CategorySelectionSynch();
+      Categorizer* categorySelection = new XMLCategorizer("tree_categorization_final.xml");
+      //Categorizer* categorySelection = new CategorySelectionSynch();
 
       ///////////////////////////////////////////////////////////////////
       // INIT HISTOGRAMS TO FILL ----------------------------------------
@@ -226,7 +222,6 @@ int main(int argc, char* argv[])
         if(s->vars.muPairs->size() < 1) continue;
         bool found_good_dimuon = false;
 
-
         // find the first good dimuon candidate and fill info
         for(auto& dimu: (*s->vars.muPairs))
         {
@@ -237,18 +232,12 @@ int main(int argc, char* argv[])
           s->vars.dimuCand = &dimu; 
           MuonInfo& mu1 = s->vars.muons->at(s->vars.dimuCand->iMu1);
           MuonInfo& mu2 = s->vars.muons->at(s->vars.dimuCand->iMu2);
-
-          dimu.mass = dimu.mass_PF;
-          mu1.pt = mu1.pt_PF;
-          mu2.pt = mu2.pt_PF;
+          s->vars.setCalibrationType(pf_roch_or_kamu);
 
           // Load the rest of the information needed for run2 categories
-          s->branches.jets->GetEntry(i);
-          s->branches.mht->GetEntry(i);
-          s->branches.met->GetEntry(i);
-          s->branches.nVertices->GetEntry(i);
-          s->branches.electrons->GetEntry(i);
-          s->branches.eventInfo->GetEntry(i);
+          s->branches.getEntry(i);
+          s->vars.setCalibrationType(pf_roch_or_kamu); // reloaded the branches, need to set mass,pt to correct calibrations again
+
           std::pair<int, long long int> e(s->vars.eventInfo->run, s->vars.eventInfo->event); // create a pair that identifies the event uniquely
 
           // clear vectors for the valid collections
@@ -263,11 +252,13 @@ int main(int argc, char* argv[])
           muonCollectionCleaner.getValidMuons(s->vars, s->vars.validMuons, s->vars.validExtraMuons);
           eleCollectionCleaner.getValidElectrons(s->vars, s->vars.validElectrons);
 
-          // Clean jets and electrons from muons, then clean remaining jets from remaining electrons
+          // Clean jets from muons
           CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validMuons, 0.4);
           CollectionCleaner::cleanByDR(s->vars.validBJets, s->vars.validMuons, 0.4);
-          CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
+          //CollectionCleaner::cleanByDR(s->vars.validElectrons, s->vars.validMuons, 0.4);
           //CollectionCleaner::cleanByDR(s->vars.validJets, s->vars.validElectrons, 0.4);
+          
+          s->vars.bdt_out = TMVATools::getClassifierScore(reader, methodName, tmap, s->vars); // set tmva's bdt score
           
           if(EventTools::eventInVector(e, eventsToCheck) || true) // Adrian gave a list of events to look at for synch purposes
              EventTools::outputEvent(s->vars);
@@ -290,26 +281,12 @@ int main(int argc, char* argv[])
 
               continue; 
           }
-          if( useMedium2016 && (!mu1.isMediumID2016 || !mu2.isMediumID2016) )
-          { 
-              if(EventTools::eventInVector(e, eventsToCheck) || true)
-                  std::cout << "   !!! Fail Medium ID 2016 !!!" << std::endl;
-
-              continue; 
-          }
-          if( !useMedium2016 && (!mu1.isMediumID || !mu2.isMediumID) )
+          if(!mu1.isMediumID || !mu2.isMediumID)
           { 
               if(EventTools::eventInVector(e, eventsToCheck) || true)
                   std::cout << "   !!! Fail Medium ID !!!" << std::endl;
 
               continue; 
-          }
-          if(!mu1.isGlobal || !mu1.isTracker || !mu2.isGlobal || !mu2.isTracker)
-          {
-              if(EventTools::eventInVector(e, eventsToCheck) || true)
-                  std::cout << "   !!! Fail isGlobal isTracker !!!" << std::endl;
-
-              continue;
           }
 
           // avoid double counting in RunF
@@ -371,7 +348,8 @@ int main(int argc, char* argv[])
    // Gather all the Histos into one Categorizer----------------------
    ///////////////////////////////////////////////////////////////////
 
-    Categorizer* cAll = new CategorySelectionRun1();
+    //Categorizer* cAll = new CategorySelectionRun1();
+    Categorizer* cAll = new XMLCategorizer("tree_categorization_final.xml");
 
     // get histos from all categorizers and put them into one
     for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
