@@ -370,7 +370,7 @@ int main(int argc, char* argv[])
             }
             for(auto& v: category.second.eventsMap)
             {
-                TString filename = "csv/synchcsv/"+v.first+"_"+category.first+".csv";
+                TString filename = "csv/synchcsv/"+v.first+"_"+category.second.name+".csv";
                 EventTools::outputEventsToFile(v.second, filename);
                 v.second.clear();
             }

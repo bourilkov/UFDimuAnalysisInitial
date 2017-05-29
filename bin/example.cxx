@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
     // Get branches, set addresses
     // tells the TTree that it should load the event information into s->vars
-    s->setBranchAddresses(2);
+    s->setBranchAddresses("");
 
     std::cout << "Setting up Selection, Collection Cleaning, and Categorizer objects" << std::endl;
 
