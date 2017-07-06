@@ -53,7 +53,7 @@ struct Settings
                                           //  see initPlotSettings above for more information
     
     bool rebin = true;        // rebin the ratio plots so that each point has small errors
-    int nthreads = 10;        // number of threads to use in parallelization
+    int nthreads = 20;        // number of threads to use in parallelization
     bool fitratio = 0;        // fit the ratio plot (data/mc) under the stack w/ a straight line
     
     TString xmlfile;          // filename for the xmlcategorizer, if you chose to use one 
@@ -68,7 +68,7 @@ struct Settings
     float max;
     int bins;
 
-    float subleadPt = 10;     // subleading muon pt cut
+    float subleadPt = 20;     // subleading muon pt cut
     bool sig_xlumi = true;    // if true, scale signal by xsec*lumi
 };
 
@@ -215,6 +215,13 @@ void initPlotSettings(Settings& settings)
         settings.max = 11;
     }   
 
+    // # of vertices
+    if(settings.varname.Contains("nVertices"))
+    {   
+        settings.bins = 50;
+        settings.min = 0; 
+        settings.max = 50;
+    }   
     // m_jj
     if(settings.varname.Contains("m_jj") || settings.varname.Contains("m_bb") || (settings.varname.Contains("dijet") && settings.varname.Contains("mass")))
     {   

@@ -454,7 +454,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     //  in_files.push_back(in_file);
     }
     samples["ZJets_AMC_1j"] = new Sample(in_files, "ZJets_AMC_1j", "background");
-    samples["ZJets_AMC_1j"]->xsec = 888.9*0.95; 
+    samples["ZJets_AMC_1j"]->xsec = 888.9*0.86*0.985*0.995; //888.9*0.95; 
      if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 
@@ -472,7 +472,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
     //  in_files.push_back(in_file);
     }
     samples["ZJets_AMC_2j"] = new Sample(in_files, "ZJets_AMC_2j", "background");
-    samples["ZJets_AMC_2j"]->xsec = 348.8; 
+    samples["ZJets_AMC_2j"]->xsec = 348.8*0.88*0.975*0.992; 
      if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 

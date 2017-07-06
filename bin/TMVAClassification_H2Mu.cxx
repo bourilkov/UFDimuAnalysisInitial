@@ -131,7 +131,7 @@ void TMVAClassification_H2Mu ( TString myMethodList = "" ) {
    TString out_dir = "/home/puno/h2mumu/UFDimuAnalysis_v2/bin/tmva_out";
    // out_dir = ".";
    TString out_file_name;
-   out_file_name.Form( "%s/TMVA_BDT_UF_H2Mu_out.root", out_dir.Data() );
+   out_file_name.Form( "%s/TESTRUN_TMVA_BDT_UF_H2Mu_out.root", out_dir.Data() );
    TFile* out_file = TFile::Open( out_file_name, "RECREATE" );
 
 
