@@ -250,11 +250,23 @@ void CategorySelectionBDT::initCategoryMap()
     // Category(name), Category(name, hide?), Category(name, hide?, isTerminal?)
     // defaults are hide = false, isTerminal = false
 
-    categoryMap["c_ALL"] = Category("c_ALL", true, false);
-    categoryMap["c_1_xlepton"] = Category("c_1_xlepton", false, true);
-    categoryMap["c_2_xlepton"] = Category("c_2_xlepton", true, false);
-    categoryMap["c_2_xlepton_Z"] = Category("c_2_xlepton_Z", false, true);
-    categoryMap["c_2_xlepton_other"] = Category("c_2_xlepton_other", false, true);
+    categoryMap["cAll"] = Category("cAll", false, false);
+    categoryMap["c0"] = Category("c0", false, true);
+    categoryMap["c1"] = Category("c1", false, true);
+    categoryMap["c2"] = Category("c2", false, true);
+    categoryMap["c3"] = Category("c3", false, true);
+    categoryMap["c4"] = Category("c4", false, true);
+    categoryMap["c5"] = Category("c5", false, true);
+    categoryMap["c6"] = Category("c6", false, true);
+    categoryMap["c7"] = Category("c7", false, true);
+    categoryMap["c8"] = Category("c8", false, true);
+    categoryMap["c9"] = Category("c9", false, true);
+    categoryMap["c10"] = Category("c10", false, true);
+    categoryMap["c11"] = Category("c11", false, true);
+    categoryMap["c12"] = Category("c12", false, true);
+    categoryMap["c13"] = Category("c13", false, true);
+    categoryMap["c14"] = Category("c14", false, true);
+    categoryMap["c15"] = Category("c15", false, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -263,20 +275,7 @@ void CategorySelectionBDT::initCategoryMap()
 
 CategorySelectionBDT::CategorySelectionBDT()
 {
-// initialize the default cut values in the constructor
-
     initCategoryMap();
-}
-///////////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------------
-///////////////////////////////////////////////////////////////////////////////
-
-CategorySelectionBDT::CategorySelectionBDT(TString xmlfile)
-{
-// initialize the default cut values in the constructor
-
-    initCategoryMap();
-    loadFromXML(xmlfile);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -287,45 +286,70 @@ void CategorySelectionBDT::evaluate(VarSet& vars)
 {
 // Determine which category the event belongs to
 
-    // Inclusive category, all events that passed the selection cuts
-    categoryMap["c_ALL"].inCategory = true;
-    if(vars.validExtraMuons.size() + vars.validElectrons.size() == 0) evaluateRecursive(vars, rootNode);
-    else if(vars.validExtraMuons.size() + vars.validElectrons.size() == 1) categoryMap["c_1_xlepton"].inCategory = true;
-    else categoryMap["c_2_xlepton"].inCategory = true; 
-  
-    if(categoryMap["c_2_xlepton"].inCategory)
+    double bdt_score = vars.getValue("bdt_score");
+    double max_eta = vars.getValue("dimu_max_abs_eta");
+
+    // Inclusive set of events
+    categoryMap["cAll"].inCategory = true;
+
+    // ttH hadronic [tt -> qqqq]
+    if(vars.getValue("nBMed") > 0 && vars.getValue("nJets") > 4)
     {
-        if(vars.validExtraMuons.size() >= 2)
-        {
-            for(unsigned int i=0; i<vars.validExtraMuons.size(); i++)
-            {
-                for(unsigned int j=i+1; j<vars.validExtraMuons.size(); j++)
-                {
-                    TLorentzVector dimu = vars.validExtraMuons[i] + vars.validExtraMuons[j];
-                    if(TMath::Abs(dimu.M() - 91) < 10) 
-                    {
-                        categoryMap["c_2_xlepton_Z"].inCategory = true;
-                        return;
-                    }
-                }
-            }
-        }
-        if(vars.validElectrons.size() >= 2)
-        {
-            for(unsigned int i=0; i<vars.validElectrons.size(); i++)
-            {
-                for(unsigned int j=i+1; j<vars.validElectrons.size(); j++)
-                {
-                    TLorentzVector diele = vars.validElectrons[i] + vars.validElectrons[j];
-                    if(TMath::Abs(diele.M() - 91) < 10) 
-                    {
-                        categoryMap["c_2_xlepton_Z"].inCategory = true;
-                        return;
-                    }
-                }
-            }
-        }
-        categoryMap["c_2_xlepton_other"].inCategory = true;
+        categoryMap["c14"].inCategory = true;
+    }
+    // ttH w/ a lepton [tt -> l + XYZ]
+    else if(vars.getValue("nBMed") > 0 && vars.getValue("nJets") > 1 && vars.getValue("nExtraLep") > 0) // ttH w/ a lepton
+    {
+        categoryMap["c15"].inCategory = true;
+    }
+    // not ttH
+    else
+    {
+        if( bdt_score < -0.400 ) 
+            categoryMap["c0"].inCategory = true;
+
+        else if( bdt_score >= 0.250 && bdt_score < 0.400 && max_eta >= 1.900 )
+            categoryMap["c1"].inCategory = true;
+
+        else if( bdt_score >= -0.400 && bdt_score < 0.050 && max_eta >= 1.900 )
+            categoryMap["c2"].inCategory = true;
+
+        else if( bdt_score < 0.650 && bdt_score >= 0.400 && max_eta >= 1.900 ) 
+            categoryMap["c3"].inCategory = true;
+
+        else if( bdt_score >= 0.050 && bdt_score < 0.250 && max_eta < 0.900 ) 
+            categoryMap["c4"].inCategory = true;
+
+        else if( bdt_score >= 0.250 && bdt_score < 0.400 && max_eta < 0.900 ) 
+            categoryMap["c5"].inCategory = true;
+
+        else if( max_eta < 1.900 && bdt_score >= 0.250 && bdt_score < 0.400 && max_eta >= 0.900 ) 
+            categoryMap["c6"].inCategory = true;
+
+        // c7 Low Eta, dropped c7 High Eta
+        else if( bdt_score >= 0.050 && bdt_score < 0.250 && max_eta >= 0.900 && max_eta < 1.9) 
+            categoryMap["c7"].inCategory = true;
+
+        // c8 Low Eta
+        else if( bdt_score >= -0.400 && bdt_score < 0.050 && max_eta < 0.9 ) 
+            categoryMap["c8"].inCategory = true;
+
+        // c8 High Eta now c9
+        else if( bdt_score >= -0.400 && bdt_score < 0.050 && max_eta < 1.900  && max_eta >=0.9) 
+            categoryMap["c9"].inCategory = true;
+
+        // All other categories shifted up 1
+        else if( bdt_score < 0.730 && bdt_score >= 0.650 ) 
+            categoryMap["c10"].inCategory = true;
+
+        else if( max_eta < 1.900 && bdt_score < 0.650 && bdt_score >= 0.400 && max_eta >= 0.900 ) 
+            categoryMap["c11"].inCategory = true;
+
+        else if( bdt_score < 0.650 && bdt_score >= 0.400 && max_eta < 0.900 ) 
+            categoryMap["c12"].inCategory = true;
+
+        else if( bdt_score >= 0.730 )
+            categoryMap["c13"].inCategory = true;
     }
 }
 

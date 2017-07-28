@@ -182,15 +182,30 @@ class XMLCategorizer : public Categorizer
 };
 
 //////////////////////////////////////////////////////////////////////////
-//// ______________________BDTHybrid____________________________________//
+//// ________XML Categorizer + Other Cuts_______________________________//
 //////////////////////////////////////////////////////////////////////////
 
-class CategorySelectionBDT : public XMLCategorizer
+class CategorySelectionHybrid : public XMLCategorizer
 {
-// The run1 H->MuMu category selection
+// Should actually make a class for this in the .cxx file. 
+// I define the functions here so that categorize.cxx doesn't break.
+    public:
+        CategorySelectionHybrid(){ initCategoryMap(); }; 
+        CategorySelectionHybrid(TString xmlfile){ initCategoryMap(); loadFromXML(xmlfile); }; 
+
+        // Determine which category the event belongs to
+        void evaluate(VarSet& vars){ evaluateRecursive(vars, rootNode); };
+        void initCategoryMap(){};
+};
+
+//////////////////////////////////////////////////////////////////////////
+//// ________BDT Based Categories Run2__________________________________//
+//////////////////////////////////////////////////////////////////////////
+
+class CategorySelectionBDT : public Categorizer
+{
     public:
         CategorySelectionBDT(); 
-        CategorySelectionBDT(TString xmlfile); 
 
         // Determine which category the event belongs to
         void evaluate(VarSet& vars);

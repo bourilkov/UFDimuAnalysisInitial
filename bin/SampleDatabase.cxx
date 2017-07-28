@@ -697,7 +697,7 @@ std::vector<Sample*>& GetSamples(std::map<TString, Sample*>& samples, TString lo
       in_files.push_back(in_file);
     }
     samples["tt_ll_AMC"] = new Sample(in_files, "tt_ll_AMC", "background");
-    samples["tt_ll_AMC"]->xsec = 85.656; // pb
+    samples["tt_ll_AMC"]->xsec = 85.656*0.9; // pb
      if(!location.Contains("UF")) std::cout << ".... " << in_files.size() << " files added." << std::endl;
   }
 

@@ -432,7 +432,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
       //std::map<TString, Float_t> smap_multi;
 
       // load tmva binary classification and multiclass classifiers
-      if(settings.whichCategories == 3)
+      if(settings.whichCategories >= 2)
       {
           reader       = TMVATools::bookVars(methodName, weightfile, tmap, smap);
           //reader_multi = TMVATools::bookVars(methodName, weightfile_multi, tmap_multi, smap_multi);
@@ -454,9 +454,9 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
       Categorizer* categorySelection = 0;
 
       if(settings.whichCategories == 1) categorySelection = new CategorySelectionRun1();                  // run1 categories
-      else if(settings.whichCategories == 2) categorySelection = new LotsOfCategoriesRun2();              // Adrian's proposed run2 categories
+      else if(settings.whichCategories == 2) categorySelection = new CategorySelectionBDT();              // Adrian's proposed run2 categories
       else if(settings.whichCategories == 3 && settings.xmlfile.Contains("hybrid")) 
-          categorySelection = new CategorySelectionBDT(settings.xmlfile);                                 // BDT based categories XML + object cuts
+          categorySelection = new CategorySelectionHybrid(settings.xmlfile);                                 // BDT based categories XML + object cuts
       else if(settings.whichCategories == 3) categorySelection = new XMLCategorizer(settings.xmlfile);    // BDT based categories XML only
 
       // set some flags
@@ -549,12 +549,8 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
               continue;
           }
 
-          if(isBDTscore && TMath::Abs(settings.binning) == 1 && (dimu.mass < 110 || dimu.mass > 160))
-          {
-              continue;
-          }
-
-          if(!isBDTscore && !isMass && TMath::Abs(settings.binning) == 1 && (dimu.mass < 110 || dimu.mass > 160))
+          // binning == 1 -> only plot events in the fit window for all variables
+          if(TMath::Abs(settings.binning) == 1 && (dimu.mass < 110 || dimu.mass > 160))
           {
               continue;
           }
@@ -638,7 +634,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
           ///////////////////////////////////////////////////////////////////
 
           // XML categories require the classifier score from TMVA
-          if(settings.whichCategories == 3)
+          if(settings.whichCategories >= 2)
           {
               s->vars.setVBFjets();   // jets sorted and paired by vbf criteria
 
@@ -672,7 +668,7 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
               // now that we have a lot of these in the VarSet map we should just fill the s->vars.getValue("varName")
               // would save a lot of explicit code here ...
 
-              if(settings.varname.Contains("dimu_mass") || settings.varname == "bdt_score") 
+              if(settings.varname.Contains("dimu_mass")) 
               {
                   if(isData && dimu.mass > 120 && dimu.mass < 130 && isblinded) continue; // blind signal region
 
@@ -706,14 +702,14 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
         } // end dimu cand loop //
       } // end event loop //
 
-      if(settings.whichCategories == 3) delete reader;
-      //if(settings.whichCategories == 3) delete reader_multi;
+      if(settings.whichCategories >= 2) delete reader;
+      //if(settings.whichCategories >= 2) delete reader_multi;
 
       // Scale according to settings.luminosity and sample xsec now that the histograms are done being filled for that sample
       for(auto &c : categorySelection->categoryMap)
       {
           // Only used half of the signal events in this case, need to boost the normalization by 2 to make up for that
-          if(settings.whichCategories == 3 && isSignal && settings.binning < 0) c.second.histoMap[hkey]->Scale(2*s->getLumiScaleFactor(settings.luminosity));
+          if(settings.whichCategories >= 2 && isSignal && settings.binning < 0) c.second.histoMap[hkey]->Scale(2*s->getLumiScaleFactor(settings.luminosity));
           else c.second.histoMap[hkey]->Scale(s->getLumiScaleFactor(settings.luminosity));
       }
 
@@ -739,10 +735,10 @@ Categorizer* plotWithSystematic(TString systematic, Settings& settings)
 
     Categorizer* cAll = 0;
     if(settings.whichCategories == 1) cAll = new CategorySelectionRun1();                            // run1 categories 
-    else if(settings.whichCategories == 2) cAll = new LotsOfCategoriesRun2();                        // Adrian's proposed run2 categories
+    else if(settings.whichCategories == 2) cAll = new CategorySelectionBDT();                        // run2 categories
     else if(settings.whichCategories == 3 && settings.xmlfile.Contains("hybrid")) 
-        cAll = new CategorySelectionBDT(settings.xmlfile);                                           // BDT categories XML + Object cuts
-    else if(settings.whichCategories == 3) cAll = new XMLCategorizer(settings.xmlfile);              // BDT categories using XML only
+        cAll = new CategorySelectionHybrid(settings.xmlfile);                                        // XML + Object cuts
+    else if(settings.whichCategories == 3) cAll = new XMLCategorizer(settings.xmlfile);              // XML only
 
     // get histos from all categorizers and put them into one categorizer
     for(auto && categorizer: results)  // loop through each Categorizer object, one per sample
