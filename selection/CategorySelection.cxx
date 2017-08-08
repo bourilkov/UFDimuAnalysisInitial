@@ -292,15 +292,15 @@ void CategorySelectionBDT::evaluate(VarSet& vars)
     // Inclusive set of events
     categoryMap["cAll"].inCategory = true;
 
-    // ttH hadronic [tt -> qqqq]
-    if(vars.getValue("nBMed") > 0 && vars.getValue("nJets") > 4)
-    {
-        categoryMap["c14"].inCategory = true;
-    }
     // ttH w/ a lepton [tt -> l + XYZ]
-    else if(vars.getValue("nBMed") > 0 && vars.getValue("nJets") > 1 && vars.getValue("nExtraLep") > 0) // ttH w/ a lepton
+    if(vars.getValue("nBMed") > 0 && vars.getValue("nJets") > 1 && vars.getValue("nExtraLep") > 0) // ttH w/ a lepton
     {
         categoryMap["c15"].inCategory = true;
+    }
+    // ttH hadronic [tt -> qqqq]
+    else if(vars.getValue("nBMed") > 0 && vars.getValue("nJets") > 4)
+    {
+        categoryMap["c14"].inCategory = true;
     }
     // not ttH
     else

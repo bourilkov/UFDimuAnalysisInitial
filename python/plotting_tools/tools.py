@@ -14,6 +14,8 @@ from ROOT import *
 from array import *
 
 import sys
+import tdrstyle
+
 #sys.argv.append( '-b-' )
 
 #============================================
@@ -22,44 +24,79 @@ import sys
 
 colors = [58, 2, 8, 36, 91, 46, 50, 30, 9, 29, 3, 42, 98, 62, 74, 20, 29, 32, 49, 12, 3, 91]
 
-def overlay(plot_list, title="overlay", savename="", name="", xtitle="", ytitle="", yrange=(-999,-999), ldim=[0.71,0.82,1.0,1.0]):
+def overlay(plot_list, title="overlay", savename="", name="", xtitle="", ytitle="", yrange=(-999,-999), ldim=[0.71,0.82,1.0,1.0], draw="fill-transparent"):
     """ Overlay histograms or tgraphs onto the same canvas. plot_list = [hist/graph, hist/graph, hist/graph, ...]"""
 
     if savename == "": savename = title
     legend = TLegend(ldim[0], ldim[1], ldim[2], ldim[3], "", "brNDC")
     c = TCanvas()
     for i,plot in enumerate(plot_list):
-        plot.SetFillStyle(3001)
-        plot.SetFillColor(colors[i])
-        plot.SetLineColor(colors[i])
-        plot.SetLineWidth(2)
-        plot.SetMarkerSize(2)
+        if 'fill' in draw: 
+            if 'transparent' in draw: 
+                plot.SetFillColorAlpha(colors[i], 0.55)
+            else: 
+                plot.SetFillColor(colors[i])
+
+        if 'point' in draw:
+            plot.SetMarkerSize(1)
+        else:
+            plot.SetLineColor(colors[i])
+            plot.SetLineWidth(2)
+            plot.SetMarkerSize(2)
+
         if(i==0):
-            plot.SetStats(0)
-            plot.Draw()
-            if yrange != (-999,-999): plot.GetYaxis().SetRangeUser(yrange[0], yrange[1])
-            if xtitle!="": plot.GetXaxis().SetTitle(xtitle)
-            if ytitle!="": plot.GetYaxis().SetTitle(ytitle)
+            if plot.InheritsFrom("TH1"): 
+                plot.SetStats(0)
+                if 'transparent' in draw: 
+                    plot.Draw("hist")
+                elif 'point' in draw: 
+                    plot.Draw("P")
+                else: 
+                    plot.Draw()
+            else: 
+                plot.Draw()
+
+            if yrange != (-999,-999): 
+                plot.GetYaxis().SetRangeUser(yrange[0], yrange[1])
+
+            if xtitle!="": 
+                plot.GetXaxis().SetTitle(xtitle)
+
+            if ytitle!="": 
+                plot.GetYaxis().SetTitle(ytitle)
+
             c.SetGridx()
             c.SetGridy()
             c.SetTitle(title)
             c.SetName(title)
             if name!="": c.SetName(name)
-        else:
-            plot.Draw("SAME")
 
-        legend.AddEntry(plot, plot.GetTitle(), "l")
+        else:
+            if plot.InheritsFrom("TH1") and 'transparent' in draw: 
+                plot.Draw("hist SAME")
+
+            elif plot.InheritsFrom("TH1") and 'point' in draw: 
+                plot.Draw("P SAME")
+
+            else: 
+                plot.Draw("SAME")
+
+        if 'point' not in draw: 
+            legend.AddEntry(plot, plot.GetTitle(), "l")
+        if 'point' in draw: 
+            legend.AddEntry(plot, plot.GetTitle(), "p")
+
         legend.Draw("SAME")
         plot_list[0].SetTitle(title)
 
-        c.SaveAs('imgs/%s.png' % savename)
-        c.SaveAs('rootfiles/%s.root' % savename)
+    c.SaveAs('../out/imgs/%s.png' % savename)
+    c.SaveAs('../out/rootfiles/%s.root' % savename)
 
 ##################################################################
 #-----------------------------------------------------------------
 ##################################################################
 
-def stack(stack_list, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ldim=[0.71,0.82,1.0,1.0]):
+def stack(stack_list, unc_map={}, title="stack", name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ldim=[0.71,0.82,1.0,1.0], autocolor=True):
     """ Stack some histograms to compare to another histogram. Take the ratio chist/stack and put it in the pad in the bottom. """
     stack = THStack() 
     stack.SetTitle(title)
@@ -70,10 +107,11 @@ def stack(stack_list, title="stack", log=True, name="stack", xtitle="Mass (GeV)"
     minmax = 999999999
 
     for i,hist in enumerate(stack_list):
-        print "%s: %f" % (hist.GetName(), hist.Integral())
+        #print "%s: %f" % (hist.GetName(), hist.Integral())
         #  set the colors, etc
-        hist.SetLineColor(colors[i])
-        hist.SetFillColor(colors[i])
+        if autocolor:
+            hist.SetLineColor(colors[i])
+            hist.SetFillColor(colors[i])
         hist.SetStats(0)
 
         if(i==0):
@@ -83,7 +121,7 @@ def stack(stack_list, title="stack", log=True, name="stack", xtitle="Mass (GeV)"
         stack.Add(hist) 
         legend.AddEntry(hist, hist.GetTitle(), "f")
 
-    print  "stack integral: %f" % stack.GetStack().Last().Integral()
+    #print  "stack integral: %f" % stack.GetStack().Last().Integral()
     return stack, legend, minmax;
 
 ##################################################################
@@ -94,15 +132,17 @@ def add(histo_list, name="Net_MC", title="Net MC"):
     """ Sum the histos given in the list of (file, name) pairs. """
     hsum = 0
     for i,hist in enumerate(histo_list):
-        print "%s: %f" % (hist.GetName(), hist.Integral())
+        #print "%s: %f" % (hist.GetName(), hist.Integral())
         if(i==0):
+            gROOT.cd()
+            hist.Clone()
             hsum = hist.Clone(name) 
             hsum.SetTitle(title)
         
         else:
             hsum.Add(hist)
 
-    print "%s: %f" % (hsum.GetName(), hsum.Integral())
+    #print "%s: %f" % (hsum.GetName(), hsum.Integral())
     return hsum
 
 ##################################################################
@@ -126,21 +166,79 @@ def get(item_list):
 #-----------------------------------------------------------------
 ##################################################################
 
-def ratio(histo_list):
+def ratio(histo_list, name="data_mc_ratio", title="data_mc_ratio"):
     """ Make a ratio histogram by dividing the Nth histogram and the sum of the 0 to N-1 histograms. """
     hsum = add(histo_list[0:-1])
-    hlast = histo_list[-1].Clone()
-    print "%s: %f, %s: %f, ratio: %f" % (hlast.GetName(), hlast.Integral(), hsum.GetName(), hsum.Integral(), hlast.Integral()/hsum.Integral())
+    hlast = histo_list[-1].Clone(name)
+    #print "%s: %f, %s: %f, ratio: %f" % (hlast.GetName(), hlast.Integral(), hsum.GetName(), hsum.Integral(), hlast.Integral()/hsum.Integral())
     hlast.Divide(hsum)
     return hlast
-
-
 
 ##################################################################
 #-----------------------------------------------------------------
 ##################################################################
 
-def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0], yrange_ratio=(-999,-999)):
+def subtractHistos(histo, up_or_down):
+    """ Get the difference between two histograms. """
+    diff = up_or_down.Clone(up_or_down.GetName()+"_minus_"+histo.GetName()) 
+    diff.Add(histo, -1)
+    print "%s: %f, %s: %f, diff: %f" % (up_or_down.GetName(), up_or_down.Integral(), histo.GetName(), histo.Integral(), up_or_down.Integral()-histo.Integral())
+    return diff
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+def errorBandHisto(histo, up_or_down_list):
+    """ Calculate the error band histograms for a given histo and list of up/down histos. """
+
+    err_up_hist = histo.Clone(histo.GetName()+"_err_up")
+    err_down_hist = histo.Clone(histo.GetName()+"_err_down")
+
+    # Clear the bin and the bin error for the up/down error histos
+    # then set the inior_tial up/down error in each bin to the nominal error
+    for b in range(1,histo.GetNbinsX()+1): 
+        err_up_hist.SetBinContent(b, 0)
+        err_up_hist.SetBinError(b, 0)
+        err_up_hist.SetBinContent(b, histo.GetBinError(b)*histo.GetBinError(b))
+        err_down_hist.SetBinContent(b, 0)
+        err_down_hist.SetBinError(b, 0)
+        err_down_hist.SetBinContent(b, histo.GetBinError(b)*histo.GetBinError(b))
+
+    # Get the bin by bin differences
+    for i in range(0, len(up_or_down_list)-1, 2):
+        h1 = up_or_down_list[i] 
+        h2 = up_or_down_list[i+1] 
+        diff1 = subtractHistos(histo, h1) 
+        diff2 = subtractHistos(histo, h2)
+        for b in range(1,histo.GetNbinsX()+1): 
+            diff1b = diff1.GetBinContent(b)
+            diff2b = diff2.GetBinContent(b)
+            maxdiff = max(diff1b, diff2b)
+            mindiff = max(diff1b, diff2b)
+            err_up_hist.SetBinContent(b, err_up_hist.GetBinContent(b)+maxdiff*maxdiff)
+            err_down_hist.SetBinContent(b, err_down_hist.GetBinContent(b)+mindiff*mindiff)
+
+    # Add +/- net_err = sqrt(err0^2 + err1^2 + ...) to the nominal value to get the upper and lower histos    
+    up_hist = histo.Clone(histo.GetName()+"_up")
+    down_hist = histo.Clone(histo.GetName()+"_down")
+    band_hist = histo.Clone(histo.GetName()+"_err_band")
+
+    for b in range(1,histo.GetNbinsX()+1): 
+        up_hist.SetBinContent(b, up_hist.GetBinContent(b) + TMath.Sqrt(err_up_hist.GetBinContent(b)))
+        down_hist.SetBinContent(b, down_hist.GetBinContent(b) - TMath.Sqrt(err_down_hist.GetBinContent(b)))
+        band_hist.SetBinContent(b, (up_hist.GetBinContent(b) + down_hist.GetBinContent(b))/2)
+        band_hist.SetBinError(b, (up_hist.GetBinContent(b) - down_hist.GetBinContent(b))/2)
+
+    print "\n up_hist - down_hist = %f \n" % (up_hist.Integral() - down_hist.Integral())
+    return band_hist, up_hist, down_hist
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+# Stack the histograms on the top part of the canvas and put a ratio plot on the bottom part of the canvas
+def stackAndRatio(histo_list, rlist=0, unc_map={}, title="stack", log=True, name="stack", xtitle="Mass (GeV)", ytitle="", yrange=(-999,-999), ytitleratio="Data/MC", ldim=[0.71,0.82,1.0,1.0], yrange_ratio=(-999,-999), csize=(-999,-999), savename="", errband="MC Error Band"):
 
     if name=="stack" and title!=stack:
         name=title
@@ -154,13 +252,52 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     for h in rlist:
         h.SetStats(False)
 
+    if csize == (-999,-999):
+        csize = (800,800)
+
+    if savename == "":
+        savename=name
+
+    print "\n --- Nominal histograms --- "
+    for h in histo_list:
+        print h.GetName()
+
+    print "\n --- Systematics histograms --- "
+    for key,hlist in unc_map.iteritems():
+        print "\n" + key
+        for h in hlist:
+            print h.GetName()
+
+    print ""
+
+    net_mc_hist = add(histo_list[:-1], "NET_MC_X") # the nominal net mc
+
+    # For each systematic (JES_up, JES_down, PU_up, PU_down)
+    # add up the inidivdual MC histos into a net histogram
+    net_mc_unc_list = []
+    net_mc_ratio_unc_list = []
+    for key, hlist in unc_map.iteritems():
+        net_mc_unc_list.append(add(hlist, "Net_MC_"+key))
+        hlist.append(net_mc_hist)
+        net_mc_ratio_unc_list.append(ratio(hlist, name="data_mc_ratio_"+key))
+
+    # Get the error band histo given the individual up/down contributions in the net_mc_unc_list
+    band_hist = 0
+    up_hist = 0
+    down_hist = 0
+
+    # get the error band histo that accounts for the systematics
+    if len(net_mc_unc_list) != 0: 
+        band_hist, up_hist, down_hist = errorBandHisto(net_mc_hist, net_mc_unc_list)
+
     c = TCanvas()
+    c.SetCanvasSize(csize[0],csize[1]);
     pad1 = TPad("pad1", "pad1", 0,0.3,1,1.0)
     pad1.SetBottomMargin(0.0125)
     pad1.Draw()
     pad1.cd()
 
-    s, legend, minmax = stack(histo_list[0:-1], title=title, log=log, name=name, xtitle=xtitle, ytitle=ytitle, yrange=yrange, ldim=ldim)
+    s, legend, minmax = stack(histo_list[0:-1], title=title, name=name, xtitle=xtitle, ytitle=ytitle, yrange=yrange, ldim=ldim)
     
     s.Draw("hist")
     s.GetXaxis().SetTitle("")
@@ -170,15 +307,27 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     s.GetXaxis().SetLabelSize(0.000001);
     
     # overlay the mc error band
-    sumhist = s.GetStack().Last().Clone()
-    sumhist.SetFillStyle(3001)
-    sumhist.SetLineColor(12)
-    sumhist.SetFillColor(12)
-    sumhist.Draw("E2SAME")
-    legend.AddEntry(sumhist, "MC Error Band", "f")
+    bandhist = s.GetStack().Last().Clone() # set the default error band to the statistical uncertainty of the Net MC
+
+    # if there are systematics provided then use that error band histo
+    if band_hist != 0:
+        bandhist = band_hist
+
+    # set the style for the error band histogram
+    bandhist.SetFillStyle(3001)
+    bandhist.SetLineColor(12)
+    bandhist.SetFillColor(12)
+    bandhist.SetMarkerStyle(0)
+    up_hist.SetLineColor(1)
+    down_hist.SetLineColor(1)
+    bandhist.Draw("E2SAME")
+    #up_hist.Draw("SAME")
+    #down_hist.Draw("SAME")
+    legend.AddEntry(bandhist, errband, "f")
     gPad.Modified()
     
-    if(yrange==(-999,-999)): yrange = (minmax*0.1, s.GetMaximum()*10)
+    if(yrange==(-999,-999) and log): yrange = (minmax*0.1, s.GetMaximum()*10e5)
+    elif(yrange==(-999,-999)): yrange = (0, s.GetMaximum()*1.5)
     if(log and yrange[0] > 0): 
         gPad.SetLogy(1)
     s.SetMaximum(yrange[1])
@@ -197,11 +346,12 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     pad2 = TPad("pad2", "pad2", 0, 0.05, 1, 0.3)
     pad2.SetGridy()
     pad2.SetTopMargin(0.05)
-    pad2.SetBottomMargin(0.2)
+    pad2.SetBottomMargin(0.25)
     pad2.Draw()
     pad2.cd()
-    hratio = ratio(rlist)
 
+    hratio = ratio(rlist) # the nominal ratio plot usually of data/mc
+ 
     if yrange_ratio[0] == -999: 
         hratio.SetMinimum(0.58)
     else: 
@@ -212,32 +362,62 @@ def stackAndRatio(histo_list, rlist=0, title="stack", log=True, name="stack", xt
     else: 
         hratio.SetMaximum(yrange_ratio[1])
 
+    # The histograms for the error band with systematics on the ratio
+    rband_hist = 0
+    rup_hist = 0
+    rdown_hist = 0
+
+    # Create the error band from the systematics if we have the histograms available
+    if len(net_mc_ratio_unc_list) != 0:
+        print "\n --- Ratio plots for error band ---"
+        for h in net_mc_ratio_unc_list:
+            print h.GetName()
+        print ""
+
+        rband_hist, rup_hist, rdown_hist = errorBandHisto(ratio([net_mc_hist, net_mc_hist], "net_mc_to_net_mc_ratio"), net_mc_ratio_unc_list)
+
+    rbandhist = hratio # set the default error band to the statistical uncertainty
+    if rband_hist != 0:
+        rbandhist = rband_hist
+
+    # set the style for the ratio error band
+    rbandhist.SetFillStyle(3001)
+    rbandhist.SetLineColor(12)
+    rbandhist.SetFillColor(12)
+    rbandhist.SetMarkerStyle(0)
     hratio.SetMarkerStyle(20)
     hratio.Draw("ep")
+    rbandhist.Draw("E2SAME")
+    #rup_hist.Draw("lsame")
+    #rdown_hist.Draw("lsame")
 
     hratio.SetTitle("")
     hratio.GetYaxis().SetTitle(ytitleratio);
     hratio.GetYaxis().SetNdivisions(505);
-    hratio.GetYaxis().SetTitleSize(20);
+    hratio.GetYaxis().SetTitleSize(25); # 20
     hratio.GetYaxis().SetTitleFont(43);
     hratio.GetYaxis().SetTitleOffset(0.6*1.55);
     hratio.GetYaxis().SetLabelFont(43); 
     hratio.GetYaxis().SetLabelSize(15);
 
     hratio.GetXaxis().SetTitle(xtitle);
-    hratio.GetXaxis().SetTitleSize(20);
+    hratio.GetXaxis().SetTitleSize(25); # 20
     hratio.GetXaxis().SetTitleFont(43);
     hratio.GetXaxis().SetTitleOffset(0.8*4.);
     hratio.GetXaxis().SetLabelFont(43); 
     hratio.GetXaxis().SetLabelSize(15);
 
+    pad1.cd()
+    tdrstyle.cmsPrel(35900, 13, False, onLeft=True, textScale=1.5)
 
-    c.SaveAs(name+".png")
+    c.SaveAs('../out/imgs/'+savename+".png")
+    c.SaveAs('../out/rootfiles/'+savename+".root")
 
 ##################################################################
 #-----------------------------------------------------------------
 ##################################################################
 
+# Figure out the error squared for the ratio plot based upon the amount in the numerator and denominator
 def ratioError2(numerator, numeratorError2, denominator, denominatorError2):
     """ Propogation of errors for N_numerator/N_denominator
         Returns error squared, takes in numerator error squared and denom err squared as well as N_num and N_denom"""
@@ -251,6 +431,7 @@ def ratioError2(numerator, numeratorError2, denominator, denominatorError2):
 #-----------------------------------------------------------------
 ##################################################################
 
+# Figure out the rebinning scheme based upon the max allowed error in each bin in the ratio plot
 def getRebinEdges(numerator, denominator, max_err = 0.10):
     """The ratio plots are a bit crazy with huge errors sometimes, so we want to rebin with variable binning
        such that the error is always low in each of the ratio plot bins"""
@@ -260,7 +441,7 @@ def getRebinEdges(numerator, denominator, max_err = 0.10):
     numName = numerator.GetName()
     isMassData = False
     if("dimu_mass" in numerator.GetXaxis().GetTitle() and "Data" in numName): isMassData = True
-    print "numerator name: %s, numerator xtitle: %s, isMassData: %d" %(numName, numerator.GetXaxis().GetTitle(), isMassData)
+    #print "numerator name: %s, numerator xtitle: %s, isMassData: %d" %(numName, numerator.GetXaxis().GetTitle(), isMassData)
 
     # check if the two histos are binned the same way
     compatible = numerator.GetNbinsX() == denominator.GetNbinsX() and numerator.GetBinLowEdge(1) == denominator.GetBinLowEdge(1) \
@@ -342,6 +523,7 @@ def getRebinEdges(numerator, denominator, max_err = 0.10):
 #-----------------------------------------------------------------
 ##################################################################
 
+# Rebin histograms based upon the list of edges
 def rebin(hlist, edges):
     """Use the a variable binning scheme to rebin the histograms in the list."""
     rebin_hlist = []
@@ -355,6 +537,9 @@ def rebin(hlist, edges):
 #-----------------------------------------------------------------
 ##################################################################
 
+# With variable binning in a histogram it's best to scale down
+# the bins with large bin widths 
+# so that the histogram still rises and falls smoothly
 def scaleByBinWidth(hlist, edges):
     min_diff = 9999999999
     scale = []
@@ -377,3 +562,118 @@ def scaleByBinWidth(hlist, edges):
         retlist.append(hclone)
 
     return retlist
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+# Get the min and max of a plot
+def getMinMaxY(plot):
+    miny = -999
+    maxy = -999
+
+    if plot.InheritsFrom("TH1"):
+        miny = plot.GetMinimum()
+        maxy = plot.GetMaximum()
+    else:
+        yvals = plot.GetY()
+        miny = min(yvals)
+        maxy = max(yvals)
+
+    return (miny, maxy)
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+# Get the FWHM and the fwhm left and right boundaries of the histogram
+# without fitting. Not stable with low stats, it's better to fit.
+# Could also smooth by averaging w/ neighbors to get better results.
+def fwhm(h, start=1):
+    maxbin = -999
+    leftbin = -999
+    rightbin = -999
+    max = -999
+    half_max = -999 
+
+    # find max
+    for i in range(start, h.GetNbinsX()):
+        val = h.GetBinContent(i)
+        if val > max:
+            max = val
+            maxbin = i
+
+    half_max = max/2
+
+    # find half-max bin on left of max
+    for i in range(start, maxbin):
+        val = h.GetBinContent(i)
+        if val >= half_max:
+            leftbin = i
+            break
+
+    # find half-max bin on right of max
+    for i in range(maxbin, h.GetNbinsX()):
+        val = h.GetBinContent(i)
+        if val <= half_max:
+            rightbin = i
+            break
+
+    left = h.GetBinCenter(leftbin);
+    right = h.GetBinCenter(rightbin);
+    full_width_half_max = right - left;
+
+    return leftbin, rightbin, full_width_half_max
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+# Fit the signal with a gaussian and get the FWHM boundaries
+def fwhm_fit(h, fitmin=121, fitmax=129):
+    ntries = 0
+    converged = False
+    fit = TF1("Gaussian", "[0]*TMath::Gaus(x, [1], [2])", fitmin, fitmax) 
+    fit.SetParNames("Normalization", "Mean", "Sigma")
+    fit.SetParameters(h.GetMaximum(), h.GetMean(), 2);
+
+    for i in range(0, 50):
+        h.Fit("Gaussian", "q", "", fitmin, fitmax)
+        sconverge = gMinuit.fCstatu
+        if "CONVERGED" in sconverge:
+            converge = True
+            break
+
+    gauss_mean = fit.GetParameter(1)
+    gauss_sigma = fit.GetParameter(2)
+    full_width_half_max = gauss_sigma*2.355
+    left = gauss_mean - full_width_half_max/2;
+    right = gauss_mean + full_width_half_max/2;
+    leftbin = h.GetXaxis().FindBin(left)
+    rightbin = h.GetXaxis().FindBin(right)
+    return leftbin, rightbin, full_width_half_max
+
+##################################################################
+#-----------------------------------------------------------------
+##################################################################
+
+# Fit the bkg with bwz redux and return the fit 
+def fit_bkg(h, fitmin=110, fitmax=160):
+    ntries = 0
+    converged = False
+    fit = TF1("bwz_redux", "[0]*TMath::Exp([1]*x/100 + [2]*(x/100)^2)/(TMath::Power(x-91.2,[3]) + TMath::Power(2.5/2, [3]))", fitmin, fitmax) 
+    fit.SetParNames("Normalization", "a1", "a2", "a3")
+    fit.SetParameters(h.GetMaximum(), 1.39, 0.46, -0.26);
+
+    for i in range(0, 50):
+        h.Fit("bwz_redux", "q", "", fitmin, fitmax)
+        sconverge = gMinuit.fCstatu
+        if "CONVERGED" in sconverge:
+            converge = True
+            break
+
+    a1 = fit.GetParameter(1)
+    a2 = fit.GetParameter(2)
+    a3 = fit.GetParameter(3)
+    return fit
+
