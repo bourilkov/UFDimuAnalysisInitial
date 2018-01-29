@@ -20,6 +20,7 @@
     - ./categorize --categories=2
     - ./categorize --categories=some_autocategorizer_xml_output.xml
     - see categorize.cxx for the other options
+    - limit setting requires --sig_xlumi=0 --binning=-4 
 
 * create c++ executables in bin, python scripts in python
 * the rest of the directories have objects that help with the h2mu analysis
@@ -84,9 +85,11 @@ After compiling with the makefile run the script like so to plot the dimuon mass
 ./categorize --categories=2 --var=dimu_mass_KaMu --nthreads=10 --binning=0
 ```
 
-Binning controls whether the plots are blinded in the signal region, the range of the plots, and the number of bins. Negative binning is unblinded and used for the mass plots for limit setting. To debug or run over fewer events you can use --reductionFactor=10. This would reduce the events you run over by 10x, then scale the plots so that you get the correct numbers for the luminosity. There are other options you can check out as well in the script. It is well commented. If you want histograms for the up and down systematics you can use --systematics="JES_up JES_down PU_up PU_down". 
+Binning controls whether the plots are blinded in the signal region, the range of the plots, and the number of bins. Negative binning unblinds the mass in the signal region 120-130 GeV. The unblinding is used for the mass plots for limit setting. The option --sig_xlumi=0 is also required for the limit setting mass histos. It makes sure the signal normalization is given by the efficiecy times acceptance rather than scaling by the xsec times lumi to get the total number of expected events. Higgs combine will automatically scale to the number of events using the official yellow report values rather than the xsecs from MC.  
 
-There is a slurm script at UFDimuAnalysis/torque/categorize.slurm that submits a batch job on the ufhpc to plot all of the variables used in the analysis in the different run2categories. The categorize.cxx script is parallelized using 1 thread per sample. 
+To debug or run over fewer events you can use --reductionFactor=10. This would reduce the events you run over by 10x, then scale the plots so that you get the correct numbers for the luminosity. There are other options you can check out as well in the script. It is well commented. If you want histograms for the up and down systematics you can use --systematics="JES_up JES_down PU_up PU_down". The systematics can be used to get error bands on the Data/MC comparison plots that account for these uncertainties. 
+
+There is a slurm script at UFDimuAnalysis/torque/categorize.slurm that submits a batch job on the ufhpc to plot all of the variables used in the analysis in the different run2categories. The categorize.cxx script is parallelized assigning threads per sample. 
 
 The output files from categorize.cxx are set to go to bin/rootfiles. So make sure you have that directory or the output files won't be saved. This is true for a lot of the scripts. Check where they save the output and make sure you have the appropriate directory structure. Or you can change the save location in the script to save them wherever you want. 
 
@@ -206,7 +209,7 @@ The autocategorizer makes optimum categories for events in a mass window. It tak
 You can see how the code runs in bdt/studies/h2mumu/BasicTrainAndTest.cxx. Again there is a makefile to compile the executable. See run.sh for an example of how to run the code.
 
 ## 5 - Limits
-The limit setting code takes in the root files from categorize.cxx with the options --binning=-4 --var=dimu_mass_KaMu. You can also run bias studies. Here is the info needed to set up the code. 
+The limit setting code takes in the root files from categorize.cxx with the options --binning=-4 --var=dimu_mass_KaMu --sig_xlumi=0. Binning -4 sets an unblinded singal region, fine binning, and a wide range, while sig_xlumi=0 makes sure the signal histograms are not scaled by the xsec times lumi since higgs combine will automatically do this. You can also run bias studies. Here is the info needed to set up the code. 
 
 ```
 cd ~
@@ -233,10 +236,7 @@ cd ~/h2mu_limit_setting/CMSSW_X_X_X/src/ViktorAnalysis
 source $PWD/config/env.sh
 ```
 
-For the latest combine you may have to 
-in Modeling/combine/generate_precombine.py
-change setPhysicsModelParameters to setParameterschange 
-change nuisancesToFreeze to freezeParameters
+For the latest combine you may have to edit Modeling/combine/generate_precombine.py and change setPhysicsModelParameters to setParameters and change nuisancesToFreeze to freezeParameters.
 
 Before running the code always source the setup.sh file. Make sure to replace my directory paths with your paths for your limit setting library path and your higgs combine cmssw src path. 
 
@@ -252,7 +252,7 @@ projectDirToUse = '/afs/cern.ch/work/a/acarnes/public/h2mumu/limit_setting/out/l
 jobLabel        = 'AMC'
 ```
 
-cmsswDir needs to match your install location for your higgs combine as per the instructions above. projectDirToUse is where the limit setting code will automatically create a bunch of directories and save output. projectDirToUse needs to match that in the run_limts.sh and run_bias.sh and get_limits.sh and get_bias.sh scripts. 
+cmsswDir needs to match your install location for your higgs combine as per the instructions above. projectDirToUse is where the limit setting code will automatically create a bunch of directories and save output, log files, etc. projectDirToUse needs to match that in the run_limts.sh and run_bias.sh and get_limits.sh and get_bias.sh scripts. 
 
 For example you will see this pattern in the run/get.sh files "cmsswDir/somesavedir/jobLabel/$label" e.g. 
 
